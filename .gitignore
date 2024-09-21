@@ -1,0 +1,5 @@
+node_modules
+blnk-ts.code-workspace
+testing
+dist
+.env
