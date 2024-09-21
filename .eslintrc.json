@@ -1,21 +1,8 @@
 {
   "extends": "./node_modules/gts/",
   "rules": {
-    "quotes": [
-      "error",
-      "backtick"
-    ], // Enforce backticks for strings
-    "semi": [
-      "error",
-      "always"
-    ], // Enforce semicolons at the end of statements
-    "no-var": "error", // Disallow `var` (prefer `let` or `const`)
-    "prettier/prettier": [
-      "error",
-      { // Integrate Prettier settings
-        "singleQuote": false, // Enforce double quotes in JS (but backticks for template literals)
-        "semi": true // Ensure semicolons at the end of statements
-      }
-    ]
+    "quotes": ["error", "backtick"], // Enforce backticks for strings
+    "semi": ["error", "always"], // Enforce semicolons at the end of statements
+    "no-var": "error" // Disallow `var` (prefer `let` or `const`)
   }
 }

@@ -3,3 +3,4 @@ blnk-ts.code-workspace
 testing
 dist
 .env
+.vscode
