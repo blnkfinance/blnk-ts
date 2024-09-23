@@ -11,7 +11,8 @@
     "fix": "gts fix",
     "prepare": "npm.cmd run compile",
     "pretest": "npm.cmd run compile",
-    "posttest": "npm.cmd run lint"
+    "posttest": "npm.cmd run lint",
+    "unit-tests": "tap tests/unit"
   },
   "keywords": [
     "sdk",
@@ -29,6 +30,7 @@
     "@types/node": "20.12.7",
     "gts": "^5.3.1",
     "prettier": "^3.3.3",
+    "tap": "^21.0.1",
     "typescript": "^5.4.3"
   },
   "dependencies": {

@@ -15,7 +15,8 @@ export default function BlnkInit(apiKey: string, options: BlnkClientOptions) {
     apiKey,
     options,
     {Ledgers, LedgerBalances, Transactions},
-    FormatResponse
+    FormatResponse,
+    fetch
   );
 }
 

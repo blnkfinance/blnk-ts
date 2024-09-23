@@ -17,7 +17,11 @@ export interface CreateTransactions<T extends Record<string, never>> {
   meta_data?: T;
 }
 
-export interface CreateTransactionResponse<T extends Record<string, never>> {
+export type PryTransactionStatus = `QUEUED` | `APPLIED` | `REJECTED`;
+export type InflightStatus = `INFLIGHT` | `COMMIT` | `VOID` | `EXPIRED`;
+export type StatusType = PryTransactionStatus | InflightStatus;
+
+export type CreateTransactionResponse<T extends Record<string, never>> = {
   transaction_id: string;
   amount: number;
   precision: number;
@@ -25,14 +29,14 @@ export interface CreateTransactionResponse<T extends Record<string, never>> {
   reference: string;
   description: string;
   currency: Currency;
-  status: PryTransactionStatus & InflightStatus; //this should be replaced with string types like INFLIGHT etc
+  status: StatusType;
   source?: string;
   destination?: string;
   sources?: MultipleSourcesT[];
   destinations?: MultipleSourcesT[];
-  created_at: string;
+  created_at: Date;
   meta_data?: T;
-}
+};
 
 export type MultipleSourcesT = {
   identifier: string;
@@ -42,8 +46,6 @@ export type MultipleSourcesT = {
 
 export type Distribution = `${number}%` | `${number}` | `left`;
 
-export type PryTransactionStatus = `QUEUED` | `APPLIED` | `REJECTED`;
-export type InflightStatus = `INFLIGHT` | `COMMIT` | `VOID` | `EXPIRED`;
 //we can only update transactions with COMMIT or VOID
 //create function called commit, that takes in a transaction id and commits it
 //do the same for void

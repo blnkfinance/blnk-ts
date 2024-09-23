@@ -4,3 +4,4 @@ testing
 dist
 .env
 .vscode
+.tap

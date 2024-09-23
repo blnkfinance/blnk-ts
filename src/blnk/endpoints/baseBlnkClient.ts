@@ -17,12 +17,14 @@ export class Blnk {
   private services: ServicesMap;
   private serviceInstances: ServiceInstances = {}; // Cache initialized services
   private formatResponse: FormatResponseType;
+  private thirdPartyRequest: typeof fetch;
 
   constructor(
     apiKey: string,
     options: BlnkClientOptions,
     services: ServicesMap,
-    formatResponse: FormatResponseType
+    formatResponse: FormatResponseType,
+    thirdPartyRequest: typeof fetch
   ) {
     if (!options.baseUrl) {
       throw new Error(`baseUrl is required for self-hosted Blnk SDK.`);
@@ -39,6 +41,7 @@ export class Blnk {
     this.logger = logger;
     this.services = services;
     this.formatResponse = formatResponse;
+    this.thirdPartyRequest = thirdPartyRequest;
   }
 
   /**
@@ -68,12 +71,15 @@ export class Blnk {
 
     try {
       this.logger.info(`Making request`, {endpoint, data, headers, method});
-      const response = await fetch(`${this.options.baseUrl}${endpoint}`, {
-        method,
-        headers,
-        body: data ? JSON.stringify(data) : undefined,
-        signal: controller.signal, // Handle timeout
-      });
+      const response = await this.thirdPartyRequest(
+        `${this.options.baseUrl}${endpoint}`,
+        {
+          method,
+          headers,
+          body: data ? JSON.stringify(data) : undefined,
+          signal: controller.signal, // Handle timeout
+        }
+      );
 
       if (!response.ok) {
         const errorResult = await response.json();
@@ -127,5 +133,9 @@ export class Blnk {
 
   get Transactions(): Transactions {
     return this.getService<Transactions>(`Transactions`);
+  }
+
+  get getApiKey() {
+    return this.apiKey;
   }
 }

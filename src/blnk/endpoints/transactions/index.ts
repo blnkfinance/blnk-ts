@@ -30,6 +30,7 @@ export class Transactions {
       if (validatorResponse) {
         return this.formatResponse(400, validatorResponse, null);
       }
+
       const response = await this.request<
         CreateTransactions<T>,
         CreateTransactionResponse<T>
