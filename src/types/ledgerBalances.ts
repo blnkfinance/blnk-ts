@@ -2,6 +2,7 @@ import {Currency} from "./general";
 
 export interface CreateLedgerBalance<T extends Record<string, unknown>> {
   ledger_id: string;
+  identity_id?: string;
   currency: Currency;
   meta_data: T;
 }
