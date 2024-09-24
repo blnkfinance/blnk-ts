@@ -1,6 +1,8 @@
+import {BalanceMonitor} from "./blnk/endpoints/balanceMonitors";
 import {Blnk} from "./blnk/endpoints/baseBlnkClient";
 import {LedgerBalances} from "./blnk/endpoints/ledgerBalances";
 import {Ledgers} from "./blnk/endpoints/ledgers";
+import {Reconciliation} from "./blnk/endpoints/reconciliation";
 import {Transactions} from "./blnk/endpoints/transactions";
 import {FormatResponse} from "./blnk/utils/httpClient";
 import {CustomLogger} from "./blnk/utils/logger";
@@ -14,7 +16,7 @@ export default function BlnkInit(apiKey: string, options: BlnkClientOptions) {
   return new Blnk(
     apiKey,
     options,
-    {Ledgers, LedgerBalances, Transactions},
+    {Ledgers, LedgerBalances, Transactions, BalanceMonitor, Reconciliation},
     FormatResponse,
     fetch
   );

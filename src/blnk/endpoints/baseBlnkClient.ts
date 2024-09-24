@@ -6,8 +6,10 @@ import {
   ServicesMap,
 } from "../../types/general";
 import {HandleError} from "../utils/logger";
+import {BalanceMonitor} from "./balanceMonitors";
 import {LedgerBalances} from "./ledgerBalances";
 import {Ledgers} from "./ledgers";
+import {Reconciliation} from "./reconciliation";
 import {Transactions} from "./transactions";
 
 export class Blnk {
@@ -34,7 +36,6 @@ export class Blnk {
     const {logger, ...restOptions} = options;
     this.options = {
       timeout: 3000, //default timeout value in ms(30 seconds)
-      headers: {},
       ...restOptions, //merge the provided options with defaults
     };
 
@@ -55,12 +56,13 @@ export class Blnk {
   private async request<T, R>(
     endpoint: string,
     data: T,
-    method: `POST` | `GET` | `PUT` | `DELETE`
+    method: `POST` | `GET` | `PUT` | `DELETE`,
+    headerOptions?: Record<string, string>
   ): Promise<ApiResponse<R | null>> {
     const headers = {
       "Content-Type": `application/json`,
       "X-Blnk-Key": this.apiKey,
-      ...this.options.headers,
+      ...headerOptions,
     };
 
     const controller = new AbortController();
@@ -133,6 +135,14 @@ export class Blnk {
 
   get Transactions(): Transactions {
     return this.getService<Transactions>(`Transactions`);
+  }
+
+  get BalanceMonitor(): BalanceMonitor {
+    return this.getService<BalanceMonitor>(`BalanceMonitor`);
+  }
+
+  get Reconciliation(): Reconciliation {
+    return this.getService<Reconciliation>(`Reconciliation`);
   }
 
   get getApiKey() {
