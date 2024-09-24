@@ -19,10 +19,8 @@ export function HandleError(
   formatResponse: FormatResponseType
 ): ApiResponse<null> {
   if (error instanceof Error) {
-    logger.error(error.message);
     return formatResponse(500, error.message, null);
   } else {
-    logger.info(`An unknown error occurred.`, error);
     return formatResponse(500, `An unknown error occurred.`, null);
   }
 }

@@ -1,12 +1,9 @@
+import {MonitorData} from "../../../types/balanceMonitor";
 import {BlnkLogger} from "../../../types/blnkClient";
 import {BlnkRequest, FormatResponseType} from "../../../types/general";
-import {
-  CreateLedgerBalance,
-  CreateLedgerBalanceResp,
-} from "../../../types/ledgerBalances";
 import {HandleError} from "../../utils/logger";
 
-export class LedgerBalances {
+export class BalanceMonitor {
   private request: BlnkRequest;
   private logger: BlnkLogger;
   private formatResponse: FormatResponseType;
@@ -21,21 +18,14 @@ export class LedgerBalances {
     this.formatResponse = formatResponse;
   }
 
-  /**
-   * Asynchronously creates a ledger using the provided data.
-   *
-   * @param data - The data object containing the ledger information to be created takes in a Generic type `T` for meta_data.
-   * @returns A promise that resolves with the response data upon successful creation or an error response.
-   */
-  async create<T extends Record<string, unknown>>(
-    data: CreateLedgerBalance<T>
-  ) {
+  async create(data: MonitorData) {
     try {
-      const response = await this.request<
-        CreateLedgerBalance<T>,
-        CreateLedgerBalanceResp<T>
-      >(`balances`, data, `POST`);
-
+      //add meta_data to this type
+      const response = await this.request<MonitorData, MonitorData>(
+        `balance-monitors`,
+        data,
+        `POST`
+      );
       return response;
     } catch (error: unknown) {
       this.logger.error(`${this.create.name}`, error);
@@ -45,11 +35,29 @@ export class LedgerBalances {
 
   async get(id: string) {
     try {
-      const response = await this.request(`balances/${id}`, undefined, `GET`);
+      const response = await this.request(
+        `balance-monitors/${id}`,
+        undefined,
+        `GET`
+      );
 
       return response;
-    } catch (error: unknown) {
+    } catch (error) {
       this.logger.error(`${this.get.name}`, error);
+      return HandleError(error, this.logger, this.formatResponse);
+    }
+  }
+
+  async update(id: string, data: MonitorData) {
+    try {
+      const response = await this.request<MonitorData, MonitorData>(
+        `balance-monitors/${id}`,
+        data,
+        `PUT`
+      );
+      return response;
+    } catch (error) {
+      this.logger.error(`${this.update.name}`, error);
       return HandleError(error, this.logger, this.formatResponse);
     }
   }

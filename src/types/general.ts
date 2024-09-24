@@ -3,7 +3,8 @@ import {BlnkLogger} from "./blnkClient";
 export type BlnkRequest = <T, R>(
   endpoint: string,
   data: T,
-  method: `POST` | `GET` | `PUT` | `DELETE`
+  method: `POST` | `GET` | `PUT` | `DELETE`,
+  headerOptions?: Record<string, string>
 ) => Promise<ApiResponse<R | null>>;
 
 export interface ServiceConstructor {
