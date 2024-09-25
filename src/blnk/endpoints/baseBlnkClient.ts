@@ -10,6 +10,7 @@ import {BalanceMonitor} from "./balanceMonitors";
 import {LedgerBalances} from "./ledgerBalances";
 import {Ledgers} from "./ledgers";
 import {Reconciliation} from "./reconciliation";
+import {Search} from "./search";
 import {Transactions} from "./transactions";
 
 export class Blnk {
@@ -143,6 +144,10 @@ export class Blnk {
 
   get Reconciliation(): Reconciliation {
     return this.getService<Reconciliation>(`Reconciliation`);
+  }
+
+  get Search(): Search {
+    return this.getService<Search>(`Search`);
   }
 
   get getApiKey() {
