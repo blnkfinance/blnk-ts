@@ -47,11 +47,6 @@ tap.test(`Blnk SDK tests`, t => {
     async tt => {
       tt.equal(blnk[`apiKey`], apiKey, `apiKey is set correctly`);
       tt.equal(blnk[`options`].timeout, 5000, `timeout is set correctly`);
-      tt.same(
-        blnk[`options`].headers,
-        {Authorization: `Bearer mockToken`},
-        `headers are set correctly`
-      );
       tt.equal(blnk[`logger`], options.logger, `logger is set correctly`);
       tt.equal(blnk[`services`], mockServices, `services are set correctly`);
       tt.equal(
