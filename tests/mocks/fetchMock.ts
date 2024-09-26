@@ -9,8 +9,6 @@ export const fetchMock = t.createMock(
       input: RequestInfo | URL,
       init?: RequestInit
     ): Promise<Response> => {
-      console.log(`Mock Fetch called: ${input.toString()}`, init);
-
       return {
         ok: true,
         status: 200,
@@ -38,8 +36,6 @@ export const fetchFailMock = t.createMock(
       input: RequestInfo | URL,
       init?: RequestInit
     ): Promise<Response> => {
-      console.log(`Mock Failed Fetch called: ${input.toString()}`, init);
-
       return {
         ok: false,
         status: 500,

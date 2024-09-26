@@ -95,8 +95,6 @@ tap.test(`Blnk SDK tests`, t => {
         fetchFailMock.fetch
       );
       const result = await badBlnkRequest[`request`](endpoint, data, method);
-
-      console.log(`resulttt`, result);
       tt.same(
         result,
         {status: 500, message: `Failed`, data: {message: `Failed`}},

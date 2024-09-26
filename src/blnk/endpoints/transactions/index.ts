@@ -44,8 +44,12 @@ export class Transactions {
 
       return response;
     } catch (error: unknown) {
-      this.logger.error(`${this.create.name}`, error);
-      return HandleError(error, this.logger, this.formatResponse);
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.create.name
+      );
     }
   }
 
@@ -80,8 +84,12 @@ export class Transactions {
       >(`transactions/inflight/${id}`, update, `PUT`);
       return response;
     } catch (error: unknown) {
-      this.logger.error(`${this.updateStatus.name}`, error);
-      return HandleError(error, this.logger, this.formatResponse);
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.updateStatus.name
+      );
     }
   }
 
@@ -94,8 +102,12 @@ export class Transactions {
       );
       return response;
     } catch (error: unknown) {
-      this.logger.error(`${this.refund.name}`, error);
-      return HandleError(error, this.logger, this.formatResponse);
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.refund.name
+      );
     }
   }
 }

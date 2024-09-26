@@ -16,8 +16,10 @@ export const CustomLogger: BlnkLogger = {
 export function HandleError(
   error: unknown,
   logger: BlnkLogger,
-  formatResponse: FormatResponseType
+  formatResponse: FormatResponseType,
+  fnName: string
 ): ApiResponse<null> {
+  logger.error(fnName, error);
   if (error instanceof Error) {
     return formatResponse(500, error.message, null);
   } else {

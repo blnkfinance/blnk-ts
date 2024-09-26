@@ -1,4 +1,5 @@
 import {IdentityData} from "../../../types/identity";
+import {isValidMetaData} from "./ledgerBalance";
 
 export function ValidateIdentity<T extends Record<string, unknown>>(
   data: IdentityData<T>
@@ -45,6 +46,10 @@ export function ValidateIdentity<T extends Record<string, unknown>>(
   }
   if (!data.category) {
     return `Category is required.`;
+  }
+  // Validate meta_data if provided
+  if (data.meta_data !== undefined && !isValidMetaData(data.meta_data)) {
+    return `meta_data must be a valid object if provided`;
   }
 
   // Return errors if any, otherwise return an empty array

@@ -31,8 +31,12 @@ export class Search {
 
       return response;
     } catch (error) {
-      this.logger.error(`${this.search.name}`, error);
-      return HandleError(error, this.logger, this.formatResponse);
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.search.name
+      );
     }
   }
 }

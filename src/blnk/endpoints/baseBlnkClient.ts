@@ -104,7 +104,12 @@ export class Blnk {
       ) as ApiResponse<R>;
     } catch (error: unknown) {
       this.logger.error(`Request failed`, {endpoint, error});
-      return HandleError(error, this.logger, this.formatResponse);
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        `${this.request.name}`
+      );
     } finally {
       clearTimeout(timeoutId);
     }

@@ -4,7 +4,7 @@ export interface CreateLedgerBalance<T extends Record<string, unknown>> {
   ledger_id: string;
   identity_id?: string;
   currency: Currency;
-  meta_data: T;
+  meta_data?: T;
 }
 
 export interface CreateLedgerBalanceResp<T extends Record<string, unknown>> {

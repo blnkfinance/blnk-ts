@@ -47,8 +47,12 @@ export class Reconciliation {
       );
       return response;
     } catch (error) {
-      this.logger.error(`${this.upload.name}`, error);
-      return HandleError(error, this.logger, this.formatResponse);
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.upload.name
+      );
     }
   }
 
@@ -61,8 +65,12 @@ export class Reconciliation {
       );
       return response; //query endpoint and get response data type
     } catch (error) {
-      this.logger.error(`${this.createMatchingRule.name}`, error);
-      return HandleError(error, this.logger, this.formatResponse);
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.createMatchingRule.name
+      );
     }
   }
 
@@ -71,8 +79,12 @@ export class Reconciliation {
       const response = await this.request(`reconciliation/start`, data, `POST`);
       return response;
     } catch (error) {
-      this.logger.error(`${this.run.name}`, error);
-      return HandleError(error, this.logger, this.formatResponse);
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.run.name
+      );
     }
   }
 }

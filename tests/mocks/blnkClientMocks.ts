@@ -1,3 +1,5 @@
+import {FormatResponse} from "../../src/blnk/utils/httpClient";
+import {HandleError} from "../../src/blnk/utils/logger";
 import {BlnkClientOptions, BlnkLogger} from "../../src/types/blnkClient";
 import {ApiResponse, BlnkRequest, ServicesMap} from "../../src/types/general";
 import {TransactionMock} from "./mockTransactions";
@@ -55,24 +57,29 @@ export const ledgerId = `123456`;
 
 // Mock BlnkRequest implementation
 // Factory function for creating mockBlnkRequest
-export const createMockBlnkRequest = (success: boolean): BlnkRequest => {
+export const createMockBlnkRequest = (
+  success: boolean,
+  throwError: string | undefined = undefined
+): BlnkRequest => {
   return async <T, R>(
     endpoint: string,
     data: T,
     method: `POST` | `GET` | `PUT` | `DELETE`,
     headerOptions?: Record<string, string>
   ): Promise<ApiResponse<R | null>> => {
-    console.log(`Mocking request to endpoint: ${endpoint}`);
-    console.log(`Method: ${method}`);
-    console.log(`Data:`, data);
-    console.log(`Headers:`, headerOptions);
-
-    // Simulate success or error based on the success parameter
-    if (success) {
-      const mockData = {ledger_id: ledgerId} as unknown as R;
-      return mockApiResponse<R>(mockData);
-    } else {
-      return mockApiResponse<R | null>(null, 500, `Internal Server Error`);
+    try {
+      if (throwError !== undefined) {
+        throw new Error(throwError);
+      }
+      // Simulate success or error based on the success parameter
+      if (success) {
+        const mockData = {ledger_id: ledgerId} as unknown as R;
+        return mockApiResponse<R>(mockData);
+      } else {
+        return mockApiResponse<R | null>(null, 500, `Internal Server Error`);
+      }
+    } catch (error: unknown) {
+      return HandleError(error, createMockLogger(), FormatResponse, `request`);
     }
   };
 };

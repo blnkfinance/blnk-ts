@@ -3,6 +3,7 @@ import {
   CreateTransactions,
   MultipleSourcesT,
 } from "../../../types/transactions";
+import {isValidMetaData} from "./ledgerBalance";
 
 export function ValidateCreateTransactions<T extends Record<string, never>>(
   data: CreateTransactions<T>
@@ -79,8 +80,9 @@ export function ValidateCreateTransactions<T extends Record<string, never>>(
     return `Allow overdraft must be a boolean if provided.`;
   }
 
-  if (data.meta_data !== undefined && typeof data.meta_data !== `object`) {
-    return `Meta data must be an object if provided.`;
+  // Validate meta_data if provided
+  if (data.meta_data !== undefined && !isValidMetaData(data.meta_data)) {
+    return `meta_data must be a valid object if provided`;
   }
 
   return null; // No errors

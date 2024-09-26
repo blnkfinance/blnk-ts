@@ -28,8 +28,12 @@ export class BalanceMonitor {
       );
       return response;
     } catch (error: unknown) {
-      this.logger.error(`${this.create.name}`, error);
-      return HandleError(error, this.logger, this.formatResponse);
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.create.name
+      );
     }
   }
 
@@ -43,8 +47,12 @@ export class BalanceMonitor {
 
       return response;
     } catch (error) {
-      this.logger.error(`${this.get.name}`, error);
-      return HandleError(error, this.logger, this.formatResponse);
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.get.name
+      );
     }
   }
 
@@ -57,8 +65,12 @@ export class BalanceMonitor {
       );
       return response;
     } catch (error) {
-      this.logger.error(`${this.update.name}`, error);
-      return HandleError(error, this.logger, this.formatResponse);
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.update.name
+      );
     }
   }
 }

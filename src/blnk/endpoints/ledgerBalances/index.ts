@@ -5,6 +5,7 @@ import {
   CreateLedgerBalanceResp,
 } from "../../../types/ledgerBalances";
 import {HandleError} from "../../utils/logger";
+import {ValidateCreateLedgerBalance} from "../../utils/validators/ledgerBalance";
 
 export class LedgerBalances {
   private request: BlnkRequest;
@@ -31,6 +32,10 @@ export class LedgerBalances {
     data: CreateLedgerBalance<T>
   ) {
     try {
+      const error = await ValidateCreateLedgerBalance(data);
+      if (error) {
+        return this.formatResponse(400, error, null);
+      }
       const response = await this.request<
         CreateLedgerBalance<T>,
         CreateLedgerBalanceResp<T>
@@ -38,8 +43,12 @@ export class LedgerBalances {
 
       return response;
     } catch (error: unknown) {
-      this.logger.error(`${this.create.name}`, error);
-      return HandleError(error, this.logger, this.formatResponse);
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.create.name
+      );
     }
   }
 
@@ -49,8 +58,12 @@ export class LedgerBalances {
 
       return response;
     } catch (error: unknown) {
-      this.logger.error(`${this.get.name}`, error);
-      return HandleError(error, this.logger, this.formatResponse);
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.create.name
+      );
     }
   }
 }
