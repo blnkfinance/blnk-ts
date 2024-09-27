@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {FormatResponse} from "../../src/blnk/utils/httpClient";
 import {HandleError} from "../../src/blnk/utils/logger";
 import {BlnkClientOptions, BlnkLogger} from "../../src/types/blnkClient";
@@ -73,7 +74,7 @@ export const createMockBlnkRequest = (
       }
       // Simulate success or error based on the success parameter
       if (success) {
-        const mockData = {ledger_id: ledgerId} as unknown as R;
+        const mockData = {...data, ledger_id: ledgerId} as unknown as R;
         return mockApiResponse<R>(mockData);
       } else {
         return mockApiResponse<R | null>(null, 500, `Internal Server Error`);

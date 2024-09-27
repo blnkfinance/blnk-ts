@@ -2,6 +2,7 @@ import {BlnkLogger} from "../../../types/blnkClient";
 import {BlnkRequest, FormatResponseType} from "../../../types/general";
 import {CreateLedger, CreateLedgerResp} from "../../../types/ledger";
 import {HandleError} from "../../utils/logger";
+import {ValidateCreateLedger} from "../../utils/validators/ledgerValidators";
 
 export class Ledgers {
   private request: BlnkRequest;
@@ -26,6 +27,10 @@ export class Ledgers {
    */
   async create<T extends Record<string, unknown>>(data: CreateLedger<T>) {
     try {
+      const error = await ValidateCreateLedger(data);
+      if (error) {
+        return this.formatResponse(400, error, null);
+      }
       const response = await this.request<CreateLedger<T>, CreateLedgerResp<T>>(
         `ledgers`,
         data,

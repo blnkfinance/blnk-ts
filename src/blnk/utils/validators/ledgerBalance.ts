@@ -33,7 +33,7 @@ export function ValidateCreateLedgerBalance<T extends Record<string, unknown>>(
   return null;
 }
 
-const isValidString = (val: string): val is string => typeof val === `string`;
+const isValidString = (val: string) => typeof val === `string`;
 
 const isValidCurrency = (currency: Currency) =>
   currency === `USD` || currency === `NGN`;

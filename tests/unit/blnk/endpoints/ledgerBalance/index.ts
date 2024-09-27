@@ -11,7 +11,6 @@ import {CreateLedgerBalance} from "../../../../../src/types/ledgerBalances";
 
 tap.test(`Ledger Balance Tests`, t => {
   const mockLogger = createMockLogger();
-  t.beforeEach(() => {});
 
   t.test(
     `it should create a ledger balance when valid data is provided`,
@@ -139,19 +138,7 @@ tap.test(`Ledger Balance Tests`, t => {
       const response = await ledgerBalance.create<{company_name: string}>(data);
 
       //verify that the request function was called and with the right parameters
-      tt.match(capturedRequest.args(), [
-        [
-          `balances`,
-          {
-            currency: `USD`,
-            ledger_id: ledgerId,
-            meta_data: {
-              company_name: `Test Company`,
-            },
-          },
-          `POST`,
-        ],
-      ]);
+      tt.match(capturedRequest.args(), [[`balances`, data, `POST`]]);
 
       tt.equal(response.status, 500, `Response is 500`);
       tt.equal(response.data, null);
