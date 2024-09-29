@@ -39,7 +39,7 @@ export type FormatResponseType = <T>(
   data: T
 ) => ApiResponse<T>;
 
-export type Currency = `USD`;
+export type Currency = `USD` | `NGN` | `EUR`;
 
 export type SourceWithAt = `@${string}`;
 

@@ -29,20 +29,3 @@ export default function BlnkInit(apiKey: string, options: BlnkClientOptions) {
     fetch
   );
 }
-
-const b = BlnkInit(`ll`, {
-  baseUrl: `ddd`,
-  logger: console,
-});
-
-b.LedgerBalances.create<{d: string}>({
-  currency: `USD`,
-  ledger_id: `dd`,
-  meta_data: {
-    d: `ddd`,
-  },
-}).then(d => {
-  d.data!.meta_data.d;
-});
-
-b.Search.search({q: ``}, `ledgers`);

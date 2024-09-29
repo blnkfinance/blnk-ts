@@ -2,8 +2,8 @@
   "name": "@blnkfinance/blnk-typescript",
   "version": "1.0.0",
   "description": "Blnk Finance SDK in TypeScript",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
   "scripts": {
     "lint": "gts lint",
     "clean": "gts clean",
