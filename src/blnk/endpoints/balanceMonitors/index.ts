@@ -1,7 +1,8 @@
-import {MonitorData} from "../../../types/balanceMonitor";
+import {MonitorData, MonitorDataResp} from "../../../types/balanceMonitor";
 import {BlnkLogger} from "../../../types/blnkClient";
 import {BlnkRequest, FormatResponseType} from "../../../types/general";
 import {HandleError} from "../../utils/logger";
+import {ValidateMonitorData} from "../../utils/validators/balanceMonitors";
 
 export class BalanceMonitor {
   private request: BlnkRequest;
@@ -20,6 +21,10 @@ export class BalanceMonitor {
 
   async create(data: MonitorData) {
     try {
+      const validatorResponse = ValidateMonitorData(data);
+      if (validatorResponse) {
+        return this.formatResponse(400, validatorResponse, null);
+      }
       //add meta_data to this type
       const response = await this.request<MonitorData, MonitorData>(
         `balance-monitors`,
@@ -58,7 +63,7 @@ export class BalanceMonitor {
 
   async update(id: string, data: MonitorData) {
     try {
-      const response = await this.request<MonitorData, MonitorData>(
+      const response = await this.request<MonitorData, MonitorDataResp>(
         `balance-monitors/${id}`,
         data,
         `PUT`

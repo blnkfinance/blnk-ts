@@ -23,6 +23,9 @@ export class Search {
     service: `ledgers` | `transactions` | `balances`
   ) {
     try {
+      if (!data.q) {
+        return this.formatResponse(400, `Field "q" must be filled`, null);
+      }
       const response = await this.request<SearchParams, SearchResponse>(
         `search/${service}`,
         data,

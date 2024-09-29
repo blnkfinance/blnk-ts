@@ -1,5 +1,6 @@
 import {Currency} from "../../../types/general";
 import {CreateLedgerBalance} from "../../../types/ledgerBalances";
+import {IsValidString} from "../stringUtils";
 
 export function ValidateCreateLedgerBalance<T extends Record<string, unknown>>(
   data: CreateLedgerBalance<T>
@@ -10,12 +11,12 @@ export function ValidateCreateLedgerBalance<T extends Record<string, unknown>>(
   }
 
   // Validate ledger_id
-  if (!isValidString(data.ledger_id)) {
+  if (!IsValidString(data.ledger_id)) {
     return `ledger_id must be a valid string`;
   }
 
   // Validate identity_id if provided
-  if (data.identity_id !== undefined && !isValidString(data.identity_id)) {
+  if (data.identity_id !== undefined && !IsValidString(data.identity_id)) {
     return `identity_id must be a valid string if provided`;
   }
 
@@ -32,8 +33,6 @@ export function ValidateCreateLedgerBalance<T extends Record<string, unknown>>(
   // If all validations pass, return null
   return null;
 }
-
-const isValidString = (val: string) => typeof val === `string`;
 
 const isValidCurrency = (currency: Currency) =>
   currency === `USD` || currency === `NGN`;

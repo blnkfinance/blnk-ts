@@ -4,16 +4,16 @@ export interface ReconciliationUploadResp {
   source: string;
 }
 
-type CriteriaField =
+export type CriteriaField =
   | `amount`
   | `currency`
   | `reference`
   | `description`
   | `date`;
 
-type Operator = `equals` | `greater_than` | `less_than` | `contains`;
+export type Operator = `equals` | `greater_than` | `less_than` | `contains`;
 
-interface Criteria {
+export interface Criteria {
   field: CriteriaField;
   operator: Operator;
   allowable_drift?: number; // Optional field for fields that support allowable drift

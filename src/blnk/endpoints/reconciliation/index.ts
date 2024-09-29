@@ -9,6 +9,7 @@ import {
   ReconciliationUploadResp,
   RunReconData,
 } from "../../../types/reconciliation";
+import {ValidateMatcher} from "../../utils/validators/reconciliationValidator";
 
 export class Reconciliation {
   private request: BlnkRequest;
@@ -58,6 +59,10 @@ export class Reconciliation {
 
   async createMatchingRule(data: Matcher) {
     try {
+      const validatorResponse = await ValidateMatcher(data);
+      if (validatorResponse) {
+        return this.formatResponse(400, validatorResponse, null);
+      }
       const response = await this.request(
         `reconciliation/matching-rules`,
         data,
