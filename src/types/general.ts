@@ -1,4 +1,5 @@
-import {BlnkLogger} from "./blnkClient";
+import {Blnk} from "../blnk/endpoints/baseBlnkClient";
+import {BlnkClientOptions, BlnkLogger} from "./blnkClient";
 
 export type BlnkRequest = <T, R>(
   endpoint: string,
@@ -50,3 +51,5 @@ export type HandleErrorType = (
   logger: BlnkLogger,
   formatResponse: FormatResponseType
 ) => ApiResponse<null>;
+
+export type BlnkInitFn = (apiKey: string, options: BlnkClientOptions) => Blnk;

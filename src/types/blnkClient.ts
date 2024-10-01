@@ -1,7 +1,7 @@
 export interface BlnkClientOptions {
   baseUrl: string; // Required
   timeout?: number; // Optional, default to a reasonable value like 30 seconds
-  logger: BlnkLogger;
+  logger?: BlnkLogger;
 }
 
 export interface BlnkLogger {

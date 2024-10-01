@@ -8,9 +8,10 @@ import {Transactions} from "./blnk/endpoints/transactions";
 import {FormatResponse} from "./blnk/utils/httpClient";
 import {CustomLogger} from "./blnk/utils/logger";
 import {BlnkClientOptions} from "./types/blnkClient";
+//import {BlnkInitFn} from "./types/general";
 
 // Export a function to initialize the SDK with default logger handling
-export default function BlnkInit(apiKey: string, options: BlnkClientOptions) {
+export function BlnkInit(apiKey: string, options: BlnkClientOptions) {
   if (options.logger === undefined) {
     options.logger = CustomLogger;
   }
@@ -29,3 +30,6 @@ export default function BlnkInit(apiKey: string, options: BlnkClientOptions) {
     fetch
   );
 }
+//module.exports = BlnkInit as BlnkInitFn & {default: BlnkInitFn};
+//export default BlnkInit;
+//# sourceMappingURL=index.d.ts.map

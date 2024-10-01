@@ -6,6 +6,7 @@ export interface CreateTransactions<T extends Record<string, never>> {
   reference: string;
   description: string;
   currency: Currency;
+  rate?: number;
   source?: string;
   sources?: MultipleSourcesT[];
   destinations?: MultipleSourcesT[];

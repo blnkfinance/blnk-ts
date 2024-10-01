@@ -1,6 +1,6 @@
-const Blnk = require(`@blnkfinance/blnk-typescript`);
+const {BlnkInit} = require(`@blnkfinance/blnk-typescript`);
 
-const ledgers = Blnk.default(`apo`, {
+const ledgers = BlnkInit(`apo`, {
   baseUrl: `http://localhost:5001/`,
   logger: console,
 }).Ledgers;

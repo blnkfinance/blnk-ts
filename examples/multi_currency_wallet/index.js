@@ -1,7 +1,7 @@
-const Blnk = require(`@blnkfinance/blnk-typescript`);
+const {BlnkInit} = require(`@blnkfinance/blnk-typescript`);
 
 async function main() {
-  const blnk = Blnk.default(``, {
+  const blnk = BlnkInit(``, {
     baseUrl: ``,
     logger: console,
   });
@@ -119,6 +119,21 @@ async function main() {
   console.log(`eur balance after debit`, eurBalanceView);
 
   //moving money between multicurrency wallets
+  const usdToEur = await Transactions.create({
+    amount: 200,
+    precision: 100,
+    reference: `ref-0-01`,
+    description: `payment for service rendered`,
+    currency: `USD`,
+    destinations: eurBalance.data.balance_id,
+    source: usdBalance.data.balance_id,
+    rate: 0.92,
+    meta_data: {
+      sender_name: `Future Design LLC`,
+      sender_internal_id: `123333`,
+    },
+  });
+  console.log(`usd to eur wallet`, usdToEur);
 }
 
 main();
