@@ -1,9 +1,7 @@
-import {Currency} from "./general";
-
 export interface CreateLedgerBalance<T extends Record<string, unknown>> {
   ledger_id: string;
   identity_id?: string;
-  currency: Currency;
+  currency: string;
   meta_data?: T;
 }
 
@@ -20,7 +18,7 @@ export interface CreateLedgerBalanceResp<T extends Record<string, unknown>> {
   identity_id: string;
   balance_id: string;
   indicator: string;
-  currency: Currency;
+  currency: string;
   created_at: string;
   meta_data: T;
 }

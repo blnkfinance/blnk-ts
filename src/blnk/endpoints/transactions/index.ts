@@ -34,7 +34,7 @@ export class Transactions {
       const response = await this.request<
         CreateTransactions<T>,
         CreateTransactionResponse<T>
-      >(`ledgers`, data, `POST`);
+      >(`transactions`, data, `POST`);
 
       if (response.data === null) {
         // Handle the error case

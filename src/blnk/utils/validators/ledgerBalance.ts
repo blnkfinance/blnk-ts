@@ -1,4 +1,3 @@
-import {Currency} from "../../../types/general";
 import {CreateLedgerBalance} from "../../../types/ledgerBalances";
 import {IsValidString} from "../stringUtils";
 
@@ -21,7 +20,7 @@ export function ValidateCreateLedgerBalance<T extends Record<string, unknown>>(
   }
 
   // Validate currency
-  if (!isValidCurrency(data.currency)) {
+  if (!IsValidString(data.currency)) {
     return `currency must be either 'USD' or 'NGN'`;
   }
 
@@ -33,9 +32,6 @@ export function ValidateCreateLedgerBalance<T extends Record<string, unknown>>(
   // If all validations pass, return null
   return null;
 }
-
-const isValidCurrency = (currency: Currency) =>
-  currency === `USD` || currency === `NGN`;
 
 export const isValidMetaData = <T extends Record<string, unknown>>(meta: T) =>
   typeof meta === `object` && meta !== null;

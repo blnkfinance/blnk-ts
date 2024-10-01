@@ -40,7 +40,11 @@ export class Blnk {
       ...restOptions, //merge the provided options with defaults
     };
 
-    this.logger = logger;
+    if (logger === undefined) {
+      this.logger = console;
+    } else {
+      this.logger = logger;
+    }
     this.services = services;
     this.formatResponse = formatResponse;
     this.thirdPartyRequest = thirdPartyRequest;

@@ -1,11 +1,9 @@
-import {Currency} from "./general";
-
 export interface CreateTransactions<T extends Record<string, never>> {
   amount: number;
   precision: number;
   reference: string;
   description: string;
-  currency: Currency;
+  currency: string;
   rate?: number;
   source?: string;
   sources?: MultipleSourcesT[];
@@ -29,7 +27,7 @@ export type CreateTransactionResponse<T extends Record<string, never>> = {
   precise_amount: number;
   reference: string;
   description: string;
-  currency: Currency;
+  currency: string;
   status: StatusType;
   source?: string;
   destination?: string;

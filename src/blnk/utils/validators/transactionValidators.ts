@@ -1,8 +1,8 @@
-import {Currency} from "../../../types/general";
 import {
   CreateTransactions,
   MultipleSourcesT,
 } from "../../../types/transactions";
+import {IsValidString} from "../stringUtils";
 import {isValidMetaData} from "./ledgerBalance";
 
 export function ValidateCreateTransactions<T extends Record<string, never>>(
@@ -20,7 +20,7 @@ export function ValidateCreateTransactions<T extends Record<string, never>>(
   if (typeof data.description !== `string`) {
     return `Description must be a string.`;
   }
-  if (!isValidCurrency(data.currency)) {
+  if (!IsValidString(data.currency)) {
     return `Invalid currency.`;
   }
 
@@ -86,12 +86,6 @@ export function ValidateCreateTransactions<T extends Record<string, never>>(
   }
 
   return null; // No errors
-}
-
-function isValidCurrency(currency: Currency): boolean {
-  // Check if currency is a valid Currency type
-  const validCurrencies: Currency[] = [`USD`];
-  return validCurrencies.includes(currency);
 }
 
 function validateSources(
