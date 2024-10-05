@@ -16,8 +16,15 @@ export interface CreateTransactions<T extends Record<string, never>> {
   meta_data?: T;
 }
 
-export type PryTransactionStatus = `QUEUED` | `APPLIED` | `REJECTED`;
-export type InflightStatus = `INFLIGHT` | `COMMIT` | `VOID` | `EXPIRED`;
+export type PryTransactionStatus =
+  | `QUEUED`
+  | `APPLIED`
+  | `REJECTED`
+  | `COMMIT`
+  | `VOID`
+  | `INFLIGHT`
+  | `EXPIRED`;
+export type InflightStatus = `commit` | `void`;
 export type StatusType = PryTransactionStatus | InflightStatus;
 
 export type CreateTransactionResponse<T extends Record<string, never>> = {
@@ -50,12 +57,7 @@ export type Distribution = `${number}%` | `${number}` | `left`;
 //do the same for void
 //so transaction.commit(id), transaction.commitPartial(id,amount)
 export type UpdateTransactionStatus<T extends Record<string, never>> = {
-  status: InflightStatusWithoutInFlightAndExpired;
+  status: InflightStatus;
   amount?: number;
   meta_data?: T;
 };
-
-export type InflightStatusWithoutInFlightAndExpired = Exclude<
-  InflightStatus,
-  `INFLIGHT` | `EXPIRED`
->;
