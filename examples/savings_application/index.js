@@ -1,4 +1,5 @@
 const {BlnkInit} = require(`@blnkfinance/blnk-typescript`);
+const {GenerateRandomNumbersWithPrefix} = require(`../util`);
 
 async function main() {
   const blnk = BlnkInit(``, {
@@ -19,7 +20,7 @@ async function main() {
   }
 
   const aliceSavings = await LedgerBalances.create({
-    ledger_id: savingsLedger.data.id,
+    ledger_id: savingsLedger.data.ledger_id,
     currency: `USD`,
     meta_data: {
       account_type: `Escrow`,
@@ -35,15 +36,17 @@ async function main() {
   }
 
   //funding alice savings balance by creating a transaction
+  //first time funding so we enable overdraft
   const aliceDeposit = await Transactions.create({
     amount: 1000,
     precision: 100,
-    reference: `funding-001`,
+    reference: GenerateRandomNumbersWithPrefix(`funding`, 4),
     description: `Funding savings account`,
     currency: `USD`,
     source: `@bank-account`,
     destination: aliceSavings.data.balance_id, // Alice's savings account balance_id
     inflight: true,
+    allow_overdraft: true, // Enable overdraft for the first deposit
     meta_data: {
       transaction_type: `deposit`,
       customer_name: `Alice Johnson`,

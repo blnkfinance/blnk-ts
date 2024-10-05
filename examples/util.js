@@ -6,7 +6,7 @@ function GenerateRandomNumbersWithPrefix(prefix, count) {
   }
 
   const randomNumbersString = randomNumbers.join(``); // Joins the numbers into a string
-  return `${prefix}${randomNumbersString}`; // Combines the prefix with the random number string
+  return `${prefix}-${randomNumbersString}`; // Combines the prefix with the random number string
 }
 
 function sleep(seconds) {

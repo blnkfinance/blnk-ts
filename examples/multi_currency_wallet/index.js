@@ -1,4 +1,5 @@
 const {BlnkInit} = require(`@blnkfinance/blnk-typescript`);
+const {GenerateRandomNumbersWithPrefix} = require(`../util`);
 
 async function main() {
   const blnk = BlnkInit(``, {
@@ -50,7 +51,7 @@ async function main() {
   const usdTransaction = await Transactions.create({
     amount: 200,
     precision: 100,
-    reference: `ref-0-01`,
+    reference: GenerateRandomNumbersWithPrefix(`ref`, 4),
     description: `payment for service rendered`,
     currency: `USD`,
     source: `@World`,
@@ -67,7 +68,7 @@ async function main() {
   const eurTransaction = await Transactions.create({
     amount: 3500.5,
     precision: 100,
-    reference: `ref-0-02`,
+    reference: GenerateRandomNumbersWithPrefix(`ref`, 4),
     description: `invoice A fulfilled`,
     currency: `EUR`,
     source: `@World`,
@@ -85,10 +86,10 @@ async function main() {
   const usdDebit = await Transactions.create({
     amount: 200,
     precision: 100,
-    reference: `ref-0-01`,
+    reference: GenerateRandomNumbersWithPrefix(`ref`, 4),
     description: `payment for service rendered`,
     currency: `USD`,
-    destinations: `@World`,
+    destination: `@World`,
     source: usdBalance.data.balance_id,
     meta_data: {
       sender_name: `Future Design LLC`,
@@ -100,10 +101,10 @@ async function main() {
   const eurDebit = await Transactions.create({
     amount: 1470.49,
     precision: 100,
-    reference: `ref-0-01`,
+    reference: GenerateRandomNumbersWithPrefix(`ref`, 4),
     description: `payment for service rendered`,
     currency: `EUR`,
-    destinations: `@World`,
+    destination: `@World`,
     source: eurBalance.data.balance_id,
     meta_data: {
       sender_name: `Future Design LLC`,
@@ -122,10 +123,10 @@ async function main() {
   const usdToEur = await Transactions.create({
     amount: 200,
     precision: 100,
-    reference: `ref-0-01`,
+    reference: GenerateRandomNumbersWithPrefix(`ref`, 4),
     description: `payment for service rendered`,
     currency: `USD`,
-    destinations: eurBalance.data.balance_id,
+    destination: eurBalance.data.balance_id,
     source: usdBalance.data.balance_id,
     rate: 0.92,
     meta_data: {
