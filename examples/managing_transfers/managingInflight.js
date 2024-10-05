@@ -1,6 +1,6 @@
 const {BlnkInit} = require(`@blnkfinance/blnk-typescript`);
 const blnk = BlnkInit(``, {
-  baseUrl: ``,
+  baseUrl: process.env.BASE_URL,
   logger: console,
 });
 

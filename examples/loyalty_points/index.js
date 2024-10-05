@@ -2,7 +2,7 @@ const {BlnkInit} = require(`@blnkfinance/blnk-typescript`);
 
 async function main() {
   const blnk = BlnkInit(``, {
-    baseUrl: `http://localhost:5001/`,
+    baseUrl: process.env.BASE_URL,
     logger: console,
   });
   const {Ledgers, LedgerBalances, Transactions} = blnk;
