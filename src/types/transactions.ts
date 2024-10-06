@@ -1,4 +1,4 @@
-export interface CreateTransactions<T extends Record<string, never>> {
+export interface CreateTransactions<T extends Record<string, unknown>> {
   amount: number;
   precision: number;
   reference: string;
@@ -27,7 +27,7 @@ export type PryTransactionStatus =
 export type InflightStatus = `commit` | `void`;
 export type StatusType = PryTransactionStatus | InflightStatus;
 
-export type CreateTransactionResponse<T extends Record<string, never>> = {
+export type CreateTransactionResponse<T extends Record<string, unknown>> = {
   transaction_id: string;
   amount: number;
   precision: number;
@@ -56,7 +56,7 @@ export type Distribution = `${number}%` | `${number}` | `left`;
 //create function called commit, that takes in a transaction id and commits it
 //do the same for void
 //so transaction.commit(id), transaction.commitPartial(id,amount)
-export type UpdateTransactionStatus<T extends Record<string, never>> = {
+export type UpdateTransactionStatus<T extends Record<string, unknown>> = {
   status: InflightStatus;
   amount?: number;
   meta_data?: T;

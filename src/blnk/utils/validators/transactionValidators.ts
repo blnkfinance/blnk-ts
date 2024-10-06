@@ -1,11 +1,12 @@
 import {
   CreateTransactions,
   MultipleSourcesT,
+  UpdateTransactionStatus,
 } from "../../../types/transactions";
 import {IsValidString} from "../stringUtils";
 import {isValidMetaData} from "./ledgerBalance";
 
-export function ValidateCreateTransactions<T extends Record<string, never>>(
+export function ValidateCreateTransactions<T extends Record<string, unknown>>(
   data: CreateTransactions<T>
 ): string | null {
   if (typeof data.amount !== `number`) {
@@ -131,6 +132,34 @@ function validateSources(
     }
   } else if (sum !== amount) {
     return `Total distribution sum (${sum}) does not equal the specified amount (${amount}).`;
+  }
+
+  return null;
+}
+
+export function ValidateUpdateTransactions<T extends Record<string, unknown>>(
+  data: UpdateTransactionStatus<T>
+): string | null {
+  if (typeof data.status !== `string`) {
+    return `Status must be a string.`;
+  }
+
+  //if amount exists, it must be a number
+  if (data.amount !== undefined && typeof data.amount !== `number`) {
+    return `Amount must be a number.`;
+  }
+
+  // Validate meta_data if provided
+  if (data.meta_data !== undefined && !isValidMetaData(data.meta_data)) {
+    return `meta_data must be a valid object if provided`;
+  }
+
+  //if any field not  in the type is provided, throw an error
+  const allowedFields = [`status`, `amount`, `meta_data`];
+  for (const key in data) {
+    if (!allowedFields.includes(key)) {
+      return `Invalid field: ${key}`;
+    }
   }
 
   return null;

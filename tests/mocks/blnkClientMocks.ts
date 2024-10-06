@@ -60,7 +60,8 @@ export const ledgerId = `123456`;
 // Factory function for creating mockBlnkRequest
 export const createMockBlnkRequest = (
   success: boolean,
-  throwError: string | undefined = undefined
+  throwError: string | undefined = undefined,
+  status = 200
 ): BlnkRequest => {
   return async <T, R>(
     endpoint: string,
@@ -75,12 +76,12 @@ export const createMockBlnkRequest = (
       // Simulate success or error based on the success parameter
       if (success) {
         const mockData = {...data, ledger_id: ledgerId} as unknown as R;
-        return mockApiResponse<R>(mockData);
+        return mockApiResponse<R>(mockData, status);
       } else {
         return mockApiResponse<R | null>(null, 500, `Internal Server Error`);
       }
     } catch (error: unknown) {
-      return HandleError(error, createMockLogger(), FormatResponse, `request`);
+      throw new Error(error as string);
     }
   };
 };

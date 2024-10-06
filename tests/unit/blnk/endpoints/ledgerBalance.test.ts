@@ -15,7 +15,7 @@ tap.test(`Ledger Balance Tests`, t => {
   t.test(
     `it should create a ledger balance when valid data is provided`,
     async tt => {
-      const thirdPartyRequest = createMockBlnkRequest(true);
+      const thirdPartyRequest = createMockBlnkRequest(true, undefined, 201);
       const capturedRequest = tt.captureFn(thirdPartyRequest);
       const ledgerBalance = new LedgerBalances(
         capturedRequest,
@@ -39,7 +39,7 @@ tap.test(`Ledger Balance Tests`, t => {
           `balances`,
           {
             currency: `USD`,
-            ledger_id: `123456`,
+            ledger_id: ledgerId,
             meta_data: {
               company_name: `Test Company`,
             },
@@ -47,13 +47,13 @@ tap.test(`Ledger Balance Tests`, t => {
           `POST`,
         ],
       ]);
-      tt.equal(response.status, 200, `Response is 200`);
+      tt.equal(response.status, 201, `Response is 201`);
       tt.equal(response.data?.ledger_id, ledgerId);
       tt.end();
     }
   );
   t.test(`it should handle missing optional fields`, async tt => {
-    const thirdPartyRequest = createMockBlnkRequest(true);
+    const thirdPartyRequest = createMockBlnkRequest(true, undefined, 201);
     const capturedRequest = tt.captureFn(thirdPartyRequest);
     const ledgerBalance = new LedgerBalances(
       capturedRequest,
@@ -85,7 +85,7 @@ tap.test(`Ledger Balance Tests`, t => {
         `POST`,
       ],
     ]);
-    tt.equal(response.status, 200, `Response is 200`);
+    tt.equal(response.status, 201, `Response is 200`);
     tt.equal(response.data?.identity_id, undefined);
     tt.end();
   });
@@ -116,36 +116,33 @@ tap.test(`Ledger Balance Tests`, t => {
     tt.equal(response.data, null);
     tt.end();
   });
-  t.test(
-    `it should handle network failures during balance creation`,
-    async tt => {
-      const thirdPartyRequest = createMockBlnkRequest(true, `Network Error`);
-      const capturedRequest = tt.captureFn(thirdPartyRequest);
-      const ledgerBalance = new LedgerBalances(
-        capturedRequest,
-        mockLogger,
-        FormatResponse
-      );
+  t.test(`it should handle thrown during balance creation`, async tt => {
+    const thirdPartyRequest = createMockBlnkRequest(true, `Network Error`);
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const ledgerBalance = new LedgerBalances(
+      capturedRequest,
+      mockLogger,
+      FormatResponse
+    );
 
-      const data: CreateLedgerBalance<{company_name: string}> = {
-        currency: `USD`,
-        ledger_id: ledgerId,
-        meta_data: {
-          company_name: `Test Company`,
-        },
-      };
+    const data: CreateLedgerBalance<{company_name: string}> = {
+      currency: `USD`,
+      ledger_id: ledgerId,
+      meta_data: {
+        company_name: `Test Company`,
+      },
+    };
 
-      const response = await ledgerBalance.create<{company_name: string}>(data);
+    const response = await ledgerBalance.create<{company_name: string}>(data);
 
-      //verify that the request function was called and with the right parameters
-      tt.match(capturedRequest.args(), [[`balances`, data, `POST`]]);
+    //verify that the request function was called and with the right parameters
+    tt.match(capturedRequest.args(), [[`balances`, data, `POST`]]);
 
-      tt.equal(response.status, 500, `Response is 500`);
-      tt.equal(response.data, null);
-      tt.equal(response.message, `Network Error`);
-      tt.end();
-    }
-  );
+    tt.equal(response.status, 500, `Response is 500`);
+    tt.equal(response.data, null);
+    tt.equal(response.message, `Network Error`);
+    tt.end();
+  });
   t.test(`it should handle meta_data if it is not an object`, async tt => {
     const thirdPartyRequest = createMockBlnkRequest(true);
     const capturedRequest = tt.captureFn(thirdPartyRequest);
