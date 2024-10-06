@@ -1,8 +1,8 @@
-import {MonitorData, MonitorDataResp} from "../../../types/balanceMonitor";
-import {BlnkLogger} from "../../../types/blnkClient";
-import {BlnkRequest, FormatResponseType} from "../../../types/general";
-import {HandleError} from "../../utils/logger";
-import {ValidateMonitorData} from "../../utils/validators/balanceMonitors";
+import {MonitorData, MonitorDataResp} from "../../types/balanceMonitor";
+import {BlnkLogger} from "../../types/blnkClient";
+import {BlnkRequest, FormatResponseType} from "../../types/general";
+import {HandleError} from "../utils/logger";
+import {ValidateMonitorData} from "../utils/validators/balanceMonitors";
 
 export class BalanceMonitor {
   private request: BlnkRequest;

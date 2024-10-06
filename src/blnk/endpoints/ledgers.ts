@@ -1,8 +1,8 @@
-import {BlnkLogger} from "../../../types/blnkClient";
-import {BlnkRequest, FormatResponseType} from "../../../types/general";
-import {CreateLedger, CreateLedgerResp} from "../../../types/ledger";
-import {HandleError} from "../../utils/logger";
-import {ValidateCreateLedger} from "../../utils/validators/ledgerValidators";
+import {BlnkLogger} from "../../types/blnkClient";
+import {BlnkRequest, FormatResponseType} from "../../types/general";
+import {CreateLedger, CreateLedgerResp} from "../../types/ledger";
+import {HandleError} from "../utils/logger";
+import {ValidateCreateLedger} from "../utils/validators/ledgerValidators";
 
 export class Ledgers {
   private request: BlnkRequest;

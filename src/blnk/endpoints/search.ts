@@ -1,7 +1,7 @@
-import {BlnkLogger} from "../../../types/blnkClient";
-import {BlnkRequest, FormatResponseType} from "../../../types/general";
-import {SearchParams, SearchResponse} from "../../../types/search";
-import {HandleError} from "../../utils/logger";
+import {BlnkLogger} from "../../types/blnkClient";
+import {BlnkRequest, FormatResponseType} from "../../types/general";
+import {SearchParams, SearchResponse} from "../../types/search";
+import {HandleError} from "../utils/logger";
 
 export class Search {
   private request: BlnkRequest;

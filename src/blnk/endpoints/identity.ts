@@ -1,8 +1,8 @@
-import {BlnkLogger} from "../../../types/blnkClient";
-import {BlnkRequest, FormatResponseType} from "../../../types/general";
-import {IdentityData} from "../../../types/identity";
-import {HandleError} from "../../utils/logger";
-import {ValidateIdentity} from "../../utils/validators/identityValidators";
+import {BlnkLogger} from "../../types/blnkClient";
+import {BlnkRequest, FormatResponseType} from "../../types/general";
+import {IdentityData} from "../../types/identity";
+import {HandleError} from "../utils/logger";
+import {ValidateIdentity} from "../utils/validators/identityValidators";
 
 export class Identity {
   private request: BlnkRequest;

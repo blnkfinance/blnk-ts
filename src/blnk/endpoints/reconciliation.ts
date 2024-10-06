@@ -1,15 +1,15 @@
 import {ReadStream} from "fs";
-import {BlnkLogger} from "../../../types/blnkClient";
-import {BlnkRequest, FormatResponseType} from "../../../types/general";
-import {HandleError} from "../../utils/logger";
+import {BlnkLogger} from "../../types/blnkClient";
+import {BlnkRequest, FormatResponseType} from "../../types/general";
+import {HandleError} from "../utils/logger";
 import FormData from "form-data";
 import fs from "fs";
 import {
   Matcher,
   ReconciliationUploadResp,
   RunReconData,
-} from "../../../types/reconciliation";
-import {ValidateMatcher} from "../../utils/validators/reconciliationValidator";
+} from "../../types/reconciliation";
+import {ValidateMatcher} from "../utils/validators/reconciliationValidator";
 
 export class Reconciliation {
   private request: BlnkRequest;

@@ -1,11 +1,11 @@
-import {BlnkLogger} from "../../../types/blnkClient";
-import {BlnkRequest, FormatResponseType} from "../../../types/general";
+import {BlnkLogger} from "../../types/blnkClient";
+import {BlnkRequest, FormatResponseType} from "../../types/general";
 import {
   CreateLedgerBalance,
   CreateLedgerBalanceResp,
-} from "../../../types/ledgerBalances";
-import {HandleError} from "../../utils/logger";
-import {ValidateCreateLedgerBalance} from "../../utils/validators/ledgerBalance";
+} from "../../types/ledgerBalances";
+import {HandleError} from "../utils/logger";
+import {ValidateCreateLedgerBalance} from "../utils/validators/ledgerBalance";
 
 export class LedgerBalances {
   private request: BlnkRequest;

@@ -1,12 +1,12 @@
-import {BlnkLogger} from "../../../types/blnkClient";
-import {BlnkRequest, FormatResponseType} from "../../../types/general";
+import {BlnkLogger} from "../../types/blnkClient";
+import {BlnkRequest, FormatResponseType} from "../../types/general";
 import {
   CreateTransactionResponse,
   CreateTransactions,
   UpdateTransactionStatus,
-} from "../../../types/transactions";
-import {HandleError} from "../../utils/logger";
-import {ValidateCreateTransactions} from "../../utils/validators/transactionValidators";
+} from "../../types/transactions";
+import {HandleError} from "../utils/logger";
+import {ValidateCreateTransactions} from "../utils/validators/transactionValidators";
 
 export class Transactions {
   private request: BlnkRequest;
