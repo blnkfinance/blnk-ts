@@ -1,13 +1,13 @@
 /* eslint-disable n/no-unpublished-import */
 import tap from "tap";
-import {LedgerBalances} from "../../../../../src/blnk/endpoints/ledgerBalances";
+import {LedgerBalances} from "../../../../src/blnk/endpoints/ledgerBalances";
 import {
   createMockLogger,
   createMockBlnkRequest,
   ledgerId,
-} from "../../../../mocks/blnkClientMocks";
-import {FormatResponse} from "../../../../../src/blnk/utils/httpClient";
-import {CreateLedgerBalance} from "../../../../../src/types/ledgerBalances";
+} from "../../../mocks/blnkClientMocks";
+import {FormatResponse} from "../../../../src/blnk/utils/httpClient";
+import {CreateLedgerBalance} from "../../../../src/types/ledgerBalances";
 
 tap.test(`Ledger Balance Tests`, t => {
   const mockLogger = createMockLogger();

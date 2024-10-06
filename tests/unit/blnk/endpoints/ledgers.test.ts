@@ -3,11 +3,11 @@ import tap from "tap";
 import {
   createMockBlnkRequest,
   createMockLogger,
-} from "../../../../mocks/blnkClientMocks";
-import {BlnkRequest} from "../../../../../src/types/general";
-import {Ledgers} from "../../../../../src/blnk/endpoints/ledgers";
-import {FormatResponse} from "../../../../../src/blnk/utils/httpClient";
-import {CreateLedger} from "../../../../../src/types/ledger";
+} from "../../../mocks/blnkClientMocks";
+import {BlnkRequest} from "../../../../src/types/general";
+import {Ledgers} from "../../../../src/blnk/endpoints/ledgers";
+import {FormatResponse} from "../../../../src/blnk/utils/httpClient";
+import {CreateLedger} from "../../../../src/types/ledger";
 
 tap.test(`Ledger Tests`, async t => {
   const mockLogger = createMockLogger();
