@@ -1,8 +1,9 @@
 const {BlnkInit} = require(`@blnkfinance/blnk-typescript`);
+const {BASE_URL, sleep, GenerateRandomNumbersWithPrefix} = require(`../util`);
 
 async function main() {
   const blnk = await BlnkInit(``, {
-    baseUrl: process.env.BASE_URL,
+    baseUrl: BASE_URL,
   });
   const {Ledgers, Search, LedgerBalances, Transactions} = blnk;
 
@@ -40,14 +41,6 @@ async function main() {
 
   console.log(ledgers);
 
-  //   const marketLedgers = await Search.search(
-  //     {
-  //       q: `Marketing`,
-  //       query_by: `meta_data.department`,
-  //     },
-  //     `ledgers`
-  //   );
-
   //create a balance for marketing account
   const marketingBalance = await LedgerBalances.create({
     ledger_id: marketLedger.data.ledger_id,
@@ -81,9 +74,10 @@ async function main() {
     amount: 500,
     currency: `USD`,
     precision: 100,
-    reference: `ad-expense-001`,
+    reference: GenerateRandomNumbersWithPrefix(`ad`, 4),
     description: `Payment for social media ads`,
     inflight: true,
+    allow_overdraft: true,
     meta_data: {
       department: `Marketing`,
       expense_type: `Advertising`,
@@ -100,8 +94,9 @@ async function main() {
     source: hrBalance.data.balance_id,
     amount: 1000,
     currency: `USD`,
+    allow_overdraft: true,
     precision: 100,
-    reference: `recruitment-expense-001`,
+    reference: GenerateRandomNumbersWithPrefix(`recruitment-expense`, 4),
     description: `Payment for recruitment agency`,
     inflight: true,
     meta_data: {
@@ -115,27 +110,36 @@ async function main() {
     throw new Error(hrTransaction.message);
   }
 
+  await sleep(4);
   //approving an advertising expense for marketing
+  console.log(`Approving marketing transaction`);
   const commitMarketingTransaction = await Transactions.updateStatus(
     marketingTransaction.data.transaction_id,
     {
-      status: `COMMIT`,
+      status: `commit`,
     }
   );
 
-  if (commitMarketingTransaction.data === null) {
+  if (
+    commitMarketingTransaction.data === null ||
+    commitMarketingTransaction.status !== 200
+  ) {
     throw new Error(commitMarketingTransaction.message);
   }
 
   //approving a recruitment expense for HR
+  console.log(`Approving HR transaction`);
   const recruitmentExpenseCommit = await Transactions.updateStatus(
     hrTransaction.data.transaction_id,
     {
-      status: `COMMIT`,
+      status: `commit`,
     }
   );
 
-  if (recruitmentExpenseCommit.data === null) {
+  if (
+    recruitmentExpenseCommit.data === null ||
+    commitMarketingTransaction.status !== 200
+  ) {
     throw new Error(recruitmentExpenseCommit.message);
   }
 }

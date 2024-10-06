@@ -1,9 +1,9 @@
 const {BlnkInit} = require(`@blnkfinance/blnk-typescript`);
-const {GenerateRandomNumbersWithPrefix} = require(`../util`);
+const {GenerateRandomNumbersWithPrefix, BASE_URL} = require(`../util`);
 
 async function main() {
   const blnk = BlnkInit(``, {
-    baseUrl: process.env.BASE_URL,
+    baseUrl: BASE_URL,
     logger: console,
   });
 

@@ -1,8 +1,8 @@
 const {BlnkInit} = require(`@blnkfinance/blnk-typescript`);
-
+const {BASE_URL, GenerateRandomNumbersWithPrefix} = require(`../util`);
 async function main() {
   const blnk = BlnkInit(``, {
-    baseUrl: process.env.BASE_URL,
+    baseUrl: BASE_URL,
     logger: console,
   });
   const {Ledgers, LedgerBalances, Transactions} = blnk;
@@ -54,7 +54,7 @@ async function main() {
     destination: escrowBalance1.data.balance_id,
     amount: 1000,
     precision: 100,
-    reference: `funding-001`,
+    reference: GenerateRandomNumbersWithPrefix(`release`, 4),
     description: `Funding escrow account`,
     currency: `USD`,
     inflight: true,
@@ -75,7 +75,7 @@ async function main() {
   const releaseFunds = await Transactions.create({
     amount: 1000,
     precision: 100,
-    reference: `release-001`,
+    reference: GenerateRandomNumbersWithPrefix(`release`, 4),
     description: `Releasing escrow funds`,
     currency: `USD`,
     source: escrowBalance1.data.balance_id, // Alice's escrow account balance_id
@@ -96,7 +96,7 @@ async function main() {
   const refund = await Transactions.create({
     amount: 1000,
     precision: 100,
-    reference: `release-001`,
+    reference: GenerateRandomNumbersWithPrefix(`release`, 4),
     description: `Releasing escrow funds`,
     currency: `USD`,
     source: escrowBalance1.data.balance_id, // Alice's escrow account balance_id

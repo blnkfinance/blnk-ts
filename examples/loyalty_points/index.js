@@ -1,8 +1,9 @@
 const {BlnkInit} = require(`@blnkfinance/blnk-typescript`);
+const {BASE_URL} = require(`../util`);
 
 async function main() {
   const blnk = BlnkInit(``, {
-    baseUrl: process.env.BASE_URL,
+    baseUrl: BASE_URL,
     logger: console,
   });
   const {Ledgers, LedgerBalances, Transactions} = blnk;

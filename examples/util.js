@@ -16,4 +16,5 @@ function sleep(seconds) {
 module.exports = {
   GenerateRandomNumbersWithPrefix,
   sleep,
+  BASE_URL: `http://localhost:5001/`,
 };

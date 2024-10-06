@@ -1,9 +1,9 @@
 const {BlnkInit} = require(`@blnkfinance/blnk-typescript`);
-const {GenerateRandomNumbersWithPrefix} = require(`../util`);
+const {GenerateRandomNumbersWithPrefix, sleep, BASE_URL} = require(`../util`);
 
 async function main() {
   const blnk = BlnkInit(``, {
-    baseUrl: process.env.BASE_URL,
+    baseUrl: BASE_URL,
     logger: console,
   });
   const {Ledgers, Transactions, LedgerBalances} = blnk;
@@ -80,6 +80,7 @@ async function main() {
     },
   });
 
+  await sleep(4);
   console.log(`Eur Funding`, JSON.stringify(eurTransaction, null, 2));
 
   //moving money out of wallets
@@ -113,6 +114,7 @@ async function main() {
   });
   console.log(`eur debit`, eurDebit);
 
+  await sleep(4);
   //check balance
   const usdBalanceView = await LedgerBalances.get(usdBalance.data.balance_id);
   const eurBalanceView = await LedgerBalances.get(eurBalance.data.balance_id);
