@@ -44,7 +44,7 @@ export class BalanceMonitor {
 
   async get(id: string) {
     try {
-      const response = await this.request(
+      const response = await this.request<undefined, MonitorDataResp>(
         `balance-monitors/${id}`,
         undefined,
         `GET`
@@ -61,8 +61,30 @@ export class BalanceMonitor {
     }
   }
 
+  async list() {
+    try {
+      const response = await this.request<undefined, MonitorDataResp[]>(
+        `balance-monitors`,
+        undefined,
+        `GET`
+      );
+      return response;
+    } catch (error) {
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.get.name
+      );
+    }
+  }
+
   async update(id: string, data: MonitorData) {
     try {
+      const validatorResponse = ValidateMonitorData(data);
+      if (validatorResponse) {
+        return this.formatResponse(400, validatorResponse, null);
+      }
       const response = await this.request<MonitorData, MonitorDataResp>(
         `balance-monitors/${id}`,
         data,

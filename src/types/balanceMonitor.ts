@@ -1,9 +1,11 @@
 export interface MonitorCondition {
   field: string;
-  operator: string;
+  operator: MonitorConditionOperators;
   value: number;
+  precision: number;
 }
 
+export type MonitorConditionOperators = `>` | `<` | `=` | `!=` | `>=` | `<=`;
 export interface MonitorData {
   condition: MonitorCondition;
   description?: string;

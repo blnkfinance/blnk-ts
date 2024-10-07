@@ -81,7 +81,7 @@ export const createMockBlnkRequest = (
         return mockApiResponse<R | null>(null, 500, `Internal Server Error`);
       }
     } catch (error: unknown) {
-      throw new Error(error as string);
+      throw new Error(throwError);
     }
   };
 };
