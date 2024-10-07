@@ -1,5 +1,5 @@
 import {MonitorCondition, MonitorData} from "../../../types/balanceMonitor";
-import {IsValidNumber, IsValidString} from "../stringUtils";
+import {IsValidNumber, IsValidOperator, IsValidString} from "../stringUtils";
 
 export function ValidateMonitorData(data: MonitorData): string | null {
   // Validate if data is an object
@@ -36,7 +36,8 @@ const isValidCondition = (condition: MonitorCondition) => {
     condition &&
     typeof condition === `object` &&
     IsValidString(condition.field) &&
-    IsValidString(condition.operator) &&
-    IsValidNumber(condition.value)
+    IsValidOperator(condition.operator) &&
+    IsValidNumber(condition.value) &&
+    IsValidNumber(condition.precision)
   );
 };
