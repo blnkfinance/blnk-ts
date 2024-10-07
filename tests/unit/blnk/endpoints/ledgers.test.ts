@@ -13,7 +13,7 @@ tap.test(`Ledger Tests`, async t => {
   const mockLogger = createMockLogger();
   let thirdPartyRequest: BlnkRequest;
   t.beforeEach(() => {
-    thirdPartyRequest = createMockBlnkRequest(true);
+    thirdPartyRequest = createMockBlnkRequest(true, undefined, 201);
   });
   type meta_dataT = {company_name: string};
 
@@ -29,7 +29,7 @@ tap.test(`Ledger Tests`, async t => {
 
     const response = await ledger.create<meta_dataT>(data);
     tt.match(capturedRequest.args(), [[`ledgers`, data, `POST`]]);
-    tt.equal(response.status, 200);
+    tt.equal(response.status, 201);
     tt.equal(response.data?.name, data.name);
   });
 

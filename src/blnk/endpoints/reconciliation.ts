@@ -32,9 +32,21 @@ export class Reconciliation {
       // Determine if the input is a file path (string) or a ReadStream
       if (typeof fileInput === `string`) {
         // If a string is passed, assume it's a file path and create a stream
+        //check if file path exists
+        if (!fs.existsSync(fileInput)) {
+          return this.formatResponse(
+            404,
+            `File does not exist at path: ${fileInput}`,
+            null
+          );
+        }
         formData.append(`file`, fs.createReadStream(fileInput));
       } else {
         // If a stream is passed, use it directly
+        //check if readstream is valid
+        if (!fileInput.readable) {
+          return this.formatResponse(400, `Invalid read stream provided`, null);
+        }
         formData.append(`file`, fileInput);
       }
       formData.append(`source`, source);

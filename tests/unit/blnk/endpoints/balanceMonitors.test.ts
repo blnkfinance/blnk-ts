@@ -179,4 +179,32 @@ tap.test(`PUT BalanceMonitor`, async t => {
     ]);
     childTest.end();
   });
+  t.test(`It should handle missing fields`, async childTest => {
+    const mockLogger = createMockLogger();
+    const thirdPartyRequest: BlnkRequest = createMockBlnkRequest(
+      true,
+      undefined,
+      201
+    );
+    const capturedRequest = childTest.captureFn(thirdPartyRequest);
+    const balanceMonitor = new BalanceMonitor(
+      capturedRequest,
+      mockLogger,
+      FormatResponse
+    );
+    const id = `1234567890`;
+    const data: unknown = {
+      condition: {
+        field: `debit_balance`,
+        operator: `<`,
+        value: 500,
+        precision: 100,
+      },
+    };
+    const response = await balanceMonitor.update(id, data as MonitorData);
+    childTest.equal(response.status, 400);
+    childTest.equal(response.data, null);
+    childTest.match(capturedRequest.args(), []);
+    childTest.end();
+  });
 });
