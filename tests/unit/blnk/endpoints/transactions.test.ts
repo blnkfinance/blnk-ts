@@ -59,7 +59,6 @@ tap.test(`Creates a transaction`, async t => {
       description: `Test transaction`,
       meta_data: {company_name: `Test Company`},
       precision: 100,
-      reference: `1234567890`,
       amount: 10000,
     };
     const response = await transactions.create<meta_dataT>(data);

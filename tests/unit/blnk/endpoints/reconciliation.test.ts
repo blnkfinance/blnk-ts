@@ -132,7 +132,7 @@ tap.test(`Run Reconciliation`, async t => {
     };
     const response = await reconciliation.run(data);
     childTest.match(capturedRequest.args(), [
-      [`reconciliation/runs`, data, `POST`],
+      [`reconciliation/start`, data, `POST`],
     ]);
     childTest.match(response.status, 201);
     childTest.end();
