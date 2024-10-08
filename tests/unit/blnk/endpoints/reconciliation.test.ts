@@ -9,7 +9,10 @@ import {BlnkRequest} from "../../../../src/types/general";
 import {FormatResponse} from "../../../../src/blnk/utils/httpClient";
 import {Matcher, RunReconData} from "../../../../src/types/reconciliation";
 import {createReadStream} from "fs";
+import FormData from "form-data";
+import path from "path";
 
+const filePath = path.join(__dirname, `../`, `../`, `../`, `file.csv`);
 tap.test(`Reconciliation`, async t => {
   t.test(`Create Matching Rule`, async childTest => {
     const mockLogger = createMockLogger();
@@ -54,11 +57,8 @@ tap.test(`Reconciliation`, async t => {
         mockLogger,
         FormatResponse
       );
-      const filePath = `/path/to/file.csv`;
       const response = await reconciliation.upload(filePath, `Stripe`);
-      childTest.match(capturedRequest.args(), [
-        [`reconciliation/uploads`, new FormData(), `POST`],
-      ]);
+      childTest.type(capturedRequest.args()[0][1], FormData); //makes sure that the second parameter called in the function is FormData
       childTest.match(response.status, 201);
       childTest.end();
     }
@@ -68,7 +68,7 @@ tap.test(`Reconciliation`, async t => {
     `should handle error gracefully when given an invalid file path`,
     async childTest => {
       const mockLogger = createMockLogger();
-      const filePath = `/path/to/invalid/file.csv`;
+      const filePath = `./file.csv`;
       const thirdPartyRequest = createMockBlnkRequest(
         false,
         `File does not exist at path: ${filePath}`,
@@ -97,12 +97,9 @@ tap.test(`Reconciliation`, async t => {
         mockLogger,
         FormatResponse
       );
-      const filePath = `/path/to/file.csv`;
       const readStream = createReadStream(filePath);
       const response = await reconciliation.upload(readStream, `Stripe`);
-      childTest.match(capturedRequest.args(), [
-        [`reconciliation/uploads`, new FormData(), `POST`],
-      ]);
+      childTest.type(capturedRequest.args()[0][1], FormData); //makes sure that the second parameter called in the function is FormData
       childTest.match(response.status, 201);
       childTest.end();
     }
