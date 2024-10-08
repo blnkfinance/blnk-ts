@@ -1,4 +1,4 @@
-import {BlnkClientOptions, BlnkLogger} from "../../types/blnkClient";
+import {BlnkClientOptions, BlnkLogger, fetchType} from "../../types/blnkClient";
 import {
   ApiResponse,
   FormatResponseType,
@@ -12,6 +12,7 @@ import {Ledgers} from "./ledgers";
 import {Reconciliation} from "./reconciliation";
 import {Search} from "./search";
 import {Transactions} from "./transactions";
+import FormData from "form-data";
 
 export class Blnk {
   private apiKey: string;
@@ -20,14 +21,14 @@ export class Blnk {
   private services: ServicesMap;
   private serviceInstances: ServiceInstances = {}; // Cache initialized services
   private formatResponse: FormatResponseType;
-  private thirdPartyRequest: typeof fetch;
+  private thirdPartyRequest: fetchType;
 
   constructor(
     apiKey: string,
     options: BlnkClientOptions,
     services: ServicesMap,
     formatResponse: FormatResponseType,
-    thirdPartyRequest: typeof fetch
+    thirdPartyRequest: fetchType
   ) {
     if (!options.baseUrl) {
       throw new Error(`baseUrl is required for self-hosted Blnk SDK.`);
@@ -65,7 +66,7 @@ export class Blnk {
     headerOptions?: Record<string, string>
   ): Promise<ApiResponse<R | null>> {
     const headers = {
-      "Content-Type": `application/json`,
+      "content-type": `application/json`,
       "X-Blnk-Key": this.apiKey,
       ...headerOptions,
     };
@@ -83,13 +84,17 @@ export class Blnk {
         {
           method,
           headers,
-          body: data ? JSON.stringify(data) : undefined,
-          signal: controller.signal, // Handle timeout
+          body: data
+            ? data instanceof FormData
+              ? data
+              : JSON.stringify(data)
+            : undefined,
         }
       );
 
       if (!response.ok) {
-        const errorResult = await response.json();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const errorResult: any = await response.json();
         this.logger.error(
           `Request to ${endpoint} failed with status ${response.status}.`
         );

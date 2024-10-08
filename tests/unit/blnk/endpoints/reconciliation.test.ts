@@ -12,7 +12,7 @@ import {createReadStream} from "fs";
 import FormData from "form-data";
 import path from "path";
 
-const filePath = path.join(__dirname, `../`, `../`, `../`, `file.csv`);
+const filePath = path.join(__dirname, `..`, `..`, `..`, `..`, `file.csv`);
 tap.test(`Reconciliation`, async t => {
   t.test(`Create Matching Rule`, async childTest => {
     const mockLogger = createMockLogger();
@@ -68,7 +68,7 @@ tap.test(`Reconciliation`, async t => {
     `should handle error gracefully when given an invalid file path`,
     async childTest => {
       const mockLogger = createMockLogger();
-      const filePath = `./file.csv`;
+      const filePath = `./no_file.csv`;
       const thirdPartyRequest = createMockBlnkRequest(
         false,
         `File does not exist at path: ${filePath}`,

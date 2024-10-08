@@ -2,7 +2,6 @@ import {ReadStream} from "fs";
 import {BlnkLogger} from "../../types/blnkClient";
 import {BlnkRequest, FormatResponseType} from "../../types/general";
 import {HandleError} from "../utils/logger";
-import FormData from "form-data";
 import fs from "fs";
 import {
   Matcher,
@@ -10,7 +9,7 @@ import {
   RunReconData,
 } from "../../types/reconciliation";
 import {ValidateMatcher} from "../utils/validators/reconciliationValidator";
-
+import FormData1 from "form-data";
 export class Reconciliation {
   private request: BlnkRequest;
   private logger: BlnkLogger;
@@ -28,7 +27,7 @@ export class Reconciliation {
 
   async upload(fileInput: string | ReadStream, source: string) {
     try {
-      const formData = new FormData();
+      const formData = new FormData1();
       // Determine if the input is a file path (string) or a ReadStream
       if (typeof fileInput === `string`) {
         // If a string is passed, assume it's a file path and create a stream
@@ -40,6 +39,7 @@ export class Reconciliation {
             null
           );
         }
+        //get the buf
         formData.append(`file`, fs.createReadStream(fileInput));
       } else {
         // If a stream is passed, use it directly
@@ -49,13 +49,14 @@ export class Reconciliation {
         }
         formData.append(`file`, fileInput);
       }
+
       formData.append(`source`, source);
-      const response = await this.request<FormData, ReconciliationUploadResp>(
+      const response = await this.request<{}, ReconciliationUploadResp>(
         `reconciliation/upload`,
         formData,
         `POST`,
         {
-          ...formData.getHeaders(),
+          "content-type": `multipart/form-data;boundary=${formData.getBoundary()}`,
         }
       );
       return response;

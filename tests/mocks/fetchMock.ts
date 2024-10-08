@@ -1,12 +1,13 @@
 /* eslint-disable n/no-unpublished-import */
 // src/mocks/fetchMock.ts
 import t from "tap";
+import fetch, {RequestInfo, RequestInit, Headers, Response} from "node-fetch";
 export const fetchMock = t.createMock(
   {fetch},
   {
     fetch: async (
       // eslint-disable-next-line n/no-unsupported-features/node-builtins
-      input: RequestInfo | URL,
+      input: URL | RequestInfo,
       init?: RequestInit
     ): Promise<Response> => {
       return {
