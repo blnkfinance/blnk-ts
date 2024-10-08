@@ -68,7 +68,7 @@ async function main() {
     reference: GenerateRandomNumbersWithPrefix(`ref`, 4),
     description: `payment for service rendered`,
     currency: `USD`,
-    source: `@NEW`,
+    source: `@Marketing`,
     destination: usdBalance.data.balance_id,
     allow_overdraft: true,
     meta_data: {
