@@ -7,6 +7,7 @@ import {
   Matcher,
   ReconciliationUploadResp,
   RunReconData,
+  RunReconResp,
 } from "../../types/reconciliation";
 import {ValidateMatcher} from "../utils/validators/reconciliationValidator";
 import FormData1 from "form-data";
@@ -94,7 +95,11 @@ export class Reconciliation {
 
   async run(data: RunReconData) {
     try {
-      const response = await this.request(`reconciliation/start`, data, `POST`);
+      const response = await this.request<RunReconData, RunReconResp>(
+        `reconciliation/start`,
+        data,
+        `POST`
+      );
       return response;
     } catch (error) {
       return HandleError(

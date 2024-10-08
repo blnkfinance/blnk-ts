@@ -34,3 +34,9 @@ export interface RunReconData {
   grouping_criteria: CriteriaField;
   matching_rule_ids: string[];
 }
+
+export interface RunReconResp extends Matcher {
+  rule_id: string;
+  created_at: string;
+  updated_at: string;
+}
