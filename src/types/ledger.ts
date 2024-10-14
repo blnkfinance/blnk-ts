@@ -7,7 +7,7 @@ export interface CreateLedgerResp<T extends Record<string, unknown>> {
   ledger_id: string;
   name: string;
   created_at: string;
-  meta_data: T;
+  meta_data?: T;
 }
 
 export interface CreateLedgerRespCamel<T extends Record<string, unknown>> {

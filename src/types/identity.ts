@@ -22,5 +22,5 @@ export interface IdentityData<T extends Record<string, unknown>> {
 
 export interface IdentityDataResponse<T extends Record<string, unknown>>
   extends IdentityData<T> {
-  created_at: Date;
+  created_at: string;
 }

@@ -40,7 +40,7 @@ export type CreateTransactionResponse<T extends Record<string, unknown>> = {
   destination?: string;
   sources?: MultipleSourcesT[];
   destinations?: MultipleSourcesT[];
-  created_at: Date;
+  created_at: string;
   meta_data?: T;
 };
 

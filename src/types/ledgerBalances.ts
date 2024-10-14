@@ -20,5 +20,5 @@ export interface CreateLedgerBalanceResp<T extends Record<string, unknown>> {
   indicator: string;
   currency: string;
   created_at: string;
-  meta_data: T;
+  meta_data?: T;
 }

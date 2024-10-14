@@ -48,7 +48,11 @@ export class Ledgers {
     }
   }
 
-  async getLedger(id: string) {
-    return await this.request(`ledgers/${id}`, undefined, `GET`);
+  async getLedger<T extends Record<string, unknown>>(id: string) {
+    return await this.request<undefined, CreateLedgerResp<T>>(
+      `ledgers/${id}`,
+      undefined,
+      `GET`
+    );
   }
 }

@@ -15,5 +15,5 @@ export interface MonitorData {
 
 export interface MonitorDataResp extends MonitorData {
   monitor_id: string;
-  created_at: Date; // ISO date string
+  created_at: string; // ISO date string
 }
