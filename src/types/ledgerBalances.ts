@@ -13,7 +13,7 @@ export interface CreateLedgerBalanceResp<T extends Record<string, unknown>> {
   inflight_credit_balance: number;
   debit_balance: number;
   inflight_debit_balance: number;
-  precision: number;
+  currency_multiplier: number;
   ledger_id: string;
   identity_id: string;
   balance_id: string;

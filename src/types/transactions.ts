@@ -34,6 +34,7 @@ export type CreateTransactionResponse<T extends Record<string, unknown>> = {
   precise_amount: number;
   reference: string;
   description: string;
+  rate: number;
   currency: string;
   status: StatusType;
   source?: string;
