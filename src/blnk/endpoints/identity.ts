@@ -39,4 +39,63 @@ export class Identity {
       );
     }
   }
+
+  async get<T extends Record<string, unknown>>(id: string) {
+    try {
+      const response = await this.request<null, IdentityDataResponse<T>>(
+        `identities/${id}`,
+        null,
+        `GET`
+      );
+      return response;
+    } catch (error: unknown) {
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.get.name
+      );
+    }
+  }
+
+  async list() {
+    try {
+      const response = await this.request<
+        null,
+        IdentityDataResponse<Record<string, unknown>>[]
+      >(`identities`, null, `GET`);
+      return response;
+    } catch (error: unknown) {
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.list.name
+      );
+    }
+  }
+
+  async update<T extends Record<string, unknown>>(
+    id: string,
+    data: IdentityData<T>
+  ) {
+    try {
+      const validatorResponse = ValidateIdentity(data);
+      if (validatorResponse) {
+        return this.formatResponse(400, validatorResponse, null);
+      }
+      const response = await this.request<
+        IdentityData<T>,
+        IdentityDataResponse<T>
+      >(`identities/${id}`, data, `PUT`);
+      return response;
+    } catch (error: unknown) {
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.update.name
+      );
+    }
+  }
 }

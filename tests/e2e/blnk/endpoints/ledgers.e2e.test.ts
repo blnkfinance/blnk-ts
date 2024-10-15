@@ -143,6 +143,49 @@ tap.test(`Identity`, async t => {
     identityId = response.data!.identity_id;
     childTest.end();
   });
+
+  t.test(`list all identities`, async childTest => {
+    const response = await client.Identity.list();
+    childTest.ok(response, `response is returned`);
+    console.log(`response list identities`, response);
+    childTest.equal(response.status, 200);
+    childTest.type(response.data, `array`);
+    childTest.end();
+  });
+
+  t.test(`get identity by id`, async childTest => {
+    const response = await client.Identity.get(identityId);
+    childTest.ok(response, `response is returned`);
+    childTest.equal(response.status, 200);
+    childTest.type(response.data, `object`);
+    childTest.hasProps(response.data!, [
+      `identity_id`,
+      `created_at`,
+      `identity_type`,
+    ]);
+    childTest.end();
+  });
+
+  t.test(`update identity to organization`, async childTest => {
+    const identityData: IdentityData<{}> = {
+      category: `cutomer`,
+      city: `Ikeja`,
+      country: `NG`,
+      email_address: `test@test.com`,
+      identity_type: `organization`,
+      organization_name: `Test Organization`,
+      phone_number: `+2348012345678`,
+      post_code: `100001`,
+      state: `Lagos`,
+      street: `123 Test Street`,
+      dob: new Date(`1996-02-25`),
+      gender: `male`,
+    };
+    const response = await client.Identity.update(identityId, identityData);
+    childTest.ok(response, `response is returned`);
+    childTest.equal(response.status, 200);
+    childTest.type(response.data, `object`);
+  });
   t.end();
 });
 
@@ -299,6 +342,26 @@ tap.test(`Balance Monitors`, async t => {
     childTest.type(response.data, `object`);
     // childTest.hasProps(response.data!, []);
     childTest.end();
+  });
+
+  t.test(`It should update a balance monitor`, async childTest => {
+    const monitorData: MonitorData = {
+      balance_id: ledgerBalanceId,
+      condition: {
+        field: `credit_balance`,
+        operator: `>=`,
+        precision: 100,
+        value: 1000,
+      },
+      description: `Tier 1 account`,
+    };
+    const response = await client.BalanceMonitor.update(
+      balanceMonitorId,
+      monitorData
+    );
+    childTest.ok(response, `response is returned`);
+    childTest.equal(response.status, 200);
+    childTest.type(response.data, `object`);
   });
   t.end();
 });
