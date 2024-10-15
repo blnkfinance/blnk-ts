@@ -98,7 +98,6 @@ tap.test(`Ledgers end to end test`, async t => {
 
   t.test(`It should return 400`, async childTest => {
     const response = await client.Ledgers.getLedger(`123456789`);
-    console.log(`response`, response);
     childTest.ok(response, `response is returned`);
     childTest.equal(response.status, 400);
     childTest.end();
@@ -147,7 +146,6 @@ tap.test(`Identity`, async t => {
   t.test(`list all identities`, async childTest => {
     const response = await client.Identity.list();
     childTest.ok(response, `response is returned`);
-    console.log(`response list identities`, response);
     childTest.equal(response.status, 200);
     childTest.type(response.data, `array`);
     childTest.end();
