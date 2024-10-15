@@ -77,7 +77,7 @@ export class Reconciliation {
       if (validatorResponse) {
         return this.formatResponse(400, validatorResponse, null);
       }
-      const response = await this.request(
+      const response = await this.request<Matcher, RunReconResp>(
         `reconciliation/matching-rules`,
         data,
         `POST`

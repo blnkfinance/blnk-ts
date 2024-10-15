@@ -28,7 +28,7 @@ export class Identity {
       const response = await this.request<
         IdentityData<T>,
         IdentityDataResponse<T>
-      >(`identity`, data, `POST`);
+      >(`identities`, data, `POST`);
       return response;
     } catch (error: unknown) {
       return HandleError(

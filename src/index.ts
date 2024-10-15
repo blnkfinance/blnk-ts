@@ -1,5 +1,6 @@
 import {BalanceMonitor} from "./blnk/endpoints/balanceMonitors";
 import {Blnk} from "./blnk/endpoints/baseBlnkClient";
+import {Identity} from "./blnk/endpoints/identity";
 import {LedgerBalances} from "./blnk/endpoints/ledgerBalances";
 import {Ledgers} from "./blnk/endpoints/ledgers";
 import {Reconciliation} from "./blnk/endpoints/reconciliation";
@@ -26,6 +27,7 @@ export function BlnkInit(apiKey: string, options: BlnkClientOptions) {
       BalanceMonitor,
       Reconciliation,
       Search,
+      Identity,
     },
     FormatResponse,
     fetch

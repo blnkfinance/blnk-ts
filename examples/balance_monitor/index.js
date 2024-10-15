@@ -50,17 +50,16 @@ async function main() {
   const balanceMonitorSingle = await BalanceMonitor.get(
     balanceMonitor.data.monitor_id
   );
+  console.log(`ssosososo`, balanceMonitorSingle);
 
   if (balanceMonitorSingle.status !== 200) {
     throw new Error(balanceMonitorSingle.message);
   }
 
-  console.log(balanceMonitorSingle);
   const balanceMonitorList = await BalanceMonitor.list();
   if (balanceMonitorList.status !== 200) {
     throw new Error(balanceMonitorList.message);
   }
-  console.log(balanceMonitorList);
 
   const usdTransaction = await Transactions.create({
     amount: 2000,

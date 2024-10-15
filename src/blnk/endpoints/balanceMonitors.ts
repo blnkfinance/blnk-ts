@@ -26,7 +26,7 @@ export class BalanceMonitor {
         return this.formatResponse(400, validatorResponse, null);
       }
       //add meta_data to this type
-      const response = await this.request<MonitorData, MonitorData>(
+      const response = await this.request<MonitorData, MonitorDataResp>(
         `balance-monitors`,
         data,
         `POST`

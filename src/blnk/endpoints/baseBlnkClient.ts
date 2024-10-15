@@ -7,6 +7,7 @@ import {
 } from "../../types/general";
 import {HandleError} from "../utils/logger";
 import {BalanceMonitor} from "./balanceMonitors";
+import {Identity} from "./identity";
 import {LedgerBalances} from "./ledgerBalances";
 import {Ledgers} from "./ledgers";
 import {Reconciliation} from "./reconciliation";
@@ -162,6 +163,10 @@ export class Blnk {
 
   get Search(): Search {
     return this.getService<Search>(`Search`);
+  }
+
+  get Identity(): Identity {
+    return this.getService<Identity>(`Identity`);
   }
 
   get getApiKey() {

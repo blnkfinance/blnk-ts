@@ -25,7 +25,7 @@ export type PryTransactionStatus =
   | `INFLIGHT`
   | `EXPIRED`;
 export type InflightStatus = `commit` | `void`;
-export type StatusType = PryTransactionStatus | InflightStatus;
+export type StatusType = PryTransactionStatus;
 
 export type CreateTransactionResponse<T extends Record<string, unknown>> = {
   transaction_id: string;
@@ -41,7 +41,7 @@ export type CreateTransactionResponse<T extends Record<string, unknown>> = {
   destination?: string;
   sources?: MultipleSourcesT[];
   destinations?: MultipleSourcesT[];
-  created_at: string;
+  created_at: Date;
   meta_data?: T;
 };
 
