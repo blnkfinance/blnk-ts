@@ -15,6 +15,26 @@ import {Search} from "./search";
 import {Transactions} from "./transactions";
 import FormData from "form-data";
 
+/**
+ * Blnk class for interacting with the Blnk API services.
+ *
+ * Makes requests to specified endpoints using provided data and methods.
+ * Caches initialized services for efficient usage.
+ *
+ * @example
+ * const services = {
+      Ledgers,
+      LedgerBalances,
+      Transactions,
+      BalanceMonitor,
+      Reconciliation,
+      Search,
+      Identity,
+    }
+ * const blnk = new Blnk(apiKey, options, services, formatResponse, thirdPartyRequest);
+ * const ledgersService = blnk.Ledgers;
+ * const ledgersData = await ledgersService.getLedgersData();
+ */
 export class Blnk {
   private apiKey: string;
   private options: Omit<BlnkClientOptions, `logger`>;
@@ -125,6 +145,21 @@ export class Blnk {
     }
   }
 
+  /**
+   * Retrieves a registered service by name and returns an instance of that service.
+   * Throws an error if the service is not registered.
+   *
+   * @param serviceName - The name of the service to retrieve.
+   * @returns An instance of the requested service.
+   *
+   * @example
+   * // Retrieve the 'Ledgers' service
+   * const ledgersService = getService<Ledgers>('Ledgers');
+   *
+   * @example
+   * // Retrieve the 'Transactions' service
+   * const transactionsService = getService<Transactions>('Transactions');
+   */
   private getService<T>(serviceName: string): T {
     if (!this.services[serviceName]) {
       throw new Error(`Service ${serviceName} is not registered`);
