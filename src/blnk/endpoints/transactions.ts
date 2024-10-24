@@ -11,6 +11,22 @@ import {
   ValidateUpdateTransactions,
 } from "../utils/validators/transactionValidators";
 
+/**
+ * Represents a Transactions class that handles requests, logging, and response formatting.
+ * see @link https://docs.blnkfinance.com/transactions/statuses
+ * @constructor
+ * @param {BlnkRequest} request - The function for making API requests.
+ * @param {BlnkLogger} logger - The logger for logging information, errors, and optionally debug messages.
+ * @param {FormatResponseType} formatResponse - The function for formatting API response data.
+ * @method create - Creates a new transaction with the provided data.
+ * @method updateStatus - Updates the status of a transaction with the provided data.
+ * @method refund - Refunds a transaction with the provided data.
+ * @example
+ * const transactions = new Transactions(requestFunction, loggerInstance, formatResponseFunction);
+ * const createResponse = await transactions.create(transactionData);
+ * const updateStatusResponse = await transactions.updateStatus(updateData);
+ * const refundResponse = await transactions.refund(refundData);
+ */
 export class Transactions {
   private request: BlnkRequest;
   private logger: BlnkLogger;
@@ -26,6 +42,26 @@ export class Transactions {
     this.formatResponse = formatResponse;
   }
 
+  /**
+   * Asynchronously creates a new transaction.
+   *
+   * @param data - The data object containing transaction details to be created.
+   * @returns A promise that resolves with the response data of the created transaction.
+   * @throws An error if the creation process encounters any issues.
+   *
+   * @example
+   * const transactionData = {
+   *   amount: 100,
+   *   precision: 2,
+   *   reference: 'REF123',
+   *   description: 'Sample transaction',
+   *   currency: 'USD',
+   *   inflight: true,
+   *   inflight_expiry_date: new Date('2022-12-31'),
+   *   meta_data: { key: 'value' }
+   * };
+   * const createdTransaction = await create(transactionData);
+   */
   async create<T extends Record<string, unknown>>(data: CreateTransactions<T>) {
     try {
       //if data has inflight set to true, make sure inflight_expiry_date is set
@@ -58,9 +94,10 @@ export class Transactions {
 
   /**
    * Updates the status of a transaction.
+   * see @link https://docs.blnkfinance.com/transactions/statuses for more information
    *
    * This method sends a PUT request to update the status of a transaction specified by its ID.
-   * The transaction can only be updated to either `COMMIT` or `VOID` statuses.
+   * The transaction can only be updated to either `commit` or `void` statuses.
    *
    * @template T - A generic type that extends a record with no properties. This type is used
    * to define the meta_data structure for the transaction.
@@ -75,6 +112,15 @@ export class Transactions {
    *
    * @throws {Error} Throws an error if the request fails, which will be logged using the
    * configured logger, and handled by the `HandleError` function.
+   *
+   *  @example
+   * // Update the status of a transaction with ID '123'
+   * const updateData = {
+   *   status: 'commit',
+   *   amount: 100,
+   *   meta_data: { key: 'value' }
+   * };
+   * const result = await updateStatus('123', updateData);
    */
   async updateStatus<T extends Record<string, never>>(
     id: string,
@@ -100,6 +146,22 @@ export class Transactions {
     }
   }
 
+  /**
+   * Sometimes, you need to refund a transaction. Blnk allows you to process a refund using the transaction_id of the original transaction.
+
+      Refunds only happen on transactions that have been applied. This means that the participating balances have been updated with the transaction amount from the original transaction.
+
+      When you refund a transaction, Blnk creates a new transaction record and switches the source and destination balances of the original transaction — debiting the amount from the balance that initially received it and crediting it to the balance that initially sent it..
+      see @link https://docs.blnkfinance.com/transactions/refunds
+   *
+   * @param id - The ID of the transaction to be refunded.
+   * @returns A promise that resolves with the response of the refund transaction.
+   * @throws If an error occurs during the refund process, an error response is returned.
+   *
+   * @example
+   * const transactionId = "123456";
+   * const refundResponse = await refund<MyMetaDataType>(transactionId);
+   */
   async refund<T extends Record<string, never>>(id: string) {
     try {
       const response = await this.request<null, CreateTransactionResponse<T>>(

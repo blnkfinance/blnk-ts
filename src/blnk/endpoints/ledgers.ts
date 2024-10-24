@@ -4,6 +4,26 @@ import {CreateLedger, CreateLedgerResp} from "../../types/ledger";
 import {HandleError} from "../utils/logger";
 import {ValidateCreateLedger} from "../utils/validators/ledgerValidators";
 
+/**
+ * Represents a class for managing ledger operations.
+ * see @link https://docs.blnkfinance.com/ledgers/money-movement-map and @link https://docs.blnkfinance.com/home/install#3-create-your-first-ledger for more details.
+ *
+ *
+ * @constructor
+ * @param {BlnkRequest} request - The request function for API calls.
+ * @param {BlnkLogger} logger - The logger for handling logs.
+ * @param {FormatResponseType} formatResponse - The function for formatting API responses.
+ * @method create - Creates a new ledger entry.
+ * @param {CreateLedger<T>} data - The data for creating the ledger.
+ * @returns {Promise<ApiResponse<CreateLedgerResp<T> | null>>} The response of the create operation.
+ * @method getLedger - Retrieves a ledger entry by ID.
+ * @param {string} id - The ID of the ledger entry to retrieve.
+ * @returns {Promise<ApiResponse<CreateLedgerResp<T> | null>>} The response of the get operation.
+ * @example
+ * const ledgers = new Ledgers(requestFunction, loggerInstance, formatResponseFunction);
+ * const newLedger = await ledgers.create({ name: 'New Ledger' });
+ * const retrievedLedger = await ledgers.get('ledger_id');
+ */
 export class Ledgers {
   private request: BlnkRequest;
   private logger: BlnkLogger;
@@ -20,10 +40,14 @@ export class Ledgers {
   }
 
   /**
-   * Asynchronously creates a ledger using the provided data.
+   * Asynchronously creates a ledger using the provided data after validation.
    *
-   * @param data - The data object containing the ledger information to be created takes in a Generic type for meta_data.
-   * @returns A promise that resolves with the response data upon successful creation or an error response.
+   * @param data - The data object containing the ledger information to be created.
+   * @returns A promise that resolves to the response object of the created ledger.
+   *
+   * @example
+   * const ledgerData = { name: 'Sample Ledger', meta_data: { key: 'value' } };
+   * const createdLedger = await ledgers.create(ledgerData);
    */
   async create<T extends Record<string, unknown>>(data: CreateLedger<T>) {
     try {
@@ -48,7 +72,7 @@ export class Ledgers {
     }
   }
 
-  async getLedger<T extends Record<string, unknown>>(id: string) {
+  async get<T extends Record<string, unknown>>(id: string) {
     return await this.request<undefined, CreateLedgerResp<T>>(
       `ledgers/${id}`,
       undefined,

@@ -6,6 +6,8 @@ import {ValidateMonitorData} from "../utils/validators/balanceMonitors";
 
 /**
  * Represents a Balance Monitor that interacts with the balance monitoring system.
+ * see @link https://docs.blnkfinance.com/balances/balance-monitoring for more details.
+ *
  * @constructor
  * @param {BlnkRequest} request - The request function for API calls.
  * @param {BlnkLogger} logger - The logger for handling logs.

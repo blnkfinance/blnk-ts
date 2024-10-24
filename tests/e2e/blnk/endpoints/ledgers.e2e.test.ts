@@ -87,7 +87,7 @@ tap.test(`Ledgers end to end test`, async t => {
   });
 
   t.test(`It should fetch a ledger created`, async childTest => {
-    const response = await client.Ledgers.getLedger(ledgerId);
+    const response = await client.Ledgers.get(ledgerId);
 
     childTest.ok(response, `response is returned`);
     childTest.equal(response.status, 200);
@@ -97,7 +97,7 @@ tap.test(`Ledgers end to end test`, async t => {
   });
 
   t.test(`It should return 400`, async childTest => {
-    const response = await client.Ledgers.getLedger(`123456789`);
+    const response = await client.Ledgers.get(`123456789`);
     childTest.ok(response, `response is returned`);
     childTest.equal(response.status, 400);
     childTest.end();
