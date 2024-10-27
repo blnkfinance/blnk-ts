@@ -29,7 +29,7 @@
   "devDependencies": {
     "@types/node": "20.12.7",
     "@types/node-fetch": "^2.6.11",
-    "gts": "^5.3.1",
+    "gts": "^6.0.2",
     "prettier": "^3.3.3",
     "tap": "^21.0.1",
     "typescript": "^5.4.3"
@@ -37,6 +37,9 @@
   "dependencies": {
     "form-data": "^4.0.0",
     "node-fetch": "^2.7.0"
+  },
+"overrides": {
+    "whatwg-url": "^14.0.0"
   },
   "tap": {
     "coverage-map": "tests/map.mjs",
