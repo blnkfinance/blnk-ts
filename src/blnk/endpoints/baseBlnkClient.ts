@@ -55,6 +55,11 @@ export class Blnk {
       throw new Error(`baseUrl is required for self-hosted Blnk SDK.`);
     }
 
+    //make sure baseUrl ends with "/"
+    if (!options.baseUrl.endsWith(`/`)) {
+      options.baseUrl = options.baseUrl + `/`;
+    }
+
     this.apiKey = apiKey;
     const {logger, ...restOptions} = options;
     this.options = {
@@ -93,7 +98,6 @@ export class Blnk {
     };
 
     try {
-      this.logger.info(`Making request`, {endpoint, data, headers, method});
       const response = await this.thirdPartyRequest(
         `${this.options.baseUrl}${endpoint}`,
         {
