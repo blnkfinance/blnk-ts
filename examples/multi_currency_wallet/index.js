@@ -5,6 +5,7 @@ async function main() {
   const blnk = BlnkInit(``, {
     baseUrl: BASE_URL,
     logger: console,
+    timeout: 5000,
   });
   const {Ledgers, Transactions, LedgerBalances} = blnk;
   //create a USD ledger
