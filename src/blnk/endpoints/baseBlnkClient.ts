@@ -92,12 +92,6 @@ export class Blnk {
       ...headerOptions,
     };
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(
-      () => controller.abort(),
-      this.options.timeout
-    );
-
     try {
       this.logger.info(`Making request`, {endpoint, data, headers, method});
       const response = await this.thirdPartyRequest(
@@ -110,6 +104,7 @@ export class Blnk {
               ? data
               : JSON.stringify(data)
             : undefined,
+          timeout: this.options.timeout,
         }
       );
 
@@ -140,8 +135,6 @@ export class Blnk {
         this.formatResponse,
         `${this.request.name}`
       );
-    } finally {
-      clearTimeout(timeoutId);
     }
   }
 
