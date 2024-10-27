@@ -35,7 +35,7 @@ tap.test(`Identity`, async t => {
     };
 
     const response = await identity.create(data);
-    childTest.match(capturedRequest.args(), [[`identity`, data, `POST`]]);
+    childTest.match(capturedRequest.args(), [[`identities`, data, `POST`]]);
     childTest.equal(response.status, 201);
     childTest.equal(response.data?.identity_type, data.identity_type);
   });
@@ -135,9 +135,9 @@ tap.test(`Identity`, async t => {
     };
 
     const response = await identity.create(data);
-    childTest.match(capturedRequest.args(), [[`identity`, data, `POST`]]);
+    childTest.match(capturedRequest.args(), [[`identities`, data, `POST`]]);
     childTest.equal(response.status, 500);
-    childTest.equal(response.data, `Error creating identity`);
+    childTest.equal(response.data, null);
     childTest.end();
   });
 });

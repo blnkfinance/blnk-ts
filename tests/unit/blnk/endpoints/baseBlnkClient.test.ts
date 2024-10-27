@@ -102,5 +102,20 @@ tap.test(`Blnk SDK tests`, t => {
       );
     }
   );
+
+  t.test(`should append "/" to base url if it is not set`, async tt => {
+    const optionsWithoutBaseUrl = {
+      ...options,
+      baseUrl: `base`,
+    };
+    const blnkWithoutBaseUrl = new Blnk(
+      apiKey,
+      optionsWithoutBaseUrl,
+      mockServices,
+      FormatResponse,
+      thirdPartyRequest
+    );
+    tt.equal(blnkWithoutBaseUrl[`options`].baseUrl, `base/`);
+  });
   t.end();
 });
