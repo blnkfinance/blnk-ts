@@ -28,7 +28,7 @@ export class Search {
   constructor(
     request: BlnkRequest,
     logger: BlnkLogger,
-    formatResponse: FormatResponseType
+    formatResponse: FormatResponseType,
   ) {
     this.request = request;
     this.logger = logger;
@@ -37,7 +37,7 @@ export class Search {
 
   async search(
     data: SearchParams,
-    service: `ledgers` | `transactions` | `balances`
+    service: `ledgers` | `transactions` | `balances`,
   ) {
     try {
       if (!data.q) {
@@ -46,7 +46,7 @@ export class Search {
       const response = await this.request<SearchParams, SearchResponse>(
         `search/${service}`,
         data,
-        `POST`
+        `POST`,
       );
 
       return response;
@@ -55,7 +55,7 @@ export class Search {
         error,
         this.logger,
         this.formatResponse,
-        this.search.name
+        this.search.name,
       );
     }
   }

@@ -30,7 +30,7 @@ export function BlnkInit(apiKey: string, options: BlnkClientOptions) {
       Identity,
     },
     FormatResponse,
-    fetch
+    fetch,
   );
 }
 //module.exports = BlnkInit as BlnkInitFn & {default: BlnkInitFn};

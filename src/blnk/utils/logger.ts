@@ -17,7 +17,7 @@ export function HandleError(
   error: unknown,
   logger: BlnkLogger,
   formatResponse: FormatResponseType,
-  fnName: string
+  fnName: string,
 ): ApiResponse<null> {
   logger.error(fnName, error);
   if (error instanceof Error) {

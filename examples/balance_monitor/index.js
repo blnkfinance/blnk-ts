@@ -48,7 +48,7 @@ async function main() {
   }
   //view the balance monitor
   const balanceMonitorSingle = await BalanceMonitor.get(
-    balanceMonitor.data.monitor_id
+    balanceMonitor.data.monitor_id,
   );
   console.log(`ssosososo`, balanceMonitorSingle);
 

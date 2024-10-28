@@ -35,7 +35,7 @@ export class Transactions {
   constructor(
     request: BlnkRequest,
     logger: BlnkLogger,
-    formatResponse: FormatResponseType
+    formatResponse: FormatResponseType,
   ) {
     this.request = request;
     this.logger = logger;
@@ -87,7 +87,7 @@ export class Transactions {
         error,
         this.logger,
         this.formatResponse,
-        this.create.name
+        this.create.name,
       );
     }
   }
@@ -124,7 +124,7 @@ export class Transactions {
    */
   async updateStatus<T extends Record<string, never>>(
     id: string,
-    update: UpdateTransactionStatus<T>
+    update: UpdateTransactionStatus<T>,
   ) {
     try {
       const validatorResponse = ValidateUpdateTransactions(update);
@@ -141,7 +141,7 @@ export class Transactions {
         error,
         this.logger,
         this.formatResponse,
-        this.updateStatus.name
+        this.updateStatus.name,
       );
     }
   }
@@ -167,7 +167,7 @@ export class Transactions {
       const response = await this.request<null, CreateTransactionResponse<T>>(
         `refund-transaction/${id}`,
         null,
-        `POST`
+        `POST`,
       );
       return response;
     } catch (error: unknown) {
@@ -175,7 +175,7 @@ export class Transactions {
         error,
         this.logger,
         this.formatResponse,
-        this.refund.name
+        this.refund.name,
       );
     }
   }

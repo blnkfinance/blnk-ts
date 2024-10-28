@@ -2,7 +2,7 @@ import {IdentityData} from "../../../types/identity";
 import {isValidMetaData} from "./ledgerBalance";
 
 export function ValidateIdentity<T extends Record<string, unknown>>(
-  data: IdentityData<T>
+  data: IdentityData<T>,
 ): string | null {
   if (data.identity_type === `individual`) {
     // Validate fields for individuals

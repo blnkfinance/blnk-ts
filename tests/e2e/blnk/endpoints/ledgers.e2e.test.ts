@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable n/no-unpublished-import */
 import tap from "tap";
 import {BlnkClientOptions} from "../../../../src/types/blnkClient";
@@ -80,7 +81,7 @@ tap.test(`Ledgers end to end test`, async t => {
     const ledgerData: unknown = {};
     //this should fail, since we pass an empty object to the create method
     const response = await client.Ledgers.create(
-      ledgerData as CreateLedger<{}>
+      ledgerData as CreateLedger<{}>,
     );
     childTest.ok(response, `response is returned`);
     childTest.equal(response.status, 400);
@@ -355,7 +356,7 @@ tap.test(`Balance Monitors`, async t => {
     };
     const response = await client.BalanceMonitor.update(
       balanceMonitorId,
-      monitorData
+      monitorData,
     );
     childTest.ok(response, `response is returned`);
     childTest.equal(response.status, 200);

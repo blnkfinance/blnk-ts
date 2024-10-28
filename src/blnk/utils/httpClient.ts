@@ -27,7 +27,7 @@ export function MapResponse<
 export function FormatResponse<T>(
   status: number,
   message: string,
-  data: T
+  data: T,
 ): ApiResponse<T> {
   return {status, message, data};
 }

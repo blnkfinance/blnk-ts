@@ -2,7 +2,7 @@ import {CreateLedger} from "../../../types/ledger";
 import {isValidMetaData} from "./ledgerBalance";
 
 export function ValidateCreateLedger<T extends Record<string, unknown>>(
-  data: CreateLedger<T>
+  data: CreateLedger<T>,
 ): null | string {
   if (!data || typeof data !== `object`) {
     return `Data must be a valid object of type CreateLedgerBalance`;

@@ -1,4 +1,5 @@
 /* eslint-disable n/no-unpublished-import */
+/* eslint-disable @typescript-eslint/no-floating-promises */
 import tap from "tap";
 import {Transactions} from "../../../../src/blnk/endpoints/transactions";
 import {
@@ -25,7 +26,7 @@ tap.test(`Creates a transaction`, async t => {
     const transactions = new Transactions(
       capturedRequest,
       mockLogger,
-      FormatResponse
+      FormatResponse,
     );
 
     const data: CreateTransactions<meta_dataT> = {
@@ -49,7 +50,7 @@ tap.test(`Creates a transaction`, async t => {
     const transactions = new Transactions(
       capturedRequest,
       mockLogger,
-      FormatResponse
+      FormatResponse,
     );
 
     //we cast to any here so we can simulate a js user forgetting to put in a compulsory field, since by default Typescript should catch this during development
@@ -72,13 +73,13 @@ tap.test(`Creates a transaction`, async t => {
   t.test(`it should handle thrown errors during creation`, async childTest => {
     const thirdPartyRequest = createMockBlnkRequest(
       false,
-      `Something went wrong`
+      `Something went wrong`,
     );
     const capturedRequest = childTest.captureFn(thirdPartyRequest);
     const transactions = new Transactions(
       capturedRequest,
       mockLogger,
-      FormatResponse
+      FormatResponse,
     );
 
     const data: CreateTransactions<meta_dataT> = {
@@ -104,13 +105,13 @@ tap.test(`Creates a transaction`, async t => {
     async childTest => {
       const thirdPartyRequest = createMockBlnkRequest(
         false,
-        `Something went wrong`
+        `Something went wrong`,
       );
       const capturedRequest = childTest.captureFn(thirdPartyRequest);
       const transactions = new Transactions(
         capturedRequest,
         mockLogger,
-        FormatResponse
+        FormatResponse,
       );
 
       //we cast to any here so we can simulate a js user forgetting to put in a compulsory field, since by default Typescript should catch this during development
@@ -130,9 +131,9 @@ tap.test(`Creates a transaction`, async t => {
       childTest.equal(response.status, 400);
       childTest.equal(
         response.message,
-        `meta_data must be a valid object if provided`
+        `meta_data must be a valid object if provided`,
       );
-    }
+    },
   );
 });
 
@@ -148,7 +149,7 @@ tap.test(`Updates a transaction`, async t => {
     const transactions = new Transactions(
       capturedRequest,
       mockLogger,
-      FormatResponse
+      FormatResponse,
     );
 
     const data: UpdateTransactionStatus<{}> = {
@@ -170,7 +171,7 @@ tap.test(`Updates a transaction`, async t => {
       const transactions = new Transactions(
         capturedRequest,
         mockLogger,
-        FormatResponse
+        FormatResponse,
       );
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const data: any = {
@@ -182,6 +183,6 @@ tap.test(`Updates a transaction`, async t => {
       childTest.match(capturedRequest.args(), []);
       childTest.equal(transaction.data, null);
       childTest.equal(transaction.status, 400);
-    }
+    },
   );
 });

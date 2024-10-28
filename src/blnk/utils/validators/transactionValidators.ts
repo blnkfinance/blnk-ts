@@ -7,7 +7,7 @@ import {IsValidString} from "../stringUtils";
 import {isValidMetaData} from "./ledgerBalance";
 
 export function ValidateCreateTransactions<T extends Record<string, unknown>>(
-  data: CreateTransactions<T>
+  data: CreateTransactions<T>,
 ): string | null {
   if (typeof data.amount !== `number`) {
     return `Amount must be a number.`;
@@ -91,7 +91,7 @@ export function ValidateCreateTransactions<T extends Record<string, unknown>>(
 
 function validateSources(
   sources: MultipleSourcesT[],
-  amount: number
+  amount: number,
 ): string | null {
   let sum = 0;
   let hasLeft = false;
@@ -138,7 +138,7 @@ function validateSources(
 }
 
 export function ValidateUpdateTransactions<T extends Record<string, unknown>>(
-  data: UpdateTransactionStatus<T>
+  data: UpdateTransactionStatus<T>,
 ): string | null {
   if (typeof data.status !== `string`) {
     return `Status must be a string.`;

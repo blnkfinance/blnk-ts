@@ -41,7 +41,7 @@ export class Reconciliation {
   constructor(
     request: BlnkRequest,
     logger: BlnkLogger,
-    formatResponse: FormatResponseType
+    formatResponse: FormatResponseType,
   ) {
     this.request = request;
     this.logger = logger;
@@ -72,7 +72,7 @@ export class Reconciliation {
           return this.formatResponse(
             404,
             `File does not exist at path: ${fileInput}`,
-            null
+            null,
           );
         }
         //get the buf
@@ -93,7 +93,7 @@ export class Reconciliation {
         `POST`,
         {
           "content-type": `multipart/form-data;boundary=${formData.getBoundary()}`,
-        }
+        },
       );
       return response;
     } catch (error) {
@@ -101,7 +101,7 @@ export class Reconciliation {
         error,
         this.logger,
         this.formatResponse,
-        this.upload.name
+        this.upload.name,
       );
     }
   }
@@ -136,7 +136,7 @@ export class Reconciliation {
       const response = await this.request<Matcher, RunReconResp>(
         `reconciliation/matching-rules`,
         data,
-        `POST`
+        `POST`,
       );
       return response; //query endpoint and get response data type
     } catch (error) {
@@ -144,7 +144,7 @@ export class Reconciliation {
         error,
         this.logger,
         this.formatResponse,
-        this.createMatchingRule.name
+        this.createMatchingRule.name,
       );
     }
   }
@@ -172,7 +172,7 @@ export class Reconciliation {
       const response = await this.request<RunReconData, RunReconResp>(
         `reconciliation/start`,
         data,
-        `POST`
+        `POST`,
       );
       return response;
     } catch (error) {
@@ -180,7 +180,7 @@ export class Reconciliation {
         error,
         this.logger,
         this.formatResponse,
-        this.run.name
+        this.run.name,
       );
     }
   }

@@ -1,4 +1,5 @@
 /* eslint-disable n/no-unpublished-import */
+/* eslint-disable @typescript-eslint/no-floating-promises */
 import tap from "tap";
 import {LedgerBalances} from "../../../../src/blnk/endpoints/ledgerBalances";
 import {
@@ -20,7 +21,7 @@ tap.test(`Ledger Balance Tests`, t => {
       const ledgerBalance = new LedgerBalances(
         capturedRequest,
         mockLogger,
-        FormatResponse
+        FormatResponse,
       );
 
       const data: CreateLedgerBalance<{company_name: string}> = {
@@ -50,7 +51,7 @@ tap.test(`Ledger Balance Tests`, t => {
       tt.equal(response.status, 201, `Response is 201`);
       tt.equal(response.data?.ledger_id, ledgerId);
       tt.end();
-    }
+    },
   );
   t.test(`it should handle missing optional fields`, async tt => {
     const thirdPartyRequest = createMockBlnkRequest(true, undefined, 201);
@@ -58,7 +59,7 @@ tap.test(`Ledger Balance Tests`, t => {
     const ledgerBalance = new LedgerBalances(
       capturedRequest,
       mockLogger,
-      FormatResponse
+      FormatResponse,
     );
 
     const data: CreateLedgerBalance<{company_name: string}> = {
@@ -95,7 +96,7 @@ tap.test(`Ledger Balance Tests`, t => {
     const ledgerBalance = new LedgerBalances(
       capturedRequest,
       mockLogger,
-      FormatResponse
+      FormatResponse,
     );
 
     //using any here to simulate a developer passing in any and missing required data types
@@ -122,7 +123,7 @@ tap.test(`Ledger Balance Tests`, t => {
     const ledgerBalance = new LedgerBalances(
       capturedRequest,
       mockLogger,
-      FormatResponse
+      FormatResponse,
     );
 
     const data: CreateLedgerBalance<{company_name: string}> = {
@@ -149,7 +150,7 @@ tap.test(`Ledger Balance Tests`, t => {
     const ledgerBalance = new LedgerBalances(
       capturedRequest,
       mockLogger,
-      FormatResponse
+      FormatResponse,
     );
 
     //allow any for this line, so we can test what happens if a dev passes in a data type for meta_data that doesnt meet the requirements for Record<string, unknown>

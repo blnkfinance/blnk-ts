@@ -30,7 +30,7 @@ export class LedgerBalances {
   constructor(
     request: BlnkRequest,
     logger: BlnkLogger,
-    formatResponse: FormatResponseType
+    formatResponse: FormatResponseType,
   ) {
     this.request = request;
     this.logger = logger;
@@ -58,7 +58,7 @@ export class LedgerBalances {
    * const response = await create(data);
    */
   async create<T extends Record<string, unknown>>(
-    data: CreateLedgerBalance<T>
+    data: CreateLedgerBalance<T>,
   ) {
     try {
       const error = await ValidateCreateLedgerBalance(data);
@@ -76,7 +76,7 @@ export class LedgerBalances {
         error,
         this.logger,
         this.formatResponse,
-        this.create.name
+        this.create.name,
       );
     }
   }
@@ -91,7 +91,7 @@ export class LedgerBalances {
         error,
         this.logger,
         this.formatResponse,
-        this.create.name
+        this.create.name,
       );
     }
   }

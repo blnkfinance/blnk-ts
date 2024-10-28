@@ -36,7 +36,7 @@ async function main() {
       q: `*`,
       sort_by: `created_at:desc`,
     },
-    `ledgers`
+    `ledgers`,
   );
 
   console.log(ledgers);
@@ -117,7 +117,7 @@ async function main() {
     marketingTransaction.data.transaction_id,
     {
       status: `commit`,
-    }
+    },
   );
 
   if (
@@ -133,7 +133,7 @@ async function main() {
     hrTransaction.data.transaction_id,
     {
       status: `commit`,
-    }
+    },
   );
 
   if (

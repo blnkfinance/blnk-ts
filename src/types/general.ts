@@ -5,14 +5,14 @@ export type BlnkRequest = <T, R>(
   endpoint: string,
   data: T,
   method: `POST` | `GET` | `PUT` | `DELETE`,
-  headerOptions?: Record<string, string>
+  headerOptions?: Record<string, string>,
 ) => Promise<ApiResponse<R | null>>;
 
 export interface ServiceConstructor {
   new (
     request: BlnkRequest,
     logger: BlnkLogger,
-    formatResponse: FormatResponseType
+    formatResponse: FormatResponseType,
   ): unknown;
 }
 
@@ -37,7 +37,7 @@ export interface ApiResponseError {
 export type FormatResponseType = <T>(
   status: number,
   message: string,
-  data: T
+  data: T,
 ) => ApiResponse<T>;
 
 export type Currency = `USD` | `NGN` | `EUR`;
@@ -49,7 +49,7 @@ export type GenericMetaData<T extends Record<string, unknown>> = T;
 export type HandleErrorType = (
   error: unknown,
   logger: BlnkLogger,
-  formatResponse: FormatResponseType
+  formatResponse: FormatResponseType,
 ) => ApiResponse<null>;
 
 export type BlnkInitFn = (apiKey: string, options: BlnkClientOptions) => Blnk;

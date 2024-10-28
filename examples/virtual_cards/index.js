@@ -84,7 +84,7 @@ async function main() {
     inflightTransaction.data.transaction_id,
     {
       status: `commit`,
-    }
+    },
   );
 
   if (x.data === null || x.status !== 200) {

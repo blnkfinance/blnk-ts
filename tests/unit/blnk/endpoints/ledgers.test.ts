@@ -1,4 +1,5 @@
 /* eslint-disable n/no-unpublished-import */
+/* eslint-disable @typescript-eslint/no-floating-promises */
 import tap from "tap";
 import {
   createMockBlnkRequest,
@@ -61,7 +62,7 @@ tap.test(`Ledger Tests`, async t => {
     const ledgerBalance = new Ledgers(
       capturedRequest,
       mockLogger,
-      FormatResponse
+      FormatResponse,
     );
 
     const data: CreateLedger<{company_name: string}> = {
