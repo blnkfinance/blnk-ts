@@ -1,4 +1,4 @@
-# BLNK SDK
+# Blnk TypeScript SDK
 
 > A Node library for consuming the Blnk API
 
