@@ -1,6 +1,6 @@
 {
   "name": "@blnkfinance/blnk-typescript",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Blnk Finance SDK in TypeScript",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -9,9 +9,9 @@
     "clean": "gts clean",
     "compile": "tsc",
     "fix": "gts fix",
-    "prepare": "npm.cmd run compile",
-    "pretest": "npm.cmd run compile",
-    "posttest": "npm.cmd run lint",
+    "prepare": "npm run compile",
+    "pretest": "npm run compile",
+    "posttest": "npm run lint",
     "test:unit": "tap tests/unit"
   },
   "keywords": [
@@ -38,7 +38,7 @@
     "form-data": "^4.0.0",
     "node-fetch": "^2.7.0"
   },
-"overrides": {
+  "overrides": {
     "whatwg-url": "^14.0.0"
   },
   "tap": {
