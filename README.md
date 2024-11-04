@@ -173,10 +173,9 @@ The Blnk CLI allows you to list all ledgers, balances, and transactions quickly:
 
 ---
 
-## Additional Information
+## Additional Resources
 
-### Immutability and Idempotency
-All transactions in Blnk are immutable, meaning they cannot be altered once recorded. This ensures data integrity and accuracy. The use of a unique reference for each transaction enforces idempotency.
+For more examples and advanced use cases, please refer to the [Examples Code](https://github.com/blnkfinance/blnk-ts/tree/main/examples).
 
 ### Issue Reporting
 If you encounter any issues, please [report them on GitHub](https://github.com/blnkfinance/blnk/issues).
