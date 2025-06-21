@@ -1,4 +1,5 @@
 import {
+  BulkTransactions,
   CreateTransactions,
   MultipleSourcesT,
   UpdateTransactionStatus,
@@ -160,6 +161,52 @@ export function ValidateUpdateTransactions<T extends Record<string, unknown>>(
     if (!allowedFields.includes(key)) {
       return `Invalid field: ${key}`;
     }
+  }
+
+  return null;
+}
+
+export function ValidateBulkTransactions<T extends Record<string, unknown>>(
+  data: BulkTransactions<T>
+): string | null {
+  // Validate atomic field
+  if (data.atomic !== undefined && typeof data.atomic !== `boolean`) {
+    return `Atomic must be a boolean if provided.`;
+  }
+
+  // Validate inflight field
+  if (data.inflight !== undefined && typeof data.inflight !== `boolean`) {
+    return `Inflight must be a boolean if provided.`;
+  }
+
+  // Validate run_async field
+  if (data.run_async !== undefined && typeof data.run_async !== `boolean`) {
+    return `Run_async must be a boolean if provided.`;
+  }
+
+  // Validate transactions array
+  if (!Array.isArray(data.transactions)) {
+    return `Transactions must be an array.`;
+  }
+
+  if (data.transactions.length === 0) {
+    return `Transactions array cannot be empty.`;
+  }
+
+  // Validate each transaction in the array
+  for (let i = 0; i < data.transactions.length; i++) {
+    const transaction = data.transactions[i];
+    const validationError = ValidateCreateTransactions(transaction);
+    if (validationError) {
+      return `Transaction at index ${i}: ${validationError}`;
+    }
+  }
+
+  // Validate reference uniqueness within the batch
+  const references = data.transactions.map(t => t.reference);
+  const uniqueReferences = new Set(references);
+  if (references.length !== uniqueReferences.size) {
+    return `All transactions must have unique references within the bulk request.`;
   }
 
   return null;

@@ -1,12 +1,15 @@
 import {BlnkLogger} from "../../types/blnkClient";
 import {BlnkRequest, FormatResponseType} from "../../types/general";
 import {
+  BulkTransactionResponse,
+  BulkTransactions,
   CreateTransactionResponse,
   CreateTransactions,
   UpdateTransactionStatus,
 } from "../../types/transactions";
 import {HandleError} from "../utils/logger";
 import {
+  ValidateBulkTransactions,
   ValidateCreateTransactions,
   ValidateUpdateTransactions,
 } from "../utils/validators/transactionValidators";
@@ -19,11 +22,13 @@ import {
  * @param {BlnkLogger} logger - The logger for logging information, errors, and optionally debug messages.
  * @param {FormatResponseType} formatResponse - The function for formatting API response data.
  * @method create - Creates a new transaction with the provided data.
+ * @method createBulk - Creates multiple transactions in a single request with the provided data.
  * @method updateStatus - Updates the status of a transaction with the provided data.
  * @method refund - Refunds a transaction with the provided data.
  * @example
  * const transactions = new Transactions(requestFunction, loggerInstance, formatResponseFunction);
  * const createResponse = await transactions.create(transactionData);
+ * const bulkResponse = await transactions.createBulk(bulkTransactionData);
  * const updateStatusResponse = await transactions.updateStatus(updateData);
  * const refundResponse = await transactions.refund(refundData);
  */
@@ -176,6 +181,86 @@ export class Transactions {
         this.logger,
         this.formatResponse,
         this.refund.name
+      );
+    }
+  }
+
+  /**
+   * Submits multiple transaction records in a single request using the bulk transactions API.
+   * 
+   * The bulk transactions API enables clients to submit multiple transaction records at once,
+   * providing better performance and atomic transaction processing when needed.
+   * 
+   * @template T - A generic type that extends a record with unknown properties. This type is used
+   * to define the meta_data structure for the transactions.
+   * 
+   * @param {BulkTransactions<T>} data - The bulk transaction data containing:
+   *   - atomic: Optional boolean to ensure all transactions succeed or fail together
+   *   - inflight: Optional boolean to create inflight transactions
+   *   - run_async: Optional boolean to process transactions asynchronously
+   *   - transactions: Array of transaction objects to be created
+   * 
+   * @returns {Promise<BulkTransactionResponse<T>>} A promise that resolves to the response
+   * from the server after processing the bulk transactions.
+   * 
+   * @throws {Error} Throws an error if the request fails, which will be logged using the
+   * configured logger, and handled by the `HandleError` function.
+   * 
+   * @example
+   * const bulkData = {
+   *   atomic: true,
+   *   inflight: true,
+   *   run_async: true,
+   *   transactions: [
+   *     {
+   *       amount: 358.90,
+   *       precision: 100,
+   *       reference: "unique_reference_1",
+   *       description: "Transaction description",
+   *       currency: "NGN",
+   *       source: "@source_account",
+   *       allow_overdraft: true,
+   *       destination: "@destination_account"
+   *     },
+   *     {
+   *       amount: 358.90,
+   *       precision: 100,
+   *       reference: "unique_reference_2",
+   *       description: "Transaction description",
+   *       currency: "NGN",
+   *       source: "@source_account",
+   *       allow_overdraft: true,
+   *       destination: "@destination_account"
+   *     }
+   *   ]
+   * };
+   * const result = await createBulk(bulkData);
+   */
+  async createBulk<T extends Record<string, unknown>>(data: BulkTransactions<T>) {
+    try {
+      const validatorResponse = ValidateBulkTransactions(data);
+      if (validatorResponse) {
+        return this.formatResponse(400, validatorResponse, null);
+      }
+
+      const response = await this.request<
+        BulkTransactions<T>,
+        BulkTransactionResponse<T>
+      >(`transactions/bulk`, data, `POST`);
+
+      if (response.data === null) {
+        // Handle the error case
+        this.logger.error(`Error processing bulk transactions`);
+        return response;
+      }
+
+      return response;
+    } catch (error: unknown) {
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.createBulk.name
       );
     }
   }

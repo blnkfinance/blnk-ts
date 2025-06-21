@@ -62,3 +62,19 @@ export type UpdateTransactionStatus<T extends Record<string, unknown>> = {
   amount?: number;
   meta_data?: T;
 };
+
+export interface BulkTransactions<T extends Record<string, unknown>> {
+  atomic?: boolean;
+  inflight?: boolean;
+  run_async?: boolean;
+  transactions: CreateTransactions<T>[];
+}
+
+export interface BulkTransactionResponse<T extends Record<string, unknown>> {
+  id: string;
+  atomic: boolean;
+  inflight: boolean;
+  run_async: boolean;
+  transactions: CreateTransactionResponse<T>[];
+  created_at: Date;
+}
