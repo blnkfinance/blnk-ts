@@ -2,7 +2,7 @@ import {CreateLedgerBalance} from "../../../types/ledgerBalances";
 import {IsValidString} from "../stringUtils";
 
 export function ValidateCreateLedgerBalance<T extends Record<string, unknown>>(
-  data: CreateLedgerBalance<T>
+  data: CreateLedgerBalance<T>,
 ): null | string {
   // Validate if data is an object
   if (!data || typeof data !== `object`) {

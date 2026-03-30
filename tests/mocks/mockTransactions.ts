@@ -24,14 +24,14 @@ class MockTransaction {
   constructor(
     request: BlnkRequest,
     logger: BlnkLogger,
-    formatResponse: FormatResponseType
+    formatResponse: FormatResponseType,
   ) {
     this.request = request;
     this.logger = logger;
     this.formatResponse = formatResponse;
   }
   async create<T extends Record<string, never>>(
-    data: CreateTransactions<T>
+    data: CreateTransactions<T>,
   ): Promise<ApiResponse<CreateTransactionResponse<T> | null>> {
     return {
       status: 200,
@@ -44,7 +44,7 @@ class MockTransaction {
   }
   async updateStatus<T extends Record<string, never>>(
     id: string,
-    update: UpdateTransactionStatus<T>
+    update: UpdateTransactionStatus<T>,
   ): Promise<ApiResponse<CreateTransactionResponse<T> | null>> {
     return {
       data: {
@@ -58,7 +58,7 @@ class MockTransaction {
     };
   }
   async refund<T extends Record<string, never>>(
-    id: string
+    id: string,
   ): Promise<ApiResponse<CreateTransactionResponse<T> | null>> {
     return {
       data: {
@@ -75,7 +75,7 @@ export const TransactionMock = tap.createMock(
   {Transactions},
   {
     Transactions: MockTransaction,
-  }
+  },
 );
 
 export function createDummyTransactionResponse<

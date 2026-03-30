@@ -26,7 +26,7 @@ tap.test(`Creates a transaction`, async t => {
     const transactions = new Transactions(
       capturedRequest,
       mockLogger,
-      FormatResponse
+      FormatResponse,
     );
 
     const data: CreateTransactions<meta_dataT> = {
@@ -50,7 +50,7 @@ tap.test(`Creates a transaction`, async t => {
     const transactions = new Transactions(
       capturedRequest,
       mockLogger,
-      FormatResponse
+      FormatResponse,
     );
 
     //we cast to any here so we can simulate a js user forgetting to put in a compulsory field, since by default Typescript should catch this during development
@@ -73,13 +73,13 @@ tap.test(`Creates a transaction`, async t => {
   t.test(`it should handle thrown errors during creation`, async childTest => {
     const thirdPartyRequest = createMockBlnkRequest(
       false,
-      `Something went wrong`
+      `Something went wrong`,
     );
     const capturedRequest = childTest.captureFn(thirdPartyRequest);
     const transactions = new Transactions(
       capturedRequest,
       mockLogger,
-      FormatResponse
+      FormatResponse,
     );
 
     const data: CreateTransactions<meta_dataT> = {
@@ -105,13 +105,13 @@ tap.test(`Creates a transaction`, async t => {
     async childTest => {
       const thirdPartyRequest = createMockBlnkRequest(
         false,
-        `Something went wrong`
+        `Something went wrong`,
       );
       const capturedRequest = childTest.captureFn(thirdPartyRequest);
       const transactions = new Transactions(
         capturedRequest,
         mockLogger,
-        FormatResponse
+        FormatResponse,
       );
 
       //we cast to any here so we can simulate a js user forgetting to put in a compulsory field, since by default Typescript should catch this during development
@@ -131,9 +131,9 @@ tap.test(`Creates a transaction`, async t => {
       childTest.equal(response.status, 400);
       childTest.equal(
         response.message,
-        `meta_data must be a valid object if provided`
+        `meta_data must be a valid object if provided`,
       );
-    }
+    },
   );
 });
 
@@ -149,7 +149,7 @@ tap.test(`Updates a transaction`, async t => {
     const transactions = new Transactions(
       capturedRequest,
       mockLogger,
-      FormatResponse
+      FormatResponse,
     );
 
     const data: UpdateTransactionStatus<{}> = {
@@ -171,7 +171,7 @@ tap.test(`Updates a transaction`, async t => {
       const transactions = new Transactions(
         capturedRequest,
         mockLogger,
-        FormatResponse
+        FormatResponse,
       );
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const data: any = {
@@ -183,7 +183,7 @@ tap.test(`Updates a transaction`, async t => {
       childTest.match(capturedRequest.args(), []);
       childTest.equal(transaction.data, null);
       childTest.equal(transaction.status, 400);
-    }
+    },
   );
 });
 
@@ -201,7 +201,7 @@ tap.test(`Creates bulk transactions`, async t => {
     const transactions = new Transactions(
       capturedRequest,
       mockLogger,
-      FormatResponse
+      FormatResponse,
     );
 
     const data: BulkTransactions<meta_dataT> = {
@@ -233,45 +233,52 @@ tap.test(`Creates bulk transactions`, async t => {
     };
 
     const bulkResponse = await transactions.createBulk<meta_dataT>(data);
-    childTest.match(capturedRequest.args(), [[`transactions/bulk`, data, `POST`]]);
+    childTest.match(capturedRequest.args(), [
+      [`transactions/bulk`, data, `POST`],
+    ]);
     childTest.equal(bulkResponse.status, 201);
     childTest.end();
   });
 
-  t.test(`Creates basic bulk transactions without optional flags`, async childTest => {
-    const capturedRequest = childTest.captureFn(thirdPartyRequest);
-    const transactions = new Transactions(
-      capturedRequest,
-      mockLogger,
-      FormatResponse
-    );
+  t.test(
+    `Creates basic bulk transactions without optional flags`,
+    async childTest => {
+      const capturedRequest = childTest.captureFn(thirdPartyRequest);
+      const transactions = new Transactions(
+        capturedRequest,
+        mockLogger,
+        FormatResponse,
+      );
 
-    const data: BulkTransactions<meta_dataT> = {
-      transactions: [
-        {
-          amount: 1500,
-          currency: `USD`,
-          description: `Basic bulk transaction`,
-          precision: 100,
-          reference: `basic_bulk_txn_001`,
-          source: `@source_account`,
-          destination: `@destination_account`,
-        },
-      ],
-    };
+      const data: BulkTransactions<meta_dataT> = {
+        transactions: [
+          {
+            amount: 1500,
+            currency: `USD`,
+            description: `Basic bulk transaction`,
+            precision: 100,
+            reference: `basic_bulk_txn_001`,
+            source: `@source_account`,
+            destination: `@destination_account`,
+          },
+        ],
+      };
 
-    const bulkResponse = await transactions.createBulk<meta_dataT>(data);
-    childTest.match(capturedRequest.args(), [[`transactions/bulk`, data, `POST`]]);
-    childTest.equal(bulkResponse.status, 201);
-    childTest.end();
-  });
+      const bulkResponse = await transactions.createBulk<meta_dataT>(data);
+      childTest.match(capturedRequest.args(), [
+        [`transactions/bulk`, data, `POST`],
+      ]);
+      childTest.equal(bulkResponse.status, 201);
+      childTest.end();
+    },
+  );
 
   t.test(`Should handle empty transactions array`, async childTest => {
     const capturedRequest = childTest.captureFn(thirdPartyRequest);
     const transactions = new Transactions(
       capturedRequest,
       mockLogger,
-      FormatResponse
+      FormatResponse,
     );
 
     const data: BulkTransactions<meta_dataT> = {
@@ -292,7 +299,7 @@ tap.test(`Creates bulk transactions`, async t => {
     const transactions = new Transactions(
       capturedRequest,
       mockLogger,
-      FormatResponse
+      FormatResponse,
     );
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -332,7 +339,7 @@ tap.test(`Creates bulk transactions`, async t => {
     const transactions = new Transactions(
       capturedRequest,
       mockLogger,
-      FormatResponse
+      FormatResponse,
     );
 
     const data: BulkTransactions<meta_dataT> = {
@@ -363,7 +370,10 @@ tap.test(`Creates bulk transactions`, async t => {
     childTest.match(capturedRequest.args(), []);
     childTest.equal(response.data, null);
     childTest.equal(response.status, 400);
-    childTest.match(response.message, /All transactions must have unique references/);
+    childTest.match(
+      response.message,
+      /All transactions must have unique references/,
+    );
     childTest.end();
   });
 
@@ -372,7 +382,7 @@ tap.test(`Creates bulk transactions`, async t => {
     const transactions = new Transactions(
       capturedRequest,
       mockLogger,
-      FormatResponse
+      FormatResponse,
     );
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -399,78 +409,88 @@ tap.test(`Creates bulk transactions`, async t => {
     childTest.end();
   });
 
-  t.test(`Should handle thrown errors during bulk creation`, async childTest => {
-    const thirdPartyRequest = createMockBlnkRequest(
-      false,
-      `Network error occurred`
-    );
-    const capturedRequest = childTest.captureFn(thirdPartyRequest);
-    const transactions = new Transactions(
-      capturedRequest,
-      mockLogger,
-      FormatResponse
-    );
+  t.test(
+    `Should handle thrown errors during bulk creation`,
+    async childTest => {
+      const thirdPartyRequest = createMockBlnkRequest(
+        false,
+        `Network error occurred`,
+      );
+      const capturedRequest = childTest.captureFn(thirdPartyRequest);
+      const transactions = new Transactions(
+        capturedRequest,
+        mockLogger,
+        FormatResponse,
+      );
 
-    const data: BulkTransactions<meta_dataT> = {
-      atomic: true,
-      transactions: [
-        {
-          amount: 1000,
-          currency: `USD`,
-          description: `Test transaction`,
-          precision: 100,
-          reference: `test_txn_001`,
-          source: `@source_account`,
-          destination: `@destination_account`,
-        },
-      ],
-    };
+      const data: BulkTransactions<meta_dataT> = {
+        atomic: true,
+        transactions: [
+          {
+            amount: 1000,
+            currency: `USD`,
+            description: `Test transaction`,
+            precision: 100,
+            reference: `test_txn_001`,
+            source: `@source_account`,
+            destination: `@destination_account`,
+          },
+        ],
+      };
 
-    const response = await transactions.createBulk<meta_dataT>(data);
-    childTest.match(capturedRequest.args(), [[`transactions/bulk`, data, `POST`]]);
-    childTest.equal(response.data, null);
-    childTest.equal(response.status, 500);
-    childTest.equal(response.message, `Network error occurred`);
-    childTest.end();
-  });
+      const response = await transactions.createBulk<meta_dataT>(data);
+      childTest.match(capturedRequest.args(), [
+        [`transactions/bulk`, data, `POST`],
+      ]);
+      childTest.equal(response.data, null);
+      childTest.equal(response.status, 500);
+      childTest.equal(response.message, `Network error occurred`);
+      childTest.end();
+    },
+  );
 
-  t.test(`Should handle bulk transactions with multiple sources`, async childTest => {
-    const capturedRequest = childTest.captureFn(thirdPartyRequest);
-    const transactions = new Transactions(
-      capturedRequest,
-      mockLogger,
-      FormatResponse
-    );
+  t.test(
+    `Should handle bulk transactions with multiple sources`,
+    async childTest => {
+      const capturedRequest = childTest.captureFn(thirdPartyRequest);
+      const transactions = new Transactions(
+        capturedRequest,
+        mockLogger,
+        FormatResponse,
+      );
 
-    const data: BulkTransactions<meta_dataT> = {
-      atomic: false,
-      transactions: [
-        {
-          amount: 10000,
-          currency: `USD`,
-          description: `Multi-source transaction`,
-          precision: 100,
-          reference: `multi_source_txn_001`,
-          sources: [
-            {
-              identifier: `@source_account_1`,
-              distribution: `60%`,
-              narration: `Primary source`,
-            },
-            {
-              identifier: `@source_account_2`,
-              distribution: `40%`,
-              narration: `Secondary source`,
-            },
-          ],
-          destination: `@destination_account`,
-        },
-      ],
-    };
+      const data: BulkTransactions<meta_dataT> = {
+        atomic: false,
+        transactions: [
+          {
+            amount: 10000,
+            currency: `USD`,
+            description: `Multi-source transaction`,
+            precision: 100,
+            reference: `multi_source_txn_001`,
+            sources: [
+              {
+                identifier: `@source_account_1`,
+                distribution: `60%`,
+                narration: `Primary source`,
+              },
+              {
+                identifier: `@source_account_2`,
+                distribution: `40%`,
+                narration: `Secondary source`,
+              },
+            ],
+            destination: `@destination_account`,
+          },
+        ],
+      };
 
-    const bulkResponse = await transactions.createBulk<meta_dataT>(data);
-    childTest.match(capturedRequest.args(), [[`transactions/bulk`, data, `POST`]]);
-    childTest.equal(bulkResponse.status, 201);
-    childTest.end();
-  });
+      const bulkResponse = await transactions.createBulk<meta_dataT>(data);
+      childTest.match(capturedRequest.args(), [
+        [`transactions/bulk`, data, `POST`],
+      ]);
+      childTest.equal(bulkResponse.status, 201);
+      childTest.end();
+    },
+  );
 });

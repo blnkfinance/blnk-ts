@@ -19,13 +19,13 @@ tap.test(`Reconciliation`, async t => {
     const thirdPartyRequest: BlnkRequest = createMockBlnkRequest(
       true,
       undefined,
-      201
+      201,
     );
     const capturedRequest = childTest.captureFn(thirdPartyRequest);
     const reconciliation = new Reconciliation(
       capturedRequest,
       mockLogger,
-      FormatResponse
+      FormatResponse,
     );
     const data: Matcher = {
       criteria: [
@@ -55,13 +55,13 @@ tap.test(`Reconciliation`, async t => {
       const reconciliation = new Reconciliation(
         capturedRequest,
         mockLogger,
-        FormatResponse
+        FormatResponse,
       );
       const response = await reconciliation.upload(filePath, `Stripe`);
       childTest.type(capturedRequest.args()[0][1], FormData); //makes sure that the second parameter called in the function is FormData
       childTest.match(response.status, 201);
       childTest.end();
-    }
+    },
   );
 
   t.test(
@@ -72,18 +72,18 @@ tap.test(`Reconciliation`, async t => {
       const thirdPartyRequest = createMockBlnkRequest(
         false,
         `File does not exist at path: ${filePath}`,
-        404
+        404,
       );
       const capturedRequest = childTest.captureFn(thirdPartyRequest);
       const reconciliation = new Reconciliation(
         capturedRequest,
         mockLogger,
-        FormatResponse
+        FormatResponse,
       );
       const response = await reconciliation.upload(filePath, `Stripe`);
       childTest.match(response.status, 404);
       childTest.end();
-    }
+    },
   );
 
   t.test(
@@ -95,14 +95,14 @@ tap.test(`Reconciliation`, async t => {
       const reconciliation = new Reconciliation(
         capturedRequest,
         mockLogger,
-        FormatResponse
+        FormatResponse,
       );
       const readStream = createReadStream(filePath);
       const response = await reconciliation.upload(readStream, `Stripe`);
       childTest.type(capturedRequest.args()[0][1], FormData); //makes sure that the second parameter called in the function is FormData
       childTest.match(response.status, 201);
       childTest.end();
-    }
+    },
   );
 });
 
@@ -112,13 +112,13 @@ tap.test(`Run Reconciliation`, async t => {
     const thirdPartyRequest: BlnkRequest = createMockBlnkRequest(
       true,
       undefined,
-      201
+      201,
     );
     const capturedRequest = childTest.captureFn(thirdPartyRequest);
     const reconciliation = new Reconciliation(
       capturedRequest,
       mockLogger,
-      FormatResponse
+      FormatResponse,
     );
     const data: RunReconData = {
       upload_id: `0987654321`,
@@ -140,13 +140,13 @@ tap.test(`Run Reconciliation`, async t => {
     const thirdPartyRequest: BlnkRequest = createMockBlnkRequest(
       false,
       `An error occurred`,
-      500
+      500,
     );
     const capturedRequest = childTest.captureFn(thirdPartyRequest);
     const reconciliation = new Reconciliation(
       capturedRequest,
       mockLogger,
-      FormatResponse
+      FormatResponse,
     );
     const data: RunReconData = {
       upload_id: `0987654321`,

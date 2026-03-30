@@ -15,14 +15,14 @@ tap.test(`POST BalanceMonitor`, async t => {
     const thirdPartyRequest: BlnkRequest = createMockBlnkRequest(
       true,
       undefined,
-      201
+      201,
     );
 
     const capturedRequest = childTest.captureFn(thirdPartyRequest);
     const balanceMonitor = new BalanceMonitor(
       capturedRequest,
       mockLogger,
-      FormatResponse
+      FormatResponse,
     );
     const id = `1234567890`;
     const data: MonitorData = {
@@ -47,13 +47,13 @@ tap.test(`POST BalanceMonitor`, async t => {
     const thirdPartyRequest: BlnkRequest = createMockBlnkRequest(
       true,
       undefined,
-      201
+      201,
     );
     const capturedRequest = childTest.captureFn(thirdPartyRequest);
     const balanceMonitor = new BalanceMonitor(
       capturedRequest,
       mockLogger,
-      FormatResponse
+      FormatResponse,
     );
     const data: unknown = {
       condition: {
@@ -74,13 +74,13 @@ tap.test(`POST BalanceMonitor`, async t => {
     const thirdPartyRequest: BlnkRequest = createMockBlnkRequest(
       true,
       undefined,
-      201
+      201,
     );
     const capturedRequest = childTest.captureFn(thirdPartyRequest);
     const balanceMonitor = new BalanceMonitor(
       capturedRequest,
       mockLogger,
-      FormatResponse
+      FormatResponse,
     );
     const id = `1234567890`;
     const data: unknown = {
@@ -106,13 +106,13 @@ tap.test(`GET BalanceMonitor`, async t => {
     const thirdPartyRequest: BlnkRequest = createMockBlnkRequest(
       true,
       undefined,
-      200
+      200,
     );
     const capturedRequest = childTest.captureFn(thirdPartyRequest);
     const balanceMonitor = new BalanceMonitor(
       capturedRequest,
       mockLogger,
-      FormatResponse
+      FormatResponse,
     );
     const id = `1234567890`;
     const response = await balanceMonitor.get(id);
@@ -127,13 +127,13 @@ tap.test(`GET BalanceMonitor`, async t => {
     const thirdPartyRequest: BlnkRequest = createMockBlnkRequest(
       true,
       undefined,
-      200
+      200,
     );
     const capturedRequest = childTest.captureFn(thirdPartyRequest);
     const balanceMonitor = new BalanceMonitor(
       capturedRequest,
       mockLogger,
-      FormatResponse
+      FormatResponse,
     );
     const response = await balanceMonitor.list();
     childTest.equal(response.status, 200);
@@ -150,13 +150,13 @@ tap.test(`PUT BalanceMonitor`, async t => {
     const thirdPartyRequest: BlnkRequest = createMockBlnkRequest(
       true,
       undefined,
-      200
+      200,
     );
     const capturedRequest = childTest.captureFn(thirdPartyRequest);
     const balanceMonitor = new BalanceMonitor(
       capturedRequest,
       mockLogger,
-      FormatResponse
+      FormatResponse,
     );
     const id = `12345678`;
     const data: unknown = {
@@ -172,7 +172,7 @@ tap.test(`PUT BalanceMonitor`, async t => {
     childTest.equal(response.status, 200);
     childTest.equal(
       response.data?.balance_id,
-      (data as MonitorData).balance_id
+      (data as MonitorData).balance_id,
     );
     childTest.match(capturedRequest.args(), [
       [`balance-monitors/${id}`, data, `PUT`],
@@ -184,13 +184,13 @@ tap.test(`PUT BalanceMonitor`, async t => {
     const thirdPartyRequest: BlnkRequest = createMockBlnkRequest(
       true,
       undefined,
-      201
+      201,
     );
     const capturedRequest = childTest.captureFn(thirdPartyRequest);
     const balanceMonitor = new BalanceMonitor(
       capturedRequest,
       mockLogger,
-      FormatResponse
+      FormatResponse,
     );
     const id = `1234567890`;
     const data: unknown = {

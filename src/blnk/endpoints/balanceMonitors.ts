@@ -29,7 +29,7 @@ export class BalanceMonitor {
   constructor(
     request: BlnkRequest,
     logger: BlnkLogger,
-    formatResponse: FormatResponseType
+    formatResponse: FormatResponseType,
   ) {
     this.request = request;
     this.logger = logger;
@@ -62,7 +62,7 @@ export class BalanceMonitor {
       const response = await this.request<MonitorData, MonitorDataResp>(
         `balance-monitors`,
         data,
-        `POST`
+        `POST`,
       );
       return response;
     } catch (error: unknown) {
@@ -70,7 +70,7 @@ export class BalanceMonitor {
         error,
         this.logger,
         this.formatResponse,
-        this.create.name
+        this.create.name,
       );
     }
   }
@@ -92,7 +92,7 @@ export class BalanceMonitor {
       const response = await this.request<undefined, MonitorDataResp>(
         `balance-monitors/${id}`,
         undefined,
-        `GET`
+        `GET`,
       );
 
       return response;
@@ -101,7 +101,7 @@ export class BalanceMonitor {
         error,
         this.logger,
         this.formatResponse,
-        this.get.name
+        this.get.name,
       );
     }
   }
@@ -121,7 +121,7 @@ export class BalanceMonitor {
       const response = await this.request<undefined, MonitorDataResp[]>(
         `balance-monitors`,
         undefined,
-        `GET`
+        `GET`,
       );
       return response;
     } catch (error) {
@@ -129,7 +129,7 @@ export class BalanceMonitor {
         error,
         this.logger,
         this.formatResponse,
-        this.get.name
+        this.get.name,
       );
     }
   }
@@ -163,7 +163,7 @@ export class BalanceMonitor {
       const response = await this.request<MonitorData, MonitorDataResp>(
         `balance-monitors/${id}`,
         data,
-        `PUT`
+        `PUT`,
       );
       return response;
     } catch (error) {
@@ -171,7 +171,7 @@ export class BalanceMonitor {
         error,
         this.logger,
         this.formatResponse,
-        this.update.name
+        this.update.name,
       );
     }
   }

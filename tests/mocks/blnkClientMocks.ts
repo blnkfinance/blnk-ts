@@ -45,7 +45,7 @@ export const createMockServices = (): ServicesMap => ({
 const mockApiResponse = <T>(
   data: T,
   status = 200,
-  message = `Success`
+  message = `Success`,
 ): ApiResponse<T> => {
   return {
     status,
@@ -61,13 +61,13 @@ export const ledgerId = `123456`;
 export const createMockBlnkRequest = (
   success: boolean,
   throwError: string | undefined = undefined,
-  status = 200
+  status = 200,
 ): BlnkRequest => {
   return async <T, R>(
     endpoint: string,
     data: T,
     method: `POST` | `GET` | `PUT` | `DELETE`,
-    headerOptions?: Record<string, string>
+    headerOptions?: Record<string, string>,
   ): Promise<ApiResponse<R | null>> => {
     try {
       if (throwError !== undefined) {

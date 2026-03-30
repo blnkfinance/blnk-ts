@@ -32,7 +32,7 @@ export class Identity {
   constructor(
     request: BlnkRequest,
     logger: BlnkLogger,
-    formatResponse: FormatResponseType
+    formatResponse: FormatResponseType,
   ) {
     this.request = request;
     this.logger = logger;
@@ -69,7 +69,7 @@ export class Identity {
         error,
         this.logger,
         this.formatResponse,
-        this.create.name
+        this.create.name,
       );
     }
   }
@@ -89,7 +89,7 @@ export class Identity {
       const response = await this.request<null, IdentityDataResponse<T>>(
         `identities/${id}`,
         null,
-        `GET`
+        `GET`,
       );
       return response;
     } catch (error: unknown) {
@@ -97,7 +97,7 @@ export class Identity {
         error,
         this.logger,
         this.formatResponse,
-        this.get.name
+        this.get.name,
       );
     }
   }
@@ -123,7 +123,7 @@ export class Identity {
         error,
         this.logger,
         this.formatResponse,
-        this.list.name
+        this.list.name,
       );
     }
   }
@@ -158,7 +158,7 @@ export class Identity {
    */
   async update<T extends Record<string, unknown>>(
     id: string,
-    data: IdentityData<T>
+    data: IdentityData<T>,
   ) {
     try {
       const validatorResponse = ValidateIdentity(data);
@@ -175,7 +175,7 @@ export class Identity {
         error,
         this.logger,
         this.formatResponse,
-        this.update.name
+        this.update.name,
       );
     }
   }

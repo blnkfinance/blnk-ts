@@ -40,7 +40,7 @@ export class Transactions {
   constructor(
     request: BlnkRequest,
     logger: BlnkLogger,
-    formatResponse: FormatResponseType
+    formatResponse: FormatResponseType,
   ) {
     this.request = request;
     this.logger = logger;
@@ -92,7 +92,7 @@ export class Transactions {
         error,
         this.logger,
         this.formatResponse,
-        this.create.name
+        this.create.name,
       );
     }
   }
@@ -129,7 +129,7 @@ export class Transactions {
    */
   async updateStatus<T extends Record<string, never>>(
     id: string,
-    update: UpdateTransactionStatus<T>
+    update: UpdateTransactionStatus<T>,
   ) {
     try {
       const validatorResponse = ValidateUpdateTransactions(update);
@@ -146,7 +146,7 @@ export class Transactions {
         error,
         this.logger,
         this.formatResponse,
-        this.updateStatus.name
+        this.updateStatus.name,
       );
     }
   }
@@ -172,7 +172,7 @@ export class Transactions {
       const response = await this.request<null, CreateTransactionResponse<T>>(
         `refund-transaction/${id}`,
         null,
-        `POST`
+        `POST`,
       );
       return response;
     } catch (error: unknown) {
@@ -180,32 +180,32 @@ export class Transactions {
         error,
         this.logger,
         this.formatResponse,
-        this.refund.name
+        this.refund.name,
       );
     }
   }
 
   /**
    * Submits multiple transaction records in a single request using the bulk transactions API.
-   * 
+   *
    * The bulk transactions API enables clients to submit multiple transaction records at once,
    * providing better performance and atomic transaction processing when needed.
-   * 
+   *
    * @template T - A generic type that extends a record with unknown properties. This type is used
    * to define the meta_data structure for the transactions.
-   * 
+   *
    * @param {BulkTransactions<T>} data - The bulk transaction data containing:
    *   - atomic: Optional boolean to ensure all transactions succeed or fail together
    *   - inflight: Optional boolean to create inflight transactions
    *   - run_async: Optional boolean to process transactions asynchronously
    *   - transactions: Array of transaction objects to be created
-   * 
+   *
    * @returns {Promise<BulkTransactionResponse<T>>} A promise that resolves to the response
    * from the server after processing the bulk transactions.
-   * 
+   *
    * @throws {Error} Throws an error if the request fails, which will be logged using the
    * configured logger, and handled by the `HandleError` function.
-   * 
+   *
    * @example
    * const bulkData = {
    *   atomic: true,
@@ -236,7 +236,9 @@ export class Transactions {
    * };
    * const result = await createBulk(bulkData);
    */
-  async createBulk<T extends Record<string, unknown>>(data: BulkTransactions<T>) {
+  async createBulk<T extends Record<string, unknown>>(
+    data: BulkTransactions<T>,
+  ) {
     try {
       const validatorResponse = ValidateBulkTransactions(data);
       if (validatorResponse) {
@@ -260,7 +262,7 @@ export class Transactions {
         error,
         this.logger,
         this.formatResponse,
-        this.createBulk.name
+        this.createBulk.name,
       );
     }
   }

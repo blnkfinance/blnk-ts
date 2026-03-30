@@ -13,5 +13,5 @@ export interface BlnkLogger {
 
 export type fetchType = (
   input: RequestInfo,
-  init?: RequestInit
+  init?: RequestInit,
 ) => Promise<Response>;

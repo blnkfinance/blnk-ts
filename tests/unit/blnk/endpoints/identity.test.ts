@@ -15,7 +15,7 @@ tap.test(`Identity`, async t => {
     const thirdPartyRequest: BlnkRequest = createMockBlnkRequest(
       true,
       undefined,
-      201
+      201,
     );
 
     const capturedRequest = childTest.captureFn(thirdPartyRequest);
@@ -47,13 +47,13 @@ tap.test(`Identity`, async t => {
       const thirdPartyRequest: BlnkRequest = createMockBlnkRequest(
         true,
         undefined,
-        201
+        201,
       );
       const capturedRequest = childTest.captureFn(thirdPartyRequest);
       const identity = new Identity(
         capturedRequest,
         mockLogger,
-        FormatResponse
+        FormatResponse,
       );
       const data: IdentityData<{}> = {
         category: `test`,
@@ -72,7 +72,7 @@ tap.test(`Identity`, async t => {
       childTest.equal(response.data, null);
       childTest.equal(response.status, 400);
       childTest.end();
-    }
+    },
   );
 
   t.test(
@@ -82,13 +82,13 @@ tap.test(`Identity`, async t => {
       const thirdPartyRequest: BlnkRequest = createMockBlnkRequest(
         true,
         undefined,
-        201
+        201,
       );
       const capturedRequest = childTest.captureFn(thirdPartyRequest);
       const identity = new Identity(
         capturedRequest,
         mockLogger,
-        FormatResponse
+        FormatResponse,
       );
       const data: IdentityData<{}> = {
         category: `test`,
@@ -107,7 +107,7 @@ tap.test(`Identity`, async t => {
       childTest.equal(response.data, null);
       childTest.equal(response.status, 400);
       childTest.end();
-    }
+    },
   );
 
   t.test(`it should handle errors thrown during creation`, async childTest => {
@@ -115,7 +115,7 @@ tap.test(`Identity`, async t => {
     const thirdPartyRequest: BlnkRequest = createMockBlnkRequest(
       false,
       `Error creating identity`,
-      500
+      500,
     );
 
     const capturedRequest = childTest.captureFn(thirdPartyRequest);
