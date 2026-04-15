@@ -32,7 +32,7 @@ export class Ledgers {
   constructor(
     request: BlnkRequest,
     logger: BlnkLogger,
-    formatResponse: FormatResponseType
+    formatResponse: FormatResponseType,
   ) {
     this.request = request;
     this.logger = logger;
@@ -58,7 +58,7 @@ export class Ledgers {
       const response = await this.request<CreateLedger<T>, CreateLedgerResp<T>>(
         `ledgers`,
         data,
-        `POST`
+        `POST`,
       );
 
       return response;
@@ -67,7 +67,7 @@ export class Ledgers {
         error,
         this.logger,
         this.formatResponse,
-        this.create.name
+        this.create.name,
       );
     }
   }
@@ -76,7 +76,7 @@ export class Ledgers {
     return await this.request<undefined, CreateLedgerResp<T>>(
       `ledgers/${id}`,
       undefined,
-      `GET`
+      `GET`,
     );
   }
 }

@@ -49,7 +49,7 @@ export class Blnk {
     options: BlnkClientOptions,
     services: ServicesMap,
     formatResponse: FormatResponseType,
-    thirdPartyRequest: fetchType
+    thirdPartyRequest: fetchType,
   ) {
     if (!options.baseUrl) {
       throw new Error(`baseUrl is required for self-hosted Blnk SDK.`);
@@ -89,7 +89,7 @@ export class Blnk {
     endpoint: string,
     data: T,
     method: `POST` | `GET` | `PUT` | `DELETE`,
-    headerOptions?: Record<string, string>
+    headerOptions?: Record<string, string>,
   ): Promise<ApiResponse<R | null>> {
     const headers = {
       "content-type": `application/json`,
@@ -109,19 +109,19 @@ export class Blnk {
               : JSON.stringify(data)
             : undefined,
           timeout: this.options.timeout,
-        }
+        },
       );
 
       if (!response.ok) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const errorResult: any = await response.json();
         this.logger.error(
-          `Request to ${endpoint} failed with status ${response.status}.`
+          `Request to ${endpoint} failed with status ${response.status}.`,
         );
         return this.formatResponse<R>(
           response.status,
           response.statusText,
-          errorResult
+          errorResult,
         );
       }
 
@@ -129,7 +129,7 @@ export class Blnk {
       return this.formatResponse<R>(
         response.status,
         `Success`,
-        jsonResponse
+        jsonResponse,
       ) as ApiResponse<R>;
     } catch (error: unknown) {
       this.logger.error(`Request failed`, {endpoint, error});
@@ -137,7 +137,7 @@ export class Blnk {
         error,
         this.logger,
         this.formatResponse,
-        `${this.request.name}`
+        `${this.request.name}`,
       );
     }
   }
@@ -166,7 +166,7 @@ export class Blnk {
       this.serviceInstances[serviceName] = new this.services[serviceName](
         this.request.bind(this),
         this.logger,
-        this.formatResponse
+        this.formatResponse,
       );
     }
 

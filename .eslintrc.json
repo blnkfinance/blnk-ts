@@ -1,8 +1,16 @@
 {
   "extends": "./node_modules/gts/",
   "rules": {
-    "quotes": ["error", "backtick"], // Enforce backticks for strings
-    "semi": ["error", "always"], // Enforce semicolons at the end of statements
-    "no-var": "error" // Disallow `var` (prefer `let` or `const`)
-  }
+    "quotes": ["error", "backtick"],
+    "semi": ["error", "always"],
+    "no-var": "error"
+  },
+  "overrides": [
+    {
+      "files": ["tests/**/*.ts", "tests/**/*.tsx"],
+      "rules": {
+        "@typescript-eslint/no-floating-promises": "off"
+      }
+    }
+  ]
 }

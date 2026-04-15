@@ -21,7 +21,7 @@ tap.test(`Blnk SDK tests`, t => {
       options,
       mockServices,
       FormatResponse,
-      thirdPartyRequest
+      thirdPartyRequest,
     );
   });
 
@@ -37,7 +37,7 @@ tap.test(`Blnk SDK tests`, t => {
         invalidOptions,
         mockServices,
         FormatResponse,
-        thirdPartyRequest
+        thirdPartyRequest,
       );
     });
   });
@@ -52,9 +52,9 @@ tap.test(`Blnk SDK tests`, t => {
       tt.equal(
         blnk[`formatResponse`],
         FormatResponse,
-        `formatResponse is set correctly`
+        `formatResponse is set correctly`,
       );
-    }
+    },
   );
 
   t.test(
@@ -75,9 +75,9 @@ tap.test(`Blnk SDK tests`, t => {
             message: `Success`,
           },
         },
-        `Returns the expected ApiResponse`
+        `Returns the expected ApiResponse`,
       );
-    }
+    },
   );
 
   t.test(
@@ -92,15 +92,15 @@ tap.test(`Blnk SDK tests`, t => {
         options,
         mockServices,
         FormatResponse,
-        fetchFailMock.fetch
+        fetchFailMock.fetch,
       );
       const result = await badBlnkRequest[`request`](endpoint, data, method);
       tt.same(
         result,
         {status: 500, message: `Failed`, data: {message: `Failed`}},
-        `Returns the expected ApiResponse`
+        `Returns the expected ApiResponse`,
       );
-    }
+    },
   );
 
   t.test(`should append "/" to base url if it is not set`, async tt => {
@@ -113,7 +113,7 @@ tap.test(`Blnk SDK tests`, t => {
       optionsWithoutBaseUrl,
       mockServices,
       FormatResponse,
-      thirdPartyRequest
+      thirdPartyRequest,
     );
     tt.equal(blnkWithoutBaseUrl[`options`].baseUrl, `base/`);
   });

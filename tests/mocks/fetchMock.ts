@@ -8,7 +8,7 @@ export const fetchMock = t.createMock(
     fetch: async (
       // eslint-disable-next-line n/no-unsupported-features/node-builtins
       input: URL | RequestInfo,
-      init?: RequestInit
+      init?: RequestInit,
     ): Promise<Response> => {
       return {
         ok: true,
@@ -26,7 +26,7 @@ export const fetchMock = t.createMock(
         bodyUsed: false,
       } as unknown as Response; // Cast to Response
     },
-  }
+  },
 );
 
 export const fetchFailMock = t.createMock(
@@ -35,7 +35,7 @@ export const fetchFailMock = t.createMock(
     fetch: async (
       // eslint-disable-next-line n/no-unsupported-features/node-builtins
       input: RequestInfo | URL,
-      init?: RequestInit
+      init?: RequestInit,
     ): Promise<Response> => {
       return {
         ok: false,
@@ -53,5 +53,5 @@ export const fetchFailMock = t.createMock(
         bodyUsed: false,
       } as unknown as Response; // Cast to Response
     },
-  }
+  },
 );
