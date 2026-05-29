@@ -39,7 +39,8 @@
     "node-fetch": "^2.7.0"
   },
   "overrides": {
-    "whatwg-url": "^16.0.1"
+    "whatwg-url": "^16.0.1",
+    "tmp": "^0.2.7"
   },
   "tap": {
     "coverage-map": "tests/map.mjs",
