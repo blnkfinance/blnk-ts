@@ -45,6 +45,34 @@ tap.test(`Creates a transaction`, async t => {
     childTest.end();
   });
 
+  t.test(
+    `Creates a transaction with precise_amount only (issue #42)`,
+    async childTest => {
+      const capturedRequest = childTest.captureFn(thirdPartyRequest);
+      const transactions = new Transactions(
+        capturedRequest,
+        mockLogger,
+        FormatResponse,
+      );
+
+      const data: CreateTransactions<meta_dataT> = {
+        precise_amount: 75000,
+        currency: `USD`,
+        description: `Precise amount transaction`,
+        meta_data: {company_name: `Test Company`},
+        precision: 100,
+        reference: `precise_ref_001`,
+        source: `@FundingPool`,
+        destination: `bln_recipient`,
+      };
+
+      const transaction = await transactions.create<meta_dataT>(data);
+      childTest.match(capturedRequest.args(), [[`transactions`, data, `POST`]]);
+      childTest.equal(transaction.status, 201);
+      childTest.end();
+    },
+  );
+
   t.test(`It should handle missing required fields`, async childTest => {
     const capturedRequest = childTest.captureFn(thirdPartyRequest);
     const transactions = new Transactions(

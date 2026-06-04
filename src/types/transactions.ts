@@ -1,5 +1,8 @@
 export interface CreateTransactions<T extends Record<string, unknown>> {
-  amount: number;
+  /** Human-readable amount. Provide `amount` or `precise_amount` (at least one). */
+  amount?: number;
+  /** Amount after precision is applied. Provide `amount` or `precise_amount` (at least one). */
+  precise_amount?: number;
   precision: number;
   reference: string;
   description: string;
@@ -48,6 +51,8 @@ export type CreateTransactionResponse<T extends Record<string, unknown>> = {
 export type MultipleSourcesT = {
   identifier: string;
   distribution: Distribution;
+  /** Precise distribution amount (after precision). Used with `precise_amount` on the parent transaction. */
+  precise_distribution?: number;
   narration?: string;
 };
 
