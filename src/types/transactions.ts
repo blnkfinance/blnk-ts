@@ -1,5 +1,8 @@
 export interface CreateTransactions<T extends Record<string, unknown>> {
-  amount: number;
+  /** Human-readable amount. Provide `amount` or `precise_amount` (at least one). */
+  amount?: number;
+  /** Amount after precision is applied. Provide `amount` or `precise_amount` (at least one). */
+  precise_amount?: number | string;
   precision: number;
   reference: string;
   description: string;
@@ -47,7 +50,18 @@ export type CreateTransactionResponse<T extends Record<string, unknown>> = {
 
 export type MultipleSourcesT = {
   identifier: string;
-  distribution: Distribution;
+  /**
+   * Percentage, fixed amount, or `left`. Required on a leg unless `precise_distribution`
+   * is set for an exact minor-unit value.
+   * see @link https://docs.blnkfinance.com/transactions/multiple-destinations#using-precise_distribution-with-precise_amount
+   */
+  distribution?: Distribution;
+  /**
+   * Fixed leg amount in minor units. Replaces `distribution` for exact values; the API
+   * accepts string values for large integers. Takes precedence over `distribution` when both
+   * are present on the same leg.
+   */
+  precise_distribution?: string | number;
   narration?: string;
 };
 
