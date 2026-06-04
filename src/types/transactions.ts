@@ -50,9 +50,18 @@ export type CreateTransactionResponse<T extends Record<string, unknown>> = {
 
 export type MultipleSourcesT = {
   identifier: string;
-  distribution: Distribution;
-  /** Precise distribution amount (after precision). Used with `precise_amount` on the parent transaction. */
-  precise_distribution?: number;
+  /**
+   * Percentage, fixed amount, or `left`. Required on a leg unless `precise_distribution`
+   * is set for an exact minor-unit value.
+   * see @link https://docs.blnkfinance.com/transactions/multiple-destinations#using-precise_distribution-with-precise_amount
+   */
+  distribution?: Distribution;
+  /**
+   * Fixed leg amount in minor units. Replaces `distribution` for exact values; the API
+   * accepts string values for large integers. Takes precedence over `distribution` when both
+   * are present on the same leg.
+   */
+  precise_distribution?: string | number;
   narration?: string;
 };
 

@@ -168,5 +168,113 @@ tap.test(`Issue #42 — split-transaction validator`, t => {
     tt.end();
   });
 
+  t.test(`allows split legs that use precise_distribution only`, tt => {
+    const data: CreateTransactions<Record<string, never>> = {
+      ...baseFields,
+      precise_amount: 10000,
+      source: `bln_sarah`,
+      destinations: [
+        {identifier: `bln_merchant`, precise_distribution: `9733`},
+        {identifier: `bln_fee`, precise_distribution: `267`},
+      ],
+    };
+
+    tt.equal(ValidateCreateTransactions(data), null);
+    tt.end();
+  });
+
+  t.test(
+    `allows mixed precise_distribution and percentage distribution legs`,
+    tt => {
+      const data: CreateTransactions<Record<string, never>> = {
+        ...baseFields,
+        precise_amount: 189207535698279000,
+        source: `bln_sarah`,
+        destinations: [
+          {
+            identifier: `bln_alice`,
+            precise_distribution: `37841507139655800`,
+          },
+          {identifier: `bln_bob`, distribution: `20%`},
+          {identifier: `bln_charlie`, distribution: `left`},
+        ],
+      };
+
+      tt.equal(ValidateCreateTransactions(data), null);
+      tt.end();
+    },
+  );
+
+  t.test(
+    `rejects split legs missing both distribution and precise_distribution`,
+    tt => {
+      const data: CreateTransactions<Record<string, never>> = {
+        ...baseFields,
+        amount: 1000,
+        source: `bln_sarah`,
+        destinations: [{identifier: `bln_alice`}],
+      };
+
+      tt.equal(
+        ValidateCreateTransactions(data),
+        `Each destination leg must include either 'distribution' or 'precise_distribution'.`,
+      );
+      tt.end();
+    },
+  );
+
+  t.test(`rejects invalid precise_distribution values`, tt => {
+    const data: CreateTransactions<Record<string, never>> = {
+      ...baseFields,
+      precise_amount: 1000,
+      source: `bln_sarah`,
+      destinations: [
+        {identifier: `bln_alice`, precise_distribution: `not-a-number`},
+      ],
+    };
+
+    tt.equal(
+      ValidateCreateTransactions(data),
+      `Invalid precise_distribution for leg: bln_alice.`,
+    );
+    tt.end();
+  });
+
+  t.test(
+    `uses amount for distribution math when both amount and precise_amount are provided`,
+    tt => {
+      const validWithAmount: CreateTransactions<Record<string, never>> = {
+        ...baseFields,
+        amount: 10000,
+        precise_amount: 999999,
+        source: `bln_sarah`,
+        destinations: [
+          {identifier: `bln_merchant`, precise_distribution: `9733`},
+          {identifier: `bln_fee`, precise_distribution: `267`},
+        ],
+      };
+
+      const invalidIfPreciseAmountUsed: CreateTransactions<
+        Record<string, never>
+      > = {
+        ...baseFields,
+        amount: 10000,
+        precise_amount: 999999,
+        source: `bln_sarah`,
+        destinations: [
+          {identifier: `bln_merchant`, precise_distribution: `999998`},
+          {identifier: `bln_fee`, precise_distribution: `1`},
+        ],
+      };
+
+      tt.equal(ValidateCreateTransactions(validWithAmount), null);
+      tt.ok(
+        ValidateCreateTransactions(invalidIfPreciseAmountUsed) !== null,
+        `amount (10000) should take precedence over precise_amount (999999)`,
+      );
+      tt.end();
+    },
+  );
+
   t.end();
 });

@@ -9,7 +9,8 @@ import {isValidMetaData} from "./ledgerBalance";
 
 /**
  * Resolves the numeric total used for split-leg distribution checks.
- * API accepts either `amount` or `precise_amount` (see create-transaction reference).
+ * When both `amount` and `precise_amount` are provided, `amount` takes precedence
+ * to match the API's primary amount field for distribution math.
  */
 function resolveTransactionAmount(
   data: CreateTransactions<Record<string, unknown>>,
@@ -26,6 +27,31 @@ function resolveTransactionAmount(
   }
 
   return data.precise_amount as number;
+}
+
+function parsePreciseDistribution(value: string | number): number | null {
+  if (typeof value === `number`) {
+    if (!Number.isFinite(value) || value < 0) {
+      return null;
+    }
+    return value;
+  }
+
+  if (typeof value === `string` && value.trim() !== ``) {
+    const parsed = Number(value.trim());
+    if (!Number.isFinite(parsed) || parsed < 0) {
+      return null;
+    }
+    return parsed;
+  }
+
+  return null;
+}
+
+function hasPreciseDistribution(leg: MultipleSourcesT): boolean {
+  return (
+    leg.precise_distribution !== undefined && leg.precise_distribution !== null
+  );
 }
 
 function validateSplitLegRouting(
@@ -172,31 +198,59 @@ function validateSplitLegs(
   amount: number,
   legLabel: `source` | `destination`,
 ): string | null {
+  const legArrayName = legLabel === `source` ? `sources` : `destinations`;
+
   if (!Array.isArray(legs) || legs.length === 0) {
-    return `'${legLabel === `source` ? `sources` : `destinations`}' must be a non-empty array.`;
+    return `'${legArrayName}' must be a non-empty array.`;
   }
 
   for (const leg of legs) {
     if (!IsValidString(leg.identifier)) {
       return `Each ${legLabel} leg must include a valid identifier.`;
     }
-    if (!IsValidString(leg.distribution)) {
-      return `Each ${legLabel} leg must include a valid distribution.`;
+
+    const hasDistribution =
+      leg.distribution !== undefined && leg.distribution !== null;
+    const hasPreciseDistributionValue = hasPreciseDistribution(leg);
+
+    if (!hasDistribution && !hasPreciseDistributionValue) {
+      return `Each ${legLabel} leg must include either 'distribution' or 'precise_distribution'.`;
+    }
+
+    if (
+      hasPreciseDistributionValue &&
+      leg.precise_distribution !== undefined &&
+      typeof leg.precise_distribution !== `string` &&
+      typeof leg.precise_distribution !== `number`
+    ) {
+      return `precise_distribution must be a string or number for leg: ${leg.identifier}.`;
     }
   }
 
-  return validateSources(legs, amount);
+  return validateDistributionLegs(legs, amount);
 }
 
-function validateSources(
-  sources: MultipleSourcesT[],
+function validateDistributionLegs(
+  legs: MultipleSourcesT[],
   amount: number,
 ): string | null {
   let sum = 0;
   let hasLeft = false;
 
-  for (const source of sources) {
-    const {distribution} = source;
+  for (const leg of legs) {
+    if (hasPreciseDistribution(leg)) {
+      const preciseValue = parsePreciseDistribution(leg.precise_distribution!);
+      if (preciseValue === null) {
+        return `Invalid precise_distribution for leg: ${leg.identifier}.`;
+      }
+      sum += preciseValue;
+      continue;
+    }
+
+    const distribution = leg.distribution;
+    if (!distribution || !IsValidString(distribution)) {
+      return `Invalid distribution type for leg: ${leg.identifier}.`;
+    }
 
     if (distribution.endsWith(`%`)) {
       const percentageValue = parseFloat(distribution.slice(0, -1));
@@ -205,13 +259,13 @@ function validateSources(
         percentageValue < 0 ||
         percentageValue > 100
       ) {
-        return `Invalid percentage value in source: ${source.identifier}`;
+        return `Invalid percentage value in leg: ${leg.identifier}.`;
       }
       sum += (percentageValue / 100) * amount;
     } else if (!isNaN(Number(distribution))) {
       const numericValue = parseFloat(distribution);
       if (numericValue < 0) {
-        return `Invalid numeric value in source: ${source.identifier}`;
+        return `Invalid numeric value in leg: ${leg.identifier}.`;
       }
       sum += numericValue;
     } else if (distribution === `left`) {
@@ -220,7 +274,7 @@ function validateSources(
       }
       hasLeft = true;
     } else {
-      return `Invalid distribution type for source: ${source.identifier}`;
+      return `Invalid distribution type for leg: ${leg.identifier}.`;
     }
   }
 
