@@ -1,3 +1,4 @@
+/* eslint-disable n/no-unsupported-features/es-builtins */
 import {
   BulkTransactions,
   CreateTransactions,
@@ -7,51 +8,108 @@ import {
 import {IsValidString} from "../stringUtils";
 import {isValidMetaData} from "./ledgerBalance";
 
-/**
- * Resolves the numeric total used for split-leg distribution checks.
- * When both `amount` and `precise_amount` are provided, `amount` takes precedence
- * to match the API's primary amount field for distribution math.
- */
-function resolveTransactionAmount(
-  data: CreateTransactions<Record<string, unknown>>,
-): number | null {
-  const hasAmount = typeof data.amount === `number`;
-  const hasPreciseAmount = typeof data.precise_amount === `number`;
+const NON_NEGATIVE_INTEGER_STRING = /^\d+$/;
 
-  if (!hasAmount && !hasPreciseAmount) {
+type TransactionTotal =
+  | {arithmetic: `number`; value: number}
+  | {arithmetic: `bigint`; value: bigint};
+
+/**
+ * Parses a non-negative integer for precise amount/distribution fields.
+ * Uses BigInt so string values larger than Number.MAX_SAFE_INTEGER stay exact.
+ */
+function parsePreciseInteger(value: string | number): bigint | null {
+  if (typeof value === `number`) {
+    if (!Number.isFinite(value) || value < 0 || !Number.isInteger(value)) {
+      return null;
+    }
+    return BigInt(value);
+  }
+
+  const trimmed = value.trim();
+  if (!NON_NEGATIVE_INTEGER_STRING.test(trimmed)) {
     return null;
   }
 
-  if (hasAmount) {
-    return data.amount as number;
+  try {
+    return BigInt(trimmed);
+  } catch {
+    return null;
   }
-
-  return data.precise_amount as number;
-}
-
-function parsePreciseDistribution(value: string | number): number | null {
-  if (typeof value === `number`) {
-    if (!Number.isFinite(value) || value < 0) {
-      return null;
-    }
-    return value;
-  }
-
-  if (typeof value === `string` && value.trim() !== ``) {
-    const parsed = Number(value.trim());
-    if (!Number.isFinite(parsed) || parsed < 0) {
-      return null;
-    }
-    return parsed;
-  }
-
-  return null;
 }
 
 function hasPreciseDistribution(leg: MultipleSourcesT): boolean {
   return (
     leg.precise_distribution !== undefined && leg.precise_distribution !== null
   );
+}
+
+function usesPreciseIntegerArithmetic(
+  data: CreateTransactions<Record<string, unknown>>,
+): boolean {
+  if (data.sources?.some(hasPreciseDistribution)) {
+    return true;
+  }
+  if (data.destinations?.some(hasPreciseDistribution)) {
+    return true;
+  }
+  if (typeof data.precise_amount === `string`) {
+    return true;
+  }
+  if (
+    data.precise_amount !== undefined &&
+    data.precise_amount !== null &&
+    typeof data.amount !== `number`
+  ) {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Resolves the transaction total for split-leg distribution checks.
+ * When both `amount` and `precise_amount` are provided, `amount` takes precedence.
+ */
+function resolveTransactionTotal(
+  data: CreateTransactions<Record<string, unknown>>,
+): TransactionTotal | null {
+  const hasAmount = typeof data.amount === `number`;
+  const hasPreciseAmount =
+    data.precise_amount !== undefined && data.precise_amount !== null;
+
+  if (!hasAmount && !hasPreciseAmount) {
+    return null;
+  }
+
+  if (usesPreciseIntegerArithmetic(data)) {
+    if (hasAmount) {
+      return {
+        arithmetic: `bigint`,
+        value: BigInt(Math.trunc(data.amount as number)),
+      };
+    }
+
+    const parsed = parsePreciseInteger(data.precise_amount as string | number);
+    if (parsed === null) {
+      return null;
+    }
+    return {arithmetic: `bigint`, value: parsed};
+  }
+
+  if (hasAmount) {
+    return {arithmetic: `number`, value: data.amount as number};
+  }
+
+  const parsed = parsePreciseInteger(data.precise_amount as string | number);
+  if (parsed === null) {
+    return null;
+  }
+
+  if (parsed <= BigInt(Number.MAX_SAFE_INTEGER)) {
+    return {arithmetic: `number`, value: Number(parsed)};
+  }
+
+  return {arithmetic: `bigint`, value: parsed};
 }
 
 function validateSplitLegRouting(
@@ -96,8 +154,15 @@ function validateSplitLegRouting(
 export function ValidateCreateTransactions<T extends Record<string, unknown>>(
   data: CreateTransactions<T>,
 ): string | null {
-  const transactionAmount = resolveTransactionAmount(data);
-  if (transactionAmount === null) {
+  const transactionTotal = resolveTransactionTotal(data);
+  if (transactionTotal === null) {
+    if (
+      data.precise_amount !== undefined &&
+      data.precise_amount !== null &&
+      typeof data.amount !== `number`
+    ) {
+      return `precise_amount must be a non-negative integer string or number.`;
+    }
     return `Either 'amount' or 'precise_amount' must be provided.`;
   }
 
@@ -105,11 +170,16 @@ export function ValidateCreateTransactions<T extends Record<string, unknown>>(
     return `Amount must be a number.`;
   }
 
-  if (
-    data.precise_amount !== undefined &&
-    typeof data.precise_amount !== `number`
-  ) {
-    return `precise_amount must be a number.`;
+  if (data.precise_amount !== undefined && data.precise_amount !== null) {
+    const isValidPreciseAmount =
+      typeof data.precise_amount === `number` ||
+      typeof data.precise_amount === `string`;
+    if (!isValidPreciseAmount) {
+      return `precise_amount must be a string or number.`;
+    }
+    if (parsePreciseInteger(data.precise_amount) === null) {
+      return `precise_amount must be a non-negative integer string or number.`;
+    }
   }
 
   if (typeof data.precision !== `number`) {
@@ -141,7 +211,7 @@ export function ValidateCreateTransactions<T extends Record<string, unknown>>(
   if (data.sources) {
     const sourcesError = validateSplitLegs(
       data.sources,
-      transactionAmount,
+      transactionTotal,
       `source`,
     );
     if (sourcesError) return sourcesError;
@@ -150,7 +220,7 @@ export function ValidateCreateTransactions<T extends Record<string, unknown>>(
   if (data.destinations) {
     const destinationsError = validateSplitLegs(
       data.destinations,
-      transactionAmount,
+      transactionTotal,
       `destination`,
     );
     if (destinationsError) return destinationsError;
@@ -195,7 +265,7 @@ export function ValidateCreateTransactions<T extends Record<string, unknown>>(
 
 function validateSplitLegs(
   legs: MultipleSourcesT[],
-  amount: number,
+  total: TransactionTotal,
   legLabel: `source` | `destination`,
 ): string | null {
   const legArrayName = legLabel === `source` ? `sources` : `destinations`;
@@ -227,19 +297,23 @@ function validateSplitLegs(
     }
   }
 
-  return validateDistributionLegs(legs, amount);
+  if (total.arithmetic === `bigint`) {
+    return validateDistributionLegsBigInt(legs, total.value);
+  }
+
+  return validateDistributionLegsNumber(legs, total.value);
 }
 
-function validateDistributionLegs(
+function validateDistributionLegsBigInt(
   legs: MultipleSourcesT[],
-  amount: number,
+  total: bigint,
 ): string | null {
-  let sum = 0;
+  let sum = BigInt(0);
   let hasLeft = false;
 
   for (const leg of legs) {
     if (hasPreciseDistribution(leg)) {
-      const preciseValue = parsePreciseDistribution(leg.precise_distribution!);
+      const preciseValue = parsePreciseInteger(leg.precise_distribution!);
       if (preciseValue === null) {
         return `Invalid precise_distribution for leg: ${leg.identifier}.`;
       }
@@ -247,6 +321,53 @@ function validateDistributionLegs(
       continue;
     }
 
+    const distribution = leg.distribution;
+    if (!distribution || !IsValidString(distribution)) {
+      return `Invalid distribution type for leg: ${leg.identifier}.`;
+    }
+
+    if (distribution.endsWith(`%`)) {
+      const percentageValue = parseFloat(distribution.slice(0, -1));
+      if (
+        isNaN(percentageValue) ||
+        percentageValue < 0 ||
+        percentageValue > 100
+      ) {
+        return `Invalid percentage value in leg: ${leg.identifier}.`;
+      }
+      sum += (total * BigInt(Math.trunc(percentageValue))) / BigInt(100);
+    } else if (NON_NEGATIVE_INTEGER_STRING.test(distribution)) {
+      sum += BigInt(distribution);
+    } else if (distribution === `left`) {
+      if (hasLeft) {
+        return `Multiple 'left' distribution types are not allowed.`;
+      }
+      hasLeft = true;
+    } else {
+      return `Invalid distribution type for leg: ${leg.identifier}.`;
+    }
+  }
+
+  if (hasLeft) {
+    const remaining = total - sum;
+    if (remaining < BigInt(0)) {
+      return `Total distribution exceeds the specified amount.`;
+    }
+  } else if (sum !== total) {
+    return `Total distribution sum (${sum}) does not equal the specified amount (${total}).`;
+  }
+
+  return null;
+}
+
+function validateDistributionLegsNumber(
+  legs: MultipleSourcesT[],
+  amount: number,
+): string | null {
+  let sum = 0;
+  let hasLeft = false;
+
+  for (const leg of legs) {
     const distribution = leg.distribution;
     if (!distribution || !IsValidString(distribution)) {
       return `Invalid distribution type for leg: ${leg.identifier}.`;

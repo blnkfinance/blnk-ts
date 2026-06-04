@@ -2,7 +2,7 @@ export interface CreateTransactions<T extends Record<string, unknown>> {
   /** Human-readable amount. Provide `amount` or `precise_amount` (at least one). */
   amount?: number;
   /** Amount after precision is applied. Provide `amount` or `precise_amount` (at least one). */
-  precise_amount?: number;
+  precise_amount?: number | string;
   precision: number;
   reference: string;
   description: string;

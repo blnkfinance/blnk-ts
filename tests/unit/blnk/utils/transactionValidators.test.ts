@@ -188,7 +188,7 @@ tap.test(`Issue #42 — split-transaction validator`, t => {
     tt => {
       const data: CreateTransactions<Record<string, never>> = {
         ...baseFields,
-        precise_amount: 189207535698279000,
+        precise_amount: `189207535698279000`,
         source: `bln_sarah`,
         destinations: [
           {
@@ -204,6 +204,67 @@ tap.test(`Issue #42 — split-transaction validator`, t => {
       tt.end();
     },
   );
+
+  t.test(
+    `validates precise_distribution strings beyond Number.MAX_SAFE_INTEGER exactly`,
+    tt => {
+      const legA = `9007199254740992`;
+      const legB = `1`;
+      const total = `9007199254740993`;
+
+      const valid: CreateTransactions<Record<string, never>> = {
+        ...baseFields,
+        precise_amount: total,
+        source: `bln_sarah`,
+        destinations: [
+          {identifier: `bln_alice`, precise_distribution: legA},
+          {identifier: `bln_bob`, precise_distribution: legB},
+        ],
+      };
+
+      const invalid: CreateTransactions<Record<string, never>> = {
+        ...valid,
+        destinations: [
+          {identifier: `bln_alice`, precise_distribution: legA},
+          {identifier: `bln_bob`, precise_distribution: `2`},
+        ],
+      };
+
+      tt.equal(ValidateCreateTransactions(valid), null);
+      tt.ok(
+        ValidateCreateTransactions(invalid) !== null,
+        `sum must match exactly; Number() would mis-parse ${total}`,
+      );
+      tt.end();
+    },
+  );
+
+  t.test(`allows precise_amount as a string for large integers`, tt => {
+    const data: CreateTransactions<Record<string, never>> = {
+      ...baseFields,
+      precise_amount: `9007199254740993`,
+      source: `@FundingPool`,
+      destination: `bln_recipient`,
+    };
+
+    tt.equal(ValidateCreateTransactions(data), null);
+    tt.end();
+  });
+
+  t.test(`rejects invalid precise_amount string values`, tt => {
+    const data: CreateTransactions<Record<string, never>> = {
+      ...baseFields,
+      precise_amount: `12.5`,
+      source: `bln_a`,
+      destination: `bln_b`,
+    };
+
+    tt.equal(
+      ValidateCreateTransactions(data),
+      `precise_amount must be a non-negative integer string or number.`,
+    );
+    tt.end();
+  });
 
   t.test(
     `rejects split legs missing both distribution and precise_distribution`,
