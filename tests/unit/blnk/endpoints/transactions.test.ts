@@ -74,6 +74,70 @@ tap.test(`Creates a transaction`, async t => {
   );
 
   t.test(
+    `Creates a transaction with ISO date strings unchanged (issue #41)`,
+    async childTest => {
+      const capturedRequest = childTest.captureFn(thirdPartyRequest);
+      const transactions = new Transactions(
+        capturedRequest,
+        mockLogger,
+        FormatResponse,
+      );
+
+      const data: CreateTransactions<meta_dataT> = {
+        amount: 10000,
+        currency: `USD`,
+        description: `Scheduled inflight transaction`,
+        meta_data: {company_name: `Test Company`},
+        precision: 100,
+        reference: `issue_41_ref_001`,
+        source: `@FundingPool`,
+        destination: `bln_recipient`,
+        inflight: true,
+        scheduled_for: `2025-12-31T23:59:59Z`,
+        inflight_expiry_date: `2025-08-01T08:00:00Z`,
+      };
+
+      const transaction = await transactions.create<meta_dataT>(data);
+
+      childTest.match(capturedRequest.args(), [[`transactions`, data, `POST`]]);
+      childTest.equal(transaction.status, 201);
+      childTest.end();
+    },
+  );
+
+  t.test(
+    `Creates a transaction with decimal distribution split (issue #41)`,
+    async childTest => {
+      const capturedRequest = childTest.captureFn(thirdPartyRequest);
+      const transactions = new Transactions(
+        capturedRequest,
+        mockLogger,
+        FormatResponse,
+      );
+
+      const data: CreateTransactions<meta_dataT> = {
+        amount: 1000,
+        currency: `USD`,
+        description: `Decimal distribution split`,
+        meta_data: {company_name: `Test Company`},
+        precision: 100,
+        reference: `issue_41_ref_002`,
+        source: `@FundingPool`,
+        destinations: [
+          {identifier: `bln_fee`, distribution: `240.23`},
+          {identifier: `bln_recipient`, distribution: `left`},
+        ],
+      };
+
+      const transaction = await transactions.create<meta_dataT>(data);
+
+      childTest.match(capturedRequest.args(), [[`transactions`, data, `POST`]]);
+      childTest.equal(transaction.status, 201);
+      childTest.end();
+    },
+  );
+
+  t.test(
     `Creates a transaction with #40 fields and serializes dates (issue #40)`,
     async childTest => {
       const capturedRequest = childTest.captureFn(thirdPartyRequest);

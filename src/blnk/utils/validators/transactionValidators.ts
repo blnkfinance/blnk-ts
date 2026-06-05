@@ -336,10 +336,89 @@ function validateSplitLegs(
   return validateDistributionLegsNumber(legs, total.value);
 }
 
+/**
+ * Fixed-amount split legs: non-negative integer or decimal strings only.
+ * Rejects exponent (`1e3`), hex (`0x10`), and whitespace-padded values.
+ */
+const FIXED_AMOUNT_DISTRIBUTION = /^(?:\d+|\d+\.\d+)$/;
+
+/** Percentage split legs such as `20%` or `33.33%`. */
+const PERCENTAGE_DISTRIBUTION = /^(?:\d+|\d+\.\d+)%$/;
+
+const DISTRIBUTION_SUM_EPSILON = 1e-9;
+
+function parsePercentageDistribution(distribution: string): number | null {
+  if (!PERCENTAGE_DISTRIBUTION.test(distribution)) {
+    return null;
+  }
+
+  const value = Number(distribution.slice(0, -1));
+  if (!Number.isFinite(value) || value < 0 || value > 100) {
+    return null;
+  }
+
+  return value;
+}
+
+function parseFixedAmountDistribution(distribution: string): number | null {
+  if (distribution.trim() !== distribution) {
+    return null;
+  }
+
+  if (!FIXED_AMOUNT_DISTRIBUTION.test(distribution)) {
+    return null;
+  }
+
+  const value = Number(distribution);
+  if (!Number.isFinite(value) || value < 0) {
+    return null;
+  }
+
+  return value;
+}
+
+function distributionTotalsApproximatelyEqual(
+  sum: number,
+  amount: number,
+): boolean {
+  return Math.abs(sum - amount) <= DISTRIBUTION_SUM_EPSILON;
+}
+
+function isFixedDecimalDistribution(distribution: string): boolean {
+  const parsed = parseFixedAmountDistribution(distribution);
+  return parsed !== null && !Number.isInteger(parsed);
+}
+
+function hasDecimalPercentageDistribution(distribution: string): boolean {
+  const parsed = parsePercentageDistribution(distribution);
+  return parsed !== null && !Number.isInteger(parsed);
+}
+
+function legUsesDecimalDistribution(leg: MultipleSourcesT): boolean {
+  if (leg.distribution === undefined) {
+    return false;
+  }
+
+  return (
+    isFixedDecimalDistribution(leg.distribution) ||
+    hasDecimalPercentageDistribution(leg.distribution)
+  );
+}
+
 function validateDistributionLegsBigInt(
   legs: MultipleSourcesT[],
   total: bigint,
 ): string | null {
+  const hasDecimalDistribution = legs.some(legUsesDecimalDistribution);
+
+  if (hasDecimalDistribution && total > BigInt(Number.MAX_SAFE_INTEGER)) {
+    return `Decimal distribution values are not supported with precise amounts beyond Number.MAX_SAFE_INTEGER.`;
+  }
+
+  if (hasDecimalDistribution && total <= BigInt(Number.MAX_SAFE_INTEGER)) {
+    return validateDistributionLegsWithDecimals(legs, Number(total));
+  }
+
   let sum = BigInt(0);
   let hasLeft = false;
 
@@ -359,24 +438,22 @@ function validateDistributionLegsBigInt(
     }
 
     if (distribution.endsWith(`%`)) {
-      const percentageValue = parseFloat(distribution.slice(0, -1));
-      if (
-        isNaN(percentageValue) ||
-        percentageValue < 0 ||
-        percentageValue > 100
-      ) {
+      const percentageValue = parsePercentageDistribution(distribution);
+      if (percentageValue === null) {
         return `Invalid percentage value in leg: ${leg.identifier}.`;
       }
-      sum += (total * BigInt(Math.trunc(percentageValue))) / BigInt(100);
-    } else if (NON_NEGATIVE_INTEGER_STRING.test(distribution)) {
-      sum += BigInt(distribution);
+      sum += (total * BigInt(percentageValue)) / BigInt(100);
     } else if (distribution === `left`) {
       if (hasLeft) {
         return `Multiple 'left' distribution types are not allowed.`;
       }
       hasLeft = true;
     } else {
-      return `Invalid distribution type for leg: ${leg.identifier}.`;
+      const fixedAmount = parseFixedAmountDistribution(distribution);
+      if (fixedAmount === null || !Number.isInteger(fixedAmount)) {
+        return `Invalid distribution type for leg: ${leg.identifier}.`;
+      }
+      sum += BigInt(fixedAmount);
     }
   }
 
@@ -396,47 +473,60 @@ function validateDistributionLegsNumber(
   legs: MultipleSourcesT[],
   amount: number,
 ): string | null {
+  return validateDistributionLegsWithDecimals(legs, amount);
+}
+
+function validateDistributionLegsWithDecimals(
+  legs: MultipleSourcesT[],
+  amount: number,
+): string | null {
   let sum = 0;
   let hasLeft = false;
 
   for (const leg of legs) {
+    if (hasPreciseDistribution(leg)) {
+      const preciseValue = parsePreciseInteger(leg.precise_distribution!);
+      if (preciseValue === null) {
+        return `Invalid precise_distribution for leg: ${leg.identifier}.`;
+      }
+      if (preciseValue > BigInt(Number.MAX_SAFE_INTEGER)) {
+        return `Invalid precise_distribution for leg: ${leg.identifier}.`;
+      }
+      sum += Number(preciseValue);
+      continue;
+    }
+
     const distribution = leg.distribution;
     if (!distribution || !IsValidString(distribution)) {
       return `Invalid distribution type for leg: ${leg.identifier}.`;
     }
 
     if (distribution.endsWith(`%`)) {
-      const percentageValue = parseFloat(distribution.slice(0, -1));
-      if (
-        isNaN(percentageValue) ||
-        percentageValue < 0 ||
-        percentageValue > 100
-      ) {
+      const percentageValue = parsePercentageDistribution(distribution);
+      if (percentageValue === null) {
         return `Invalid percentage value in leg: ${leg.identifier}.`;
       }
       sum += (percentageValue / 100) * amount;
-    } else if (!isNaN(Number(distribution))) {
-      const numericValue = parseFloat(distribution);
-      if (numericValue < 0) {
-        return `Invalid numeric value in leg: ${leg.identifier}.`;
-      }
-      sum += numericValue;
     } else if (distribution === `left`) {
       if (hasLeft) {
         return `Multiple 'left' distribution types are not allowed.`;
       }
       hasLeft = true;
     } else {
-      return `Invalid distribution type for leg: ${leg.identifier}.`;
+      const fixedAmount = parseFixedAmountDistribution(distribution);
+      if (fixedAmount === null) {
+        return `Invalid distribution type for leg: ${leg.identifier}.`;
+      }
+      sum += fixedAmount;
     }
   }
 
   if (hasLeft) {
     const remaining = amount - sum;
-    if (remaining < 0) {
+    if (remaining < -DISTRIBUTION_SUM_EPSILON) {
       return `Total distribution exceeds the specified amount.`;
     }
-  } else if (sum !== amount) {
+  } else if (!distributionTotalsApproximatelyEqual(sum, amount)) {
     return `Total distribution sum (${sum}) does not equal the specified amount (${amount}).`;
   }
 

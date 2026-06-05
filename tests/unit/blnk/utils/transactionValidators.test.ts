@@ -491,3 +491,228 @@ tap.test(`Issue #40 — create transaction request fields`, t => {
 
   t.end();
 });
+
+tap.test(`Issue #41 — ISO date strings and Distribution parity`, t => {
+  t.test(`allows scheduled_for as an ISO string on create`, tt => {
+    const data: CreateTransactions<Record<string, never>> = {
+      ...baseFields,
+      amount: 1000,
+      source: `@FundingPool`,
+      destination: `@Recipient`,
+      scheduled_for: `2025-07-01T08:00:00Z`,
+    };
+
+    tt.equal(ValidateCreateTransactions(data), null);
+    tt.end();
+  });
+
+  t.test(`allows inflight_expiry_date as an ISO string on create`, tt => {
+    const data: CreateTransactions<Record<string, never>> = {
+      ...baseFields,
+      amount: 1000,
+      source: `@FundingPool`,
+      destination: `@Recipient`,
+      inflight: true,
+      inflight_expiry_date: `2025-08-01T08:00:00Z`,
+    };
+
+    tt.equal(ValidateCreateTransactions(data), null);
+    tt.end();
+  });
+
+  t.test(`allows decimal fixed distribution strings such as 240.23`, tt => {
+    const data: CreateTransactions<Record<string, never>> = {
+      ...baseFields,
+      amount: 1000,
+      source: `@FundingPool`,
+      destinations: [
+        {identifier: `bln_fee`, distribution: `240.23`},
+        {identifier: `bln_recipient`, distribution: `left`},
+      ],
+    };
+
+    tt.equal(ValidateCreateTransactions(data), null);
+    tt.end();
+  });
+
+  t.test(
+    `allows decimal distribution when precise_distribution is on another leg`,
+    tt => {
+      const data: CreateTransactions<Record<string, never>> = {
+        ...baseFields,
+        amount: 1000,
+        source: `@FundingPool`,
+        destinations: [
+          {identifier: `bln_fee`, distribution: `240.23`},
+          {identifier: `bln_recipient`, precise_distribution: `500`},
+          {identifier: `bln_treasury`, distribution: `left`},
+        ],
+      };
+
+      tt.equal(ValidateCreateTransactions(data), null);
+      tt.end();
+    },
+  );
+
+  t.test(`allows exact decimal sum without left`, tt => {
+    const data: CreateTransactions<Record<string, never>> = {
+      ...baseFields,
+      amount: 1000,
+      source: `@FundingPool`,
+      destinations: [
+        {identifier: `bln_fee`, distribution: `240.23`},
+        {identifier: `bln_recipient`, distribution: `759.77`},
+      ],
+    };
+
+    tt.equal(ValidateCreateTransactions(data), null);
+    tt.end();
+  });
+
+  t.test(`rejects scientific notation distribution strings`, tt => {
+    const data = {
+      ...baseFields,
+      amount: 1000,
+      source: `@FundingPool`,
+      destinations: [
+        {identifier: `bln_fee`, distribution: `1e3`},
+        {identifier: `bln_recipient`, distribution: `left`},
+      ],
+    } as unknown as CreateTransactions<Record<string, never>>;
+
+    tt.equal(
+      ValidateCreateTransactions(data),
+      `Invalid distribution type for leg: bln_fee.`,
+    );
+    tt.end();
+  });
+
+  t.test(`rejects hex distribution strings`, tt => {
+    const data = {
+      ...baseFields,
+      amount: 1000,
+      source: `@FundingPool`,
+      destinations: [
+        {identifier: `bln_fee`, distribution: `0x10`},
+        {identifier: `bln_recipient`, distribution: `left`},
+      ],
+    } as unknown as CreateTransactions<Record<string, never>>;
+
+    tt.equal(
+      ValidateCreateTransactions(data),
+      `Invalid distribution type for leg: bln_fee.`,
+    );
+    tt.end();
+  });
+
+  t.test(`rejects whitespace-padded distribution strings`, tt => {
+    const data = {
+      ...baseFields,
+      amount: 1000,
+      source: `@FundingPool`,
+      destinations: [
+        {identifier: `bln_fee`, distribution: ` 240.23 `},
+        {identifier: `bln_recipient`, distribution: `left`},
+      ],
+    } as unknown as CreateTransactions<Record<string, never>>;
+
+    tt.equal(
+      ValidateCreateTransactions(data),
+      `Invalid distribution type for leg: bln_fee.`,
+    );
+    tt.end();
+  });
+
+  t.test(`rejects Infinity distribution strings`, tt => {
+    const data = {
+      ...baseFields,
+      amount: 1000,
+      source: `@FundingPool`,
+      destinations: [
+        {identifier: `bln_fee`, distribution: `Infinity`},
+        {identifier: `bln_recipient`, distribution: `left`},
+      ],
+    } as unknown as CreateTransactions<Record<string, never>>;
+
+    tt.equal(
+      ValidateCreateTransactions(data),
+      `Invalid distribution type for leg: bln_fee.`,
+    );
+    tt.end();
+  });
+
+  t.test(`rejects malformed decimal distribution strings`, tt => {
+    const data = {
+      ...baseFields,
+      amount: 1000,
+      source: `@FundingPool`,
+      destinations: [
+        {identifier: `bln_fee`, distribution: `240.23.1`},
+        {identifier: `bln_recipient`, distribution: `left`},
+      ],
+    } as unknown as CreateTransactions<Record<string, never>>;
+
+    tt.equal(
+      ValidateCreateTransactions(data),
+      `Invalid distribution type for leg: bln_fee.`,
+    );
+    tt.end();
+  });
+
+  t.test(`allows decimal percentage distributions with precise_amount`, tt => {
+    const data: CreateTransactions<Record<string, never>> = {
+      ...baseFields,
+      precise_amount: 30000,
+      source: `@FundingPool`,
+      destinations: [
+        {identifier: `bln_a`, distribution: `33.33%`},
+        {identifier: `bln_b`, distribution: `66.67%`},
+      ],
+    };
+
+    tt.equal(ValidateCreateTransactions(data), null);
+    tt.end();
+  });
+
+  t.test(
+    `allows decimal percentage with left under precise_distribution split`,
+    tt => {
+      const data: CreateTransactions<Record<string, never>> = {
+        ...baseFields,
+        amount: 30000,
+        source: `@FundingPool`,
+        destinations: [
+          {identifier: `bln_a`, distribution: `33.33%`},
+          {identifier: `bln_b`, precise_distribution: `5000`},
+          {identifier: `bln_c`, distribution: `left`},
+        ],
+      };
+
+      tt.equal(ValidateCreateTransactions(data), null);
+      tt.end();
+    },
+  );
+
+  t.test(
+    `rejects decimal distributions with precise_amount beyond MAX_SAFE_INTEGER`,
+    tt => {
+      const data: CreateTransactions<Record<string, never>> = {
+        ...baseFields,
+        precise_amount: `9007199254740993`,
+        source: `@FundingPool`,
+        destinations: [
+          {identifier: `bln_a`, distribution: `33.33%`},
+          {identifier: `bln_b`, distribution: `left`},
+        ],
+      };
+
+      tt.equal(
+        ValidateCreateTransactions(data),
+        `Decimal distribution values are not supported with precise amounts beyond Number.MAX_SAFE_INTEGER.`,
+      );
+      tt.end();
+    },
+  );
+
+  t.end();
+});
