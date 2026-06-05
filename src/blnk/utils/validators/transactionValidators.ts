@@ -3,12 +3,27 @@ import {
   BulkTransactions,
   CreateTransactions,
   MultipleSourcesT,
+  TransactionDateInput,
   UpdateTransactionStatus,
 } from "../../../types/transactions";
 import {IsValidString} from "../stringUtils";
+import {isValidTransactionDateInput} from "../transactionSerialization";
 import {isValidMetaData} from "./ledgerBalance";
 
 const NON_NEGATIVE_INTEGER_STRING = /^\d+$/;
+
+function validateOptionalDateField(
+  value: TransactionDateInput | undefined,
+  fieldName: string,
+): string | null {
+  if (value === undefined) {
+    return null;
+  }
+  if (!isValidTransactionDateInput(value)) {
+    return `Invalid ${fieldName}.`;
+  }
+  return null;
+}
 
 type TransactionTotal =
   | {arithmetic: `number`; value: number}
@@ -230,23 +245,40 @@ export function ValidateCreateTransactions<T extends Record<string, unknown>>(
     return `Inflight must be a boolean if provided.`;
   }
 
-  if (
-    data.inflight_expiry_date &&
-    !(
-      data.inflight_expiry_date instanceof Date &&
-      !isNaN(data.inflight_expiry_date.getTime())
-    )
-  ) {
-    return `Invalid inflight expiry date.`;
+  const inflightExpiryError = validateOptionalDateField(
+    data.inflight_expiry_date,
+    `inflight expiry date`,
+  );
+  if (inflightExpiryError) {
+    return inflightExpiryError;
   }
 
-  if (
-    data.scheduled_for &&
-    !(
-      data.scheduled_for instanceof Date && !isNaN(data.scheduled_for.getTime())
-    )
-  ) {
-    return `Invalid scheduled date.`;
+  const scheduledForError = validateOptionalDateField(
+    data.scheduled_for,
+    `scheduled date`,
+  );
+  if (scheduledForError) {
+    return scheduledForError;
+  }
+
+  const effectiveDateError = validateOptionalDateField(
+    data.effective_date,
+    `effective_date`,
+  );
+  if (effectiveDateError) {
+    return effectiveDateError;
+  }
+
+  const inflightCommitError = validateOptionalDateField(
+    data.inflight_commit_date,
+    `inflight_commit_date`,
+  );
+  if (inflightCommitError) {
+    return inflightCommitError;
+  }
+
+  if (data.skip_queue !== undefined && typeof data.skip_queue !== `boolean`) {
+    return `skip_queue must be a boolean if provided.`;
   }
 
   if (

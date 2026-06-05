@@ -339,3 +339,155 @@ tap.test(`Issue #42 — split-transaction validator`, t => {
 
   t.end();
 });
+
+tap.test(`Issue #40 — create transaction request fields`, t => {
+  t.test(`allows skip_queue on create payloads`, tt => {
+    const data: CreateTransactions<Record<string, never>> = {
+      ...baseFields,
+      amount: 1000,
+      source: `@FundingPool`,
+      destination: `@Recipient`,
+      skip_queue: true,
+    };
+
+    tt.equal(ValidateCreateTransactions(data), null);
+    tt.end();
+  });
+
+  t.test(`allows effective_date as an ISO string`, tt => {
+    const data: CreateTransactions<Record<string, never>> = {
+      ...baseFields,
+      amount: 1000,
+      source: `@FundingPool`,
+      destination: `@Recipient`,
+      effective_date: `2025-02-15T10:30:00Z`,
+    };
+
+    tt.equal(ValidateCreateTransactions(data), null);
+    tt.end();
+  });
+
+  t.test(`allows inflight_commit_date as Core example string`, tt => {
+    const data: CreateTransactions<Record<string, never>> = {
+      ...baseFields,
+      amount: 1000,
+      source: `@FundingPool`,
+      destination: `@Recipient`,
+      inflight: true,
+      inflight_commit_date: `2024-04-22T15:28:03+00:00`,
+    };
+
+    tt.equal(ValidateCreateTransactions(data), null);
+    tt.end();
+  });
+
+  t.test(`allows inflight_commit_date as a Date`, tt => {
+    const data: CreateTransactions<Record<string, never>> = {
+      ...baseFields,
+      amount: 1000,
+      source: `@FundingPool`,
+      destination: `@Recipient`,
+      inflight: true,
+      inflight_commit_date: new Date(`2025-06-01T12:00:00.000Z`),
+    };
+
+    tt.equal(ValidateCreateTransactions(data), null);
+    tt.end();
+  });
+
+  t.test(`allows effective_date with a numeric timezone offset`, tt => {
+    const data: CreateTransactions<Record<string, never>> = {
+      ...baseFields,
+      amount: 1000,
+      source: `@FundingPool`,
+      destination: `@Recipient`,
+      effective_date: `2024-04-22T15:28:03+00:00`,
+    };
+
+    tt.equal(ValidateCreateTransactions(data), null);
+    tt.end();
+  });
+
+  t.test(`rejects date-only effective_date strings`, tt => {
+    const data: CreateTransactions<Record<string, never>> = {
+      ...baseFields,
+      amount: 1000,
+      source: `@FundingPool`,
+      destination: `@Recipient`,
+      effective_date: `2025-02-15`,
+    };
+
+    tt.equal(ValidateCreateTransactions(data), `Invalid effective_date.`);
+    tt.end();
+  });
+
+  t.test(`rejects invalid skip_queue values`, tt => {
+    const data = {
+      ...baseFields,
+      amount: 1000,
+      source: `@FundingPool`,
+      destination: `@Recipient`,
+      skip_queue: `true`,
+    } as unknown as CreateTransactions<Record<string, never>>;
+
+    tt.equal(
+      ValidateCreateTransactions(data),
+      `skip_queue must be a boolean if provided.`,
+    );
+    tt.end();
+  });
+
+  t.test(`rejects invalid effective_date values`, tt => {
+    const data: CreateTransactions<Record<string, never>> = {
+      ...baseFields,
+      amount: 1000,
+      source: `@FundingPool`,
+      destination: `@Recipient`,
+      effective_date: `not-a-date`,
+    };
+
+    tt.equal(ValidateCreateTransactions(data), `Invalid effective_date.`);
+    tt.end();
+  });
+
+  t.test(`rejects invalid inflight_commit_date values`, tt => {
+    const data: CreateTransactions<Record<string, never>> = {
+      ...baseFields,
+      amount: 1000,
+      source: `@FundingPool`,
+      destination: `@Recipient`,
+      inflight_commit_date: `bad-date`,
+    };
+
+    tt.equal(ValidateCreateTransactions(data), `Invalid inflight_commit_date.`);
+    tt.end();
+  });
+
+  t.test(`allows scheduled_for as an ISO string`, tt => {
+    const data: CreateTransactions<Record<string, never>> = {
+      ...baseFields,
+      amount: 1000,
+      source: `@FundingPool`,
+      destination: `@Recipient`,
+      scheduled_for: `2025-12-31T23:59:59Z`,
+    };
+
+    tt.equal(ValidateCreateTransactions(data), null);
+    tt.end();
+  });
+
+  t.test(`rejects date-only scheduled_for strings`, tt => {
+    const data: CreateTransactions<Record<string, never>> = {
+      ...baseFields,
+      amount: 1000,
+      source: `@FundingPool`,
+      destination: `@Recipient`,
+      scheduled_for: `2025-12-31`,
+    };
+
+    tt.equal(ValidateCreateTransactions(data), `Invalid scheduled date.`);
+    tt.end();
+  });
+
+  t.end();
+});
