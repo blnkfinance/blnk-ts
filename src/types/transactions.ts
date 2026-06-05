@@ -1,7 +1,14 @@
+/** RFC3339 / ISO 8601 datetime accepted by the Blnk transactions API. */
+export type TransactionDateInput = Date | string;
+
 export interface CreateTransactions<T extends Record<string, unknown>> {
   /** Human-readable amount. Provide `amount` or `precise_amount` (at least one). */
   amount?: number;
-  /** Amount after precision is applied. Provide `amount` or `precise_amount` (at least one). */
+  /**
+   * Amount in minor units after `precision` is applied. Provide `amount` or
+   * `precise_amount` (at least one). Prefer strings for values larger than
+   * `Number.MAX_SAFE_INTEGER`.
+   */
   precise_amount?: number | string;
   precision: number;
   reference: string;
@@ -13,8 +20,18 @@ export interface CreateTransactions<T extends Record<string, unknown>> {
   destinations?: MultipleSourcesT[];
   destination?: string;
   inflight?: boolean;
-  inflight_expiry_date?: Date;
-  scheduled_for?: Date;
+  /** When `inflight` is true, void the transaction after this time. */
+  inflight_expiry_date?: TransactionDateInput;
+  /** When `inflight` is true, automatically commit at this time. */
+  inflight_commit_date?: TransactionDateInput;
+  scheduled_for?: TransactionDateInput;
+  /**
+   * Financial effective date for the transaction (ISO 8601). Defaults to
+   * `created_at` when omitted.
+   */
+  effective_date?: TransactionDateInput;
+  /** Process synchronously without queuing. Default: `false`. */
+  skip_queue?: boolean;
   allow_overdraft?: boolean;
   meta_data?: T;
 }
@@ -34,17 +51,25 @@ export type CreateTransactionResponse<T extends Record<string, unknown>> = {
   transaction_id: string;
   amount: number;
   precision: number;
-  precise_amount: number;
+  precise_amount: number | string;
   reference: string;
   description: string;
   rate: number;
   currency: string;
   status: StatusType;
+  hash?: string;
+  parent_transaction?: string;
   source?: string;
   destination?: string;
   sources?: MultipleSourcesT[];
   destinations?: MultipleSourcesT[];
-  created_at: Date;
+  skip_queue?: boolean;
+  inflight?: boolean;
+  created_at: Date | string;
+  scheduled_for?: Date | string;
+  inflight_expiry_date?: Date | string;
+  inflight_commit_date?: Date | string;
+  effective_date?: Date | string;
   meta_data?: T;
 };
 
@@ -58,8 +83,8 @@ export type MultipleSourcesT = {
   distribution?: Distribution;
   /**
    * Fixed leg amount in minor units. Replaces `distribution` for exact values; the API
-   * accepts string values for large integers. Takes precedence over `distribution` when both
-   * are present on the same leg.
+   * accepts string values for large integers. Prefer strings for values larger than
+   * `Number.MAX_SAFE_INTEGER`.
    */
   precise_distribution?: string | number;
   narration?: string;

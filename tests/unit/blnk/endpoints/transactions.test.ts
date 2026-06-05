@@ -73,6 +73,48 @@ tap.test(`Creates a transaction`, async t => {
     },
   );
 
+  t.test(
+    `Creates a transaction with #40 fields and serializes dates (issue #40)`,
+    async childTest => {
+      const capturedRequest = childTest.captureFn(thirdPartyRequest);
+      const transactions = new Transactions(
+        capturedRequest,
+        mockLogger,
+        FormatResponse,
+      );
+
+      const effectiveDate = new Date(`2025-02-15T10:30:00.000Z`);
+      const data: CreateTransactions<meta_dataT> = {
+        amount: 10000,
+        currency: `USD`,
+        description: `Backdated skip-queue transaction`,
+        meta_data: {company_name: `Test Company`},
+        precision: 100,
+        reference: `issue_40_ref_001`,
+        source: `@FundingPool`,
+        destination: `bln_recipient`,
+        skip_queue: true,
+        effective_date: effectiveDate,
+        inflight_commit_date: `2025-06-01T12:00:00Z`,
+      };
+
+      const transaction = await transactions.create<meta_dataT>(data);
+
+      childTest.match(capturedRequest.args(), [
+        [
+          `transactions`,
+          {
+            ...data,
+            effective_date: effectiveDate.toISOString(),
+          },
+          `POST`,
+        ],
+      ]);
+      childTest.equal(transaction.status, 201);
+      childTest.end();
+    },
+  );
+
   t.test(`It should handle missing required fields`, async childTest => {
     const capturedRequest = childTest.captureFn(thirdPartyRequest);
     const transactions = new Transactions(

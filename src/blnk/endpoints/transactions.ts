@@ -8,6 +8,7 @@ import {
   UpdateTransactionStatus,
 } from "../../types/transactions";
 import {HandleError} from "../utils/logger";
+import {serializeCreateTransaction} from "../utils/transactionSerialization";
 import {
   ValidateBulkTransactions,
   ValidateCreateTransactions,
@@ -75,10 +76,12 @@ export class Transactions {
         return this.formatResponse(400, validatorResponse, null);
       }
 
+      const payload = serializeCreateTransaction(data);
+
       const response = await this.request<
         CreateTransactions<T>,
         CreateTransactionResponse<T>
-      >(`transactions`, data, `POST`);
+      >(`transactions`, payload, `POST`);
 
       if (response.data === null) {
         // Handle the error case
@@ -245,10 +248,15 @@ export class Transactions {
         return this.formatResponse(400, validatorResponse, null);
       }
 
+      const payload: BulkTransactions<T> = {
+        ...data,
+        transactions: data.transactions.map(serializeCreateTransaction),
+      };
+
       const response = await this.request<
         BulkTransactions<T>,
         BulkTransactionResponse<T>
-      >(`transactions/bulk`, data, `POST`);
+      >(`transactions/bulk`, payload, `POST`);
 
       if (response.data === null) {
         // Handle the error case
