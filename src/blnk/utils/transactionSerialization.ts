@@ -4,7 +4,34 @@ import {
 } from "../../types/transactions";
 
 /**
- * Serializes a transaction date field for the Blnk API (RFC3339 / ISO 8601 string).
+ * Matches Blnk Core `time.Parse("2006-01-02T15:04:05Z07:00", …)` — RFC3339 without fractional seconds.
+ */
+export const RFC3339_DATETIME =
+  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(Z|[+-]\d{2}:\d{2})$/;
+
+export function isValidTransactionDateInput(
+  value: TransactionDateInput,
+): boolean {
+  if (value instanceof Date) {
+    return !isNaN(value.getTime());
+  }
+
+  if (typeof value === `string`) {
+    const trimmed = value.trim();
+    if (trimmed === ``) {
+      return false;
+    }
+    if (!RFC3339_DATETIME.test(trimmed)) {
+      return false;
+    }
+    return !isNaN(Date.parse(trimmed));
+  }
+
+  return false;
+}
+
+/**
+ * Serializes a transaction date field for the Blnk API (RFC3339 string).
  */
 export function serializeTransactionDate(
   value: TransactionDateInput | undefined,
@@ -14,7 +41,7 @@ export function serializeTransactionDate(
   }
 
   if (value instanceof Date) {
-    return value.toISOString();
+    return value.toISOString().replace(/\.\d{3}Z$/, `Z`);
   }
 
   return value;

@@ -381,6 +381,32 @@ tap.test(`Issue #40 — create transaction request fields`, t => {
     tt.end();
   });
 
+  t.test(`allows effective_date with a numeric timezone offset`, tt => {
+    const data: CreateTransactions<Record<string, never>> = {
+      ...baseFields,
+      amount: 1000,
+      source: `@FundingPool`,
+      destination: `@Recipient`,
+      effective_date: `2024-04-22T15:28:03+00:00`,
+    };
+
+    tt.equal(ValidateCreateTransactions(data), null);
+    tt.end();
+  });
+
+  t.test(`rejects date-only effective_date strings`, tt => {
+    const data: CreateTransactions<Record<string, never>> = {
+      ...baseFields,
+      amount: 1000,
+      source: `@FundingPool`,
+      destination: `@Recipient`,
+      effective_date: `2025-02-15`,
+    };
+
+    tt.equal(ValidateCreateTransactions(data), `Invalid effective_date.`);
+    tt.end();
+  });
+
   t.test(`rejects invalid skip_queue values`, tt => {
     const data = {
       ...baseFields,
@@ -433,6 +459,19 @@ tap.test(`Issue #40 — create transaction request fields`, t => {
     };
 
     tt.equal(ValidateCreateTransactions(data), null);
+    tt.end();
+  });
+
+  t.test(`rejects date-only scheduled_for strings`, tt => {
+    const data: CreateTransactions<Record<string, never>> = {
+      ...baseFields,
+      amount: 1000,
+      source: `@FundingPool`,
+      destination: `@Recipient`,
+      scheduled_for: `2025-12-31`,
+    };
+
+    tt.equal(ValidateCreateTransactions(data), `Invalid scheduled date.`);
     tt.end();
   });
 

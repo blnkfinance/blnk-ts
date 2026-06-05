@@ -7,19 +7,10 @@ import {
   UpdateTransactionStatus,
 } from "../../../types/transactions";
 import {IsValidString} from "../stringUtils";
+import {isValidTransactionDateInput} from "../transactionSerialization";
 import {isValidMetaData} from "./ledgerBalance";
 
 const NON_NEGATIVE_INTEGER_STRING = /^\d+$/;
-
-function isValidDateInput(value: TransactionDateInput): boolean {
-  if (value instanceof Date) {
-    return !isNaN(value.getTime());
-  }
-  if (typeof value === `string` && value.trim() !== ``) {
-    return !isNaN(Date.parse(value));
-  }
-  return false;
-}
 
 function validateOptionalDateField(
   value: TransactionDateInput | undefined,
@@ -28,7 +19,7 @@ function validateOptionalDateField(
   if (value === undefined) {
     return null;
   }
-  if (!isValidDateInput(value)) {
+  if (!isValidTransactionDateInput(value)) {
     return `Invalid ${fieldName}.`;
   }
   return null;

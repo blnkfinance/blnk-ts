@@ -25,10 +25,10 @@ tap.test(`Issue #40 — transaction serialization`, t => {
 
     const serialized = serializeCreateTransaction(data);
 
-    tt.equal(serialized.effective_date, effectiveDate.toISOString());
-    tt.equal(serialized.inflight_commit_date, `2025-06-01T12:00:00.000Z`);
-    tt.equal(serialized.scheduled_for, `2025-07-01T08:00:00.000Z`);
-    tt.equal(serialized.inflight_expiry_date, `2025-08-01T08:00:00.000Z`);
+    tt.equal(serialized.effective_date, `2025-02-15T10:30:00Z`);
+    tt.equal(serialized.inflight_commit_date, `2025-06-01T12:00:00Z`);
+    tt.equal(serialized.scheduled_for, `2025-07-01T08:00:00Z`);
+    tt.equal(serialized.inflight_expiry_date, `2025-08-01T08:00:00Z`);
     tt.end();
   });
 

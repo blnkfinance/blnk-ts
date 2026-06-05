@@ -105,7 +105,7 @@ tap.test(`Creates a transaction`, async t => {
           `transactions`,
           {
             ...data,
-            effective_date: effectiveDate.toISOString(),
+            effective_date: `2025-02-15T10:30:00Z`,
           },
           `POST`,
         ],
@@ -309,6 +309,72 @@ tap.test(`Creates bulk transactions`, async t => {
     childTest.equal(bulkResponse.status, 201);
     childTest.end();
   });
+
+  t.test(
+    `createBulk serializes date fields on each transaction (issue #40)`,
+    async childTest => {
+      const capturedRequest = childTest.captureFn(thirdPartyRequest);
+      const transactions = new Transactions(
+        capturedRequest,
+        mockLogger,
+        FormatResponse,
+      );
+
+      const effectiveDate = new Date(`2025-02-15T10:30:00.000Z`);
+      const scheduledDate = new Date(`2025-07-01T08:00:00.000Z`);
+      const data: BulkTransactions<meta_dataT> = {
+        transactions: [
+          {
+            amount: 1000,
+            currency: `USD`,
+            description: `Bulk txn with effective_date`,
+            meta_data: {department: `sales`, project: `Q4_campaign`},
+            precision: 100,
+            reference: `bulk_txn_date_001`,
+            source: `@source_account_1`,
+            destination: `@destination_account_1`,
+            effective_date: effectiveDate,
+            inflight_commit_date: `2025-06-01T12:00:00Z`,
+          },
+          {
+            amount: 2000,
+            currency: `USD`,
+            description: `Bulk txn with scheduled_for`,
+            meta_data: {department: `marketing`, project: `Q4_campaign`},
+            precision: 100,
+            reference: `bulk_txn_date_002`,
+            source: `@source_account_2`,
+            destination: `@destination_account_2`,
+            scheduled_for: scheduledDate,
+            skip_queue: true,
+          },
+        ],
+      };
+
+      const bulkResponse = await transactions.createBulk<meta_dataT>(data);
+
+      childTest.match(capturedRequest.args(), [
+        [
+          `transactions/bulk`,
+          {
+            transactions: [
+              {
+                ...data.transactions[0],
+                effective_date: `2025-02-15T10:30:00Z`,
+              },
+              {
+                ...data.transactions[1],
+                scheduled_for: `2025-07-01T08:00:00Z`,
+              },
+            ],
+          },
+          `POST`,
+        ],
+      ]);
+      childTest.equal(bulkResponse.status, 201);
+      childTest.end();
+    },
+  );
 
   t.test(
     `Creates basic bulk transactions without optional flags`,
