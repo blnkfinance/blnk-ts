@@ -1,6 +1,7 @@
 /* eslint-disable n/no-unpublished-import */
 import tap from "tap";
 import {
+  isValidTransactionDateInput,
   serializeCreateTransaction,
   serializeTransactionDate,
 } from "../../../../src/blnk/utils/transactionSerialization";
@@ -59,6 +60,22 @@ tap.test(`Issue #40 — transaction serialization`, t => {
       tt.end();
     },
   );
+
+  t.test(`accepts Core example datetime formats`, tt => {
+    tt.ok(
+      isValidTransactionDateInput(`2024-04-22T15:28:03+00:00`),
+      `Core model_test inflight_commit_date example`,
+    );
+    tt.ok(
+      isValidTransactionDateInput(`2024-04-22T15:28:03+0000`),
+      `Core time.Parse offset without colon`,
+    );
+    tt.not(
+      isValidTransactionDateInput(`2024-04-22T15:28:03.000Z`),
+      `fractional seconds rejected for string date fields`,
+    );
+    tt.end();
+  });
 
   t.end();
 });

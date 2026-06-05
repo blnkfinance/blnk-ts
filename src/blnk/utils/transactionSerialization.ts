@@ -4,10 +4,11 @@ import {
 } from "../../types/transactions";
 
 /**
- * Matches Blnk Core `time.Parse("2006-01-02T15:04:05Z07:00", …)` — RFC3339 without fractional seconds.
+ * Matches Blnk Core `time.Parse("2006-01-02T15:04:05Z07:00", …)` in
+ * `api/model/model.go` — RFC3339 without fractional seconds.
  */
 export const RFC3339_DATETIME =
-  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(Z|[+-]\d{2}:\d{2})$/;
+  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(Z|[+-]\d{2}(?::\d{2}|\d{2}))$/;
 
 export function isValidTransactionDateInput(
   value: TransactionDateInput,

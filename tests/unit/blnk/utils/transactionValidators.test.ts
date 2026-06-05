@@ -367,6 +367,20 @@ tap.test(`Issue #40 — create transaction request fields`, t => {
     tt.end();
   });
 
+  t.test(`allows inflight_commit_date as Core example string`, tt => {
+    const data: CreateTransactions<Record<string, never>> = {
+      ...baseFields,
+      amount: 1000,
+      source: `@FundingPool`,
+      destination: `@Recipient`,
+      inflight: true,
+      inflight_commit_date: `2024-04-22T15:28:03+00:00`,
+    };
+
+    tt.equal(ValidateCreateTransactions(data), null);
+    tt.end();
+  });
+
   t.test(`allows inflight_commit_date as a Date`, tt => {
     const data: CreateTransactions<Record<string, never>> = {
       ...baseFields,

@@ -1,4 +1,10 @@
-/** RFC3339 / ISO 8601 datetime accepted by the Blnk transactions API. */
+/**
+ * Transaction datetime input. Prefer a `Date` object so the SDK serializes it.
+ *
+ * String values must match Blnk Core `time.Parse("2006-01-02T15:04:05Z07:00")`
+ * (e.g. `2024-04-22T15:28:03+00:00` or `2025-02-15T10:30:00Z`). Date-only
+ * strings are rejected.
+ */
 export type TransactionDateInput = Date | string;
 
 export interface CreateTransactions<T extends Record<string, unknown>> {
