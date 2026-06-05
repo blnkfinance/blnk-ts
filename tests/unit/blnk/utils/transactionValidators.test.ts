@@ -659,5 +659,60 @@ tap.test(`Issue #41 — ISO date strings and Distribution parity`, t => {
     tt.end();
   });
 
+  t.test(`allows decimal percentage distributions with precise_amount`, tt => {
+    const data: CreateTransactions<Record<string, never>> = {
+      ...baseFields,
+      precise_amount: 30000,
+      source: `@FundingPool`,
+      destinations: [
+        {identifier: `bln_a`, distribution: `33.33%`},
+        {identifier: `bln_b`, distribution: `66.67%`},
+      ],
+    };
+
+    tt.equal(ValidateCreateTransactions(data), null);
+    tt.end();
+  });
+
+  t.test(
+    `allows decimal percentage with left under precise_distribution split`,
+    tt => {
+      const data: CreateTransactions<Record<string, never>> = {
+        ...baseFields,
+        amount: 30000,
+        source: `@FundingPool`,
+        destinations: [
+          {identifier: `bln_a`, distribution: `33.33%`},
+          {identifier: `bln_b`, precise_distribution: `5000`},
+          {identifier: `bln_c`, distribution: `left`},
+        ],
+      };
+
+      tt.equal(ValidateCreateTransactions(data), null);
+      tt.end();
+    },
+  );
+
+  t.test(
+    `rejects decimal distributions with precise_amount beyond MAX_SAFE_INTEGER`,
+    tt => {
+      const data: CreateTransactions<Record<string, never>> = {
+        ...baseFields,
+        precise_amount: `9007199254740993`,
+        source: `@FundingPool`,
+        destinations: [
+          {identifier: `bln_a`, distribution: `33.33%`},
+          {identifier: `bln_b`, distribution: `left`},
+        ],
+      };
+
+      tt.equal(
+        ValidateCreateTransactions(data),
+        `Decimal distribution values are not supported with precise amounts beyond Number.MAX_SAFE_INTEGER.`,
+      );
+      tt.end();
+    },
+  );
+
   t.end();
 });

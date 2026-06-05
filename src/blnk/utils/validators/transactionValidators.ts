@@ -389,17 +389,33 @@ function isFixedDecimalDistribution(distribution: string): boolean {
   return parsed !== null && !Number.isInteger(parsed);
 }
 
+function hasDecimalPercentageDistribution(distribution: string): boolean {
+  const parsed = parsePercentageDistribution(distribution);
+  return parsed !== null && !Number.isInteger(parsed);
+}
+
+function legUsesDecimalDistribution(leg: MultipleSourcesT): boolean {
+  if (leg.distribution === undefined) {
+    return false;
+  }
+
+  return (
+    isFixedDecimalDistribution(leg.distribution) ||
+    hasDecimalPercentageDistribution(leg.distribution)
+  );
+}
+
 function validateDistributionLegsBigInt(
   legs: MultipleSourcesT[],
   total: bigint,
 ): string | null {
-  const hasDecimalFixed = legs.some(
-    leg =>
-      leg.distribution !== undefined &&
-      isFixedDecimalDistribution(leg.distribution),
-  );
+  const hasDecimalDistribution = legs.some(legUsesDecimalDistribution);
 
-  if (hasDecimalFixed && total <= BigInt(Number.MAX_SAFE_INTEGER)) {
+  if (hasDecimalDistribution && total > BigInt(Number.MAX_SAFE_INTEGER)) {
+    return `Decimal distribution values are not supported with precise amounts beyond Number.MAX_SAFE_INTEGER.`;
+  }
+
+  if (hasDecimalDistribution && total <= BigInt(Number.MAX_SAFE_INTEGER)) {
     return validateDistributionLegsWithDecimals(legs, Number(total));
   }
 
@@ -426,7 +442,7 @@ function validateDistributionLegsBigInt(
       if (percentageValue === null) {
         return `Invalid percentage value in leg: ${leg.identifier}.`;
       }
-      sum += (total * BigInt(Math.trunc(percentageValue))) / BigInt(100);
+      sum += (total * BigInt(percentageValue)) / BigInt(100);
     } else if (distribution === `left`) {
       if (hasLeft) {
         return `Multiple 'left' distribution types are not allowed.`;
