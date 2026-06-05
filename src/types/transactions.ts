@@ -96,7 +96,25 @@ export type MultipleSourcesT = {
   narration?: string;
 };
 
-export type Distribution = `${number}%` | `${number}` | `left`;
+/** Percentage share of the transaction total, e.g. `"20%"`. */
+export type PercentageDistribution = `${number}%`;
+
+/** Remaining balance after other split legs. */
+export type LeftDistribution = `left`;
+
+/**
+ * Fixed amount in transaction amount units. Matches API `distribution` strings,
+ * including decimals such as `"240.23"`.
+ */
+export type FixedAmountDistribution =
+  | `${number}`
+  | `${number}.${number}`
+  | `${number}.${number}${number}`;
+
+export type Distribution =
+  | PercentageDistribution
+  | LeftDistribution
+  | FixedAmountDistribution;
 
 //we can only update transactions with COMMIT or VOID
 //create function called commit, that takes in a transaction id and commits it

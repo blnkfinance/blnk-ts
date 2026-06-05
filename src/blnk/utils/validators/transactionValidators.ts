@@ -336,10 +336,28 @@ function validateSplitLegs(
   return validateDistributionLegsNumber(legs, total.value);
 }
 
+function isFixedDecimalDistribution(distribution: string): boolean {
+  return (
+    !distribution.endsWith(`%`) &&
+    distribution !== `left` &&
+    distribution.includes(`.`)
+  );
+}
+
 function validateDistributionLegsBigInt(
   legs: MultipleSourcesT[],
   total: bigint,
 ): string | null {
+  const hasDecimalFixed = legs.some(
+    leg =>
+      leg.distribution !== undefined &&
+      isFixedDecimalDistribution(leg.distribution),
+  );
+
+  if (hasDecimalFixed && total <= BigInt(Number.MAX_SAFE_INTEGER)) {
+    return validateDistributionLegsWithDecimals(legs, Number(total));
+  }
+
   let sum = BigInt(0);
   let hasLeft = false;
 
@@ -368,8 +386,15 @@ function validateDistributionLegsBigInt(
         return `Invalid percentage value in leg: ${leg.identifier}.`;
       }
       sum += (total * BigInt(Math.trunc(percentageValue))) / BigInt(100);
-    } else if (NON_NEGATIVE_INTEGER_STRING.test(distribution)) {
-      sum += BigInt(distribution);
+    } else if (!isNaN(Number(distribution))) {
+      const numericValue = parseFloat(distribution);
+      if (numericValue < 0 || !Number.isFinite(numericValue)) {
+        return `Invalid numeric value in leg: ${leg.identifier}.`;
+      }
+      if (!Number.isInteger(numericValue)) {
+        return `Invalid distribution type for leg: ${leg.identifier}.`;
+      }
+      sum += BigInt(numericValue);
     } else if (distribution === `left`) {
       if (hasLeft) {
         return `Multiple 'left' distribution types are not allowed.`;
@@ -396,10 +421,29 @@ function validateDistributionLegsNumber(
   legs: MultipleSourcesT[],
   amount: number,
 ): string | null {
+  return validateDistributionLegsWithDecimals(legs, amount);
+}
+
+function validateDistributionLegsWithDecimals(
+  legs: MultipleSourcesT[],
+  amount: number,
+): string | null {
   let sum = 0;
   let hasLeft = false;
 
   for (const leg of legs) {
+    if (hasPreciseDistribution(leg)) {
+      const preciseValue = parsePreciseInteger(leg.precise_distribution!);
+      if (preciseValue === null) {
+        return `Invalid precise_distribution for leg: ${leg.identifier}.`;
+      }
+      if (preciseValue > BigInt(Number.MAX_SAFE_INTEGER)) {
+        return `Invalid precise_distribution for leg: ${leg.identifier}.`;
+      }
+      sum += Number(preciseValue);
+      continue;
+    }
+
     const distribution = leg.distribution;
     if (!distribution || !IsValidString(distribution)) {
       return `Invalid distribution type for leg: ${leg.identifier}.`;

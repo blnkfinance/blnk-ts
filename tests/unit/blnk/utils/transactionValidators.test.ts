@@ -491,3 +491,68 @@ tap.test(`Issue #40 — create transaction request fields`, t => {
 
   t.end();
 });
+
+tap.test(`Issue #41 — ISO date strings and Distribution parity`, t => {
+  t.test(`allows scheduled_for as an ISO string on create`, tt => {
+    const data: CreateTransactions<Record<string, never>> = {
+      ...baseFields,
+      amount: 1000,
+      source: `@FundingPool`,
+      destination: `@Recipient`,
+      scheduled_for: `2025-07-01T08:00:00Z`,
+    };
+
+    tt.equal(ValidateCreateTransactions(data), null);
+    tt.end();
+  });
+
+  t.test(`allows inflight_expiry_date as an ISO string on create`, tt => {
+    const data: CreateTransactions<Record<string, never>> = {
+      ...baseFields,
+      amount: 1000,
+      source: `@FundingPool`,
+      destination: `@Recipient`,
+      inflight: true,
+      inflight_expiry_date: `2025-08-01T08:00:00Z`,
+    };
+
+    tt.equal(ValidateCreateTransactions(data), null);
+    tt.end();
+  });
+
+  t.test(`allows decimal fixed distribution strings such as 240.23`, tt => {
+    const data: CreateTransactions<Record<string, never>> = {
+      ...baseFields,
+      amount: 1000,
+      source: `@FundingPool`,
+      destinations: [
+        {identifier: `bln_fee`, distribution: `240.23`},
+        {identifier: `bln_recipient`, distribution: `left`},
+      ],
+    };
+
+    tt.equal(ValidateCreateTransactions(data), null);
+    tt.end();
+  });
+
+  t.test(
+    `allows decimal distribution when precise_distribution is on another leg`,
+    tt => {
+      const data: CreateTransactions<Record<string, never>> = {
+        ...baseFields,
+        amount: 1000,
+        source: `@FundingPool`,
+        destinations: [
+          {identifier: `bln_fee`, distribution: `240.23`},
+          {identifier: `bln_recipient`, precise_distribution: `500`},
+          {identifier: `bln_treasury`, distribution: `left`},
+        ],
+      };
+
+      tt.equal(ValidateCreateTransactions(data), null);
+      tt.end();
+    },
+  );
+
+  t.end();
+});
