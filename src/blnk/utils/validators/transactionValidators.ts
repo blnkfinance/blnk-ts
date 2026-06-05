@@ -336,12 +336,57 @@ function validateSplitLegs(
   return validateDistributionLegsNumber(legs, total.value);
 }
 
+/**
+ * Fixed-amount split legs: non-negative integer or decimal strings only.
+ * Rejects exponent (`1e3`), hex (`0x10`), and whitespace-padded values.
+ */
+const FIXED_AMOUNT_DISTRIBUTION = /^(?:\d+|\d+\.\d+)$/;
+
+/** Percentage split legs such as `20%` or `33.33%`. */
+const PERCENTAGE_DISTRIBUTION = /^(?:\d+|\d+\.\d+)%$/;
+
+const DISTRIBUTION_SUM_EPSILON = 1e-9;
+
+function parsePercentageDistribution(distribution: string): number | null {
+  if (!PERCENTAGE_DISTRIBUTION.test(distribution)) {
+    return null;
+  }
+
+  const value = Number(distribution.slice(0, -1));
+  if (!Number.isFinite(value) || value < 0 || value > 100) {
+    return null;
+  }
+
+  return value;
+}
+
+function parseFixedAmountDistribution(distribution: string): number | null {
+  if (distribution.trim() !== distribution) {
+    return null;
+  }
+
+  if (!FIXED_AMOUNT_DISTRIBUTION.test(distribution)) {
+    return null;
+  }
+
+  const value = Number(distribution);
+  if (!Number.isFinite(value) || value < 0) {
+    return null;
+  }
+
+  return value;
+}
+
+function distributionTotalsApproximatelyEqual(
+  sum: number,
+  amount: number,
+): boolean {
+  return Math.abs(sum - amount) <= DISTRIBUTION_SUM_EPSILON;
+}
+
 function isFixedDecimalDistribution(distribution: string): boolean {
-  return (
-    !distribution.endsWith(`%`) &&
-    distribution !== `left` &&
-    distribution.includes(`.`)
-  );
+  const parsed = parseFixedAmountDistribution(distribution);
+  return parsed !== null && !Number.isInteger(parsed);
 }
 
 function validateDistributionLegsBigInt(
@@ -377,31 +422,22 @@ function validateDistributionLegsBigInt(
     }
 
     if (distribution.endsWith(`%`)) {
-      const percentageValue = parseFloat(distribution.slice(0, -1));
-      if (
-        isNaN(percentageValue) ||
-        percentageValue < 0 ||
-        percentageValue > 100
-      ) {
+      const percentageValue = parsePercentageDistribution(distribution);
+      if (percentageValue === null) {
         return `Invalid percentage value in leg: ${leg.identifier}.`;
       }
       sum += (total * BigInt(Math.trunc(percentageValue))) / BigInt(100);
-    } else if (!isNaN(Number(distribution))) {
-      const numericValue = parseFloat(distribution);
-      if (numericValue < 0 || !Number.isFinite(numericValue)) {
-        return `Invalid numeric value in leg: ${leg.identifier}.`;
-      }
-      if (!Number.isInteger(numericValue)) {
-        return `Invalid distribution type for leg: ${leg.identifier}.`;
-      }
-      sum += BigInt(numericValue);
     } else if (distribution === `left`) {
       if (hasLeft) {
         return `Multiple 'left' distribution types are not allowed.`;
       }
       hasLeft = true;
     } else {
-      return `Invalid distribution type for leg: ${leg.identifier}.`;
+      const fixedAmount = parseFixedAmountDistribution(distribution);
+      if (fixedAmount === null || !Number.isInteger(fixedAmount)) {
+        return `Invalid distribution type for leg: ${leg.identifier}.`;
+      }
+      sum += BigInt(fixedAmount);
     }
   }
 
@@ -450,37 +486,31 @@ function validateDistributionLegsWithDecimals(
     }
 
     if (distribution.endsWith(`%`)) {
-      const percentageValue = parseFloat(distribution.slice(0, -1));
-      if (
-        isNaN(percentageValue) ||
-        percentageValue < 0 ||
-        percentageValue > 100
-      ) {
+      const percentageValue = parsePercentageDistribution(distribution);
+      if (percentageValue === null) {
         return `Invalid percentage value in leg: ${leg.identifier}.`;
       }
       sum += (percentageValue / 100) * amount;
-    } else if (!isNaN(Number(distribution))) {
-      const numericValue = parseFloat(distribution);
-      if (numericValue < 0) {
-        return `Invalid numeric value in leg: ${leg.identifier}.`;
-      }
-      sum += numericValue;
     } else if (distribution === `left`) {
       if (hasLeft) {
         return `Multiple 'left' distribution types are not allowed.`;
       }
       hasLeft = true;
     } else {
-      return `Invalid distribution type for leg: ${leg.identifier}.`;
+      const fixedAmount = parseFixedAmountDistribution(distribution);
+      if (fixedAmount === null) {
+        return `Invalid distribution type for leg: ${leg.identifier}.`;
+      }
+      sum += fixedAmount;
     }
   }
 
   if (hasLeft) {
     const remaining = amount - sum;
-    if (remaining < 0) {
+    if (remaining < -DISTRIBUTION_SUM_EPSILON) {
       return `Total distribution exceeds the specified amount.`;
     }
-  } else if (sum !== amount) {
+  } else if (!distributionTotalsApproximatelyEqual(sum, amount)) {
     return `Total distribution sum (${sum}) does not equal the specified amount (${amount}).`;
   }
 

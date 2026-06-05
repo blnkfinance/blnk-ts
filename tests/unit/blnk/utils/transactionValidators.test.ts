@@ -554,5 +554,110 @@ tap.test(`Issue #41 — ISO date strings and Distribution parity`, t => {
     },
   );
 
+  t.test(`allows exact decimal sum without left`, tt => {
+    const data: CreateTransactions<Record<string, never>> = {
+      ...baseFields,
+      amount: 1000,
+      source: `@FundingPool`,
+      destinations: [
+        {identifier: `bln_fee`, distribution: `240.23`},
+        {identifier: `bln_recipient`, distribution: `759.77`},
+      ],
+    };
+
+    tt.equal(ValidateCreateTransactions(data), null);
+    tt.end();
+  });
+
+  t.test(`rejects scientific notation distribution strings`, tt => {
+    const data = {
+      ...baseFields,
+      amount: 1000,
+      source: `@FundingPool`,
+      destinations: [
+        {identifier: `bln_fee`, distribution: `1e3`},
+        {identifier: `bln_recipient`, distribution: `left`},
+      ],
+    } as unknown as CreateTransactions<Record<string, never>>;
+
+    tt.equal(
+      ValidateCreateTransactions(data),
+      `Invalid distribution type for leg: bln_fee.`,
+    );
+    tt.end();
+  });
+
+  t.test(`rejects hex distribution strings`, tt => {
+    const data = {
+      ...baseFields,
+      amount: 1000,
+      source: `@FundingPool`,
+      destinations: [
+        {identifier: `bln_fee`, distribution: `0x10`},
+        {identifier: `bln_recipient`, distribution: `left`},
+      ],
+    } as unknown as CreateTransactions<Record<string, never>>;
+
+    tt.equal(
+      ValidateCreateTransactions(data),
+      `Invalid distribution type for leg: bln_fee.`,
+    );
+    tt.end();
+  });
+
+  t.test(`rejects whitespace-padded distribution strings`, tt => {
+    const data = {
+      ...baseFields,
+      amount: 1000,
+      source: `@FundingPool`,
+      destinations: [
+        {identifier: `bln_fee`, distribution: ` 240.23 `},
+        {identifier: `bln_recipient`, distribution: `left`},
+      ],
+    } as unknown as CreateTransactions<Record<string, never>>;
+
+    tt.equal(
+      ValidateCreateTransactions(data),
+      `Invalid distribution type for leg: bln_fee.`,
+    );
+    tt.end();
+  });
+
+  t.test(`rejects Infinity distribution strings`, tt => {
+    const data = {
+      ...baseFields,
+      amount: 1000,
+      source: `@FundingPool`,
+      destinations: [
+        {identifier: `bln_fee`, distribution: `Infinity`},
+        {identifier: `bln_recipient`, distribution: `left`},
+      ],
+    } as unknown as CreateTransactions<Record<string, never>>;
+
+    tt.equal(
+      ValidateCreateTransactions(data),
+      `Invalid distribution type for leg: bln_fee.`,
+    );
+    tt.end();
+  });
+
+  t.test(`rejects malformed decimal distribution strings`, tt => {
+    const data = {
+      ...baseFields,
+      amount: 1000,
+      source: `@FundingPool`,
+      destinations: [
+        {identifier: `bln_fee`, distribution: `240.23.1`},
+        {identifier: `bln_recipient`, distribution: `left`},
+      ],
+    } as unknown as CreateTransactions<Record<string, never>>;
+
+    tt.equal(
+      ValidateCreateTransactions(data),
+      `Invalid distribution type for leg: bln_fee.`,
+    );
+    tt.end();
+  });
+
   t.end();
 });

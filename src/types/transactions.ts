@@ -104,7 +104,8 @@ export type LeftDistribution = `left`;
 
 /**
  * Fixed amount in transaction amount units. Matches API `distribution` strings,
- * including decimals such as `"240.23"`.
+ * including decimals such as `"240.23"`. Exponent (`1e3`) and hex (`0x10`)
+ * forms are rejected by the SDK validator.
  */
 export type FixedAmountDistribution =
   | `${number}`
