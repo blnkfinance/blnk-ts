@@ -75,7 +75,8 @@ Once running, your server will be accessible at [http://localhost:5001](http://l
 
 ```typescript
 const health = await blnk.System.health();
-// { status: 'UP' }
+// health.status === 200
+// health.data?.status === 'UP'
 ```
 
 ---

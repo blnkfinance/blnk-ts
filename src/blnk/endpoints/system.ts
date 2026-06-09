@@ -24,11 +24,12 @@ export class System {
   /**
    * Checks whether Blnk Core is running and reachable.
    *
-   * @returns A promise that resolves with the health status (`{ status: 'UP' }`).
+   * @returns Wrapped SDK response; Core payload is `{ status: 'UP' }` on `data`.
    *
    * @example
    * const health = await client.System.health();
-   * // { status: 'UP' }
+   * // health.status === 200
+   * // health.data?.status === 'UP'
    */
   async health() {
     try {
