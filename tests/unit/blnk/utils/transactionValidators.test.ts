@@ -3,11 +3,13 @@ import tap from "tap";
 import {
   ValidateCreateTransactions,
   ValidateBulkTransactions,
+  ValidateRefundTransaction,
   ValidateUpdateTransactions,
 } from "../../../../src/blnk/utils/validators/transactionValidators";
 import {
   BulkTransactions,
   CreateTransactions,
+  RefundTransactionRequest,
   UpdateTransactionStatus,
 } from "../../../../src/types/transactions";
 
@@ -827,6 +829,41 @@ tap.test(`Issue #45 — updateStatus precise_amount on partial commit`, t => {
     } as unknown as UpdateTransactionStatus<Record<string, never>>;
 
     tt.equal(ValidateUpdateTransactions(data), `Invalid field: currency`);
+    tt.end();
+  });
+
+  t.end();
+});
+
+tap.test(`Issue #46 — refund transaction request fields`, t => {
+  t.test(`allows skip_queue on refund payloads`, tt => {
+    const data: RefundTransactionRequest = {skip_queue: true};
+    tt.equal(ValidateRefundTransaction(data), null);
+    tt.end();
+  });
+
+  t.test(`allows empty refund options object`, tt => {
+    const data: RefundTransactionRequest = {};
+    tt.equal(ValidateRefundTransaction(data), null);
+    tt.end();
+  });
+
+  t.test(`rejects invalid skip_queue on refund payloads`, tt => {
+    const data = {skip_queue: `true`} as unknown as RefundTransactionRequest;
+    tt.equal(
+      ValidateRefundTransaction(data),
+      `skip_queue must be a boolean if provided.`,
+    );
+    tt.end();
+  });
+
+  t.test(`rejects unknown fields on refund payloads`, tt => {
+    const data = {
+      skip_queue: true,
+      amount: 100,
+    } as unknown as RefundTransactionRequest;
+
+    tt.equal(ValidateRefundTransaction(data), `Invalid field: amount`);
     tt.end();
   });
 

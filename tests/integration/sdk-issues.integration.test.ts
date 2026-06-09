@@ -1,6 +1,6 @@
 /* eslint-disable n/no-unpublished-import */
 /**
- * Integration tests for SDK changes in issues #40–#45.
+ * Integration tests for SDK changes in issues #40–#46.
  * Requires Blnk Core at http://localhost:5001 (docker compose up in blnk/).
  *
  * Run: npm run test:integration
@@ -383,6 +383,50 @@ tap.test(`SDK integration — each added capability vs Blnk Core`, async t => {
     );
     tt.equal(partialCommitResp.status, 200);
     tt.equal(partialCommitResp.data?.status, `APPLIED`);
+    tt.end();
+  });
+
+  // Issue #46 — refund with optional skip_queue body
+  t.test(`#46 refund queued vs synchronous skip_queue`, async tt => {
+    const ledgerId = await createLedger(`Issue46 Refund`);
+    const destination = await createBalance(ledgerId);
+
+    const createResp = await client.Transactions.create({
+      ...baseTxn,
+      amount: 500,
+      reference: GenerateRandomNumbersWithPrefix(`issue46-refund-src`, 6),
+      source: `@FundingPool`,
+      destination,
+      skip_queue: true,
+    } as CreateTransactions<Record<string, never>>);
+
+    tt.equal(createResp.status, 201);
+    tt.equal(createResp.data?.status, `APPLIED`);
+    const originalTxnId = createResp.data!.transaction_id;
+
+    const queuedRefundResp = await client.Transactions.refund(originalTxnId);
+    tt.equal(queuedRefundResp.status, 201);
+    tt.ok(queuedRefundResp.data?.transaction_id);
+    tt.equal(queuedRefundResp.data?.parent_transaction, originalTxnId);
+
+    const createResp2 = await client.Transactions.create({
+      ...baseTxn,
+      amount: 500,
+      reference: GenerateRandomNumbersWithPrefix(`issue46-refund-sync`, 6),
+      source: `@FundingPool`,
+      destination,
+      skip_queue: true,
+    } as CreateTransactions<Record<string, never>>);
+
+    tt.equal(createResp2.status, 201);
+    const originalTxnId2 = createResp2.data!.transaction_id;
+
+    const syncRefundResp = await client.Transactions.refund(originalTxnId2, {
+      skip_queue: true,
+    });
+    tt.equal(syncRefundResp.status, 201);
+    tt.equal(syncRefundResp.data?.status, `APPLIED`);
+    tt.equal(syncRefundResp.data?.parent_transaction, originalTxnId2);
     tt.end();
   });
 
