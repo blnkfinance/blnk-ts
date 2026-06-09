@@ -69,6 +69,15 @@ docker compose up
 
 Once running, your server will be accessible at [http://localhost:5001](http://localhost:5001).
 
+### Health check
+
+`System.health` checks whether Blnk Core is running (GET `/health`):
+
+```typescript
+const health = await blnk.System.health();
+// { status: 'UP' }
+```
+
 ---
 
 ## 3. Using the Blnk CLI
