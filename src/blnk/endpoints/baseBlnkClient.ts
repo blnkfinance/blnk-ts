@@ -12,6 +12,7 @@ import {LedgerBalances} from "./ledgerBalances";
 import {Ledgers} from "./ledgers";
 import {Reconciliation} from "./reconciliation";
 import {Search} from "./search";
+import {System} from "./system";
 import {Transactions} from "./transactions";
 import FormData from "form-data";
 
@@ -199,6 +200,10 @@ export class Blnk {
 
   get Identity(): Identity {
     return this.getService<Identity>(`Identity`);
+  }
+
+  get System(): System {
+    return this.getService<System>(`System`);
   }
 
   get getApiKey() {

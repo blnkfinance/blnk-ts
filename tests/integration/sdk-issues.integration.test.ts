@@ -44,6 +44,14 @@ async function createBalance(ledgerId: string) {
 }
 
 tap.test(`SDK integration — each added capability vs Blnk Core`, async t => {
+  // Issue #39 — System.health
+  t.test(`#39 System.health returns UP`, async tt => {
+    const response = await client.System.health();
+    tt.equal(response.status, 200);
+    tt.equal(response.data?.status, `UP`);
+    tt.end();
+  });
+
   // Issue #40 — Transactions.create with new Core fields
   t.test(`#40 skip_queue + effective_date`, async tt => {
     const response = await client.Transactions.create({

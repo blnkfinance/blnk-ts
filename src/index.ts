@@ -5,6 +5,7 @@ import {LedgerBalances} from "./blnk/endpoints/ledgerBalances";
 import {Ledgers} from "./blnk/endpoints/ledgers";
 import {Reconciliation} from "./blnk/endpoints/reconciliation";
 import {Search} from "./blnk/endpoints/search";
+import {System} from "./blnk/endpoints/system";
 import {Transactions} from "./blnk/endpoints/transactions";
 import {FormatResponse} from "./blnk/utils/httpClient";
 import {CustomLogger} from "./blnk/utils/logger";
@@ -28,6 +29,7 @@ export function BlnkInit(apiKey: string, options: BlnkClientOptions) {
       Reconciliation,
       Search,
       Identity,
+      System,
     },
     FormatResponse,
     fetch,
