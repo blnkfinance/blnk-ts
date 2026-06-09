@@ -53,6 +53,12 @@ export type PryTransactionStatus =
 export type InflightStatus = `commit` | `void`;
 export type StatusType = PryTransactionStatus;
 
+/**
+ * Response from `POST /transactions` and related transaction mutations.
+ * Field shapes follow the Blnk Core create-transaction reference.
+ *
+ * @see https://docs.blnkfinance.com/reference/create-transaction
+ */
 export type CreateTransactionResponse<T extends Record<string, unknown>> = {
   transaction_id: string;
   amount: number;
@@ -63,18 +69,24 @@ export type CreateTransactionResponse<T extends Record<string, unknown>> = {
   rate: number;
   currency: string;
   status: StatusType;
-  hash?: string;
-  parent_transaction?: string;
+  /** SHA-256 hash of the transaction details. */
+  hash: string;
+  /** Parent transaction ID, or empty string when none. */
+  parent_transaction: string;
   source?: string;
   destination?: string;
   sources?: MultipleSourcesT[];
   destinations?: MultipleSourcesT[];
+  allow_overdraft: boolean;
   skip_queue?: boolean;
-  inflight?: boolean;
+  inflight: boolean;
+  /** When true, all split legs succeed or fail together. */
+  atomic?: boolean;
+  overdraft_limit?: number;
   created_at: Date | string;
-  scheduled_for?: Date | string;
-  inflight_expiry_date?: Date | string;
-  inflight_commit_date?: Date | string;
+  scheduled_for: Date | string;
+  inflight_expiry_date: Date | string;
+  inflight_commit_date: Date | string;
   effective_date?: Date | string;
   meta_data?: T;
 };

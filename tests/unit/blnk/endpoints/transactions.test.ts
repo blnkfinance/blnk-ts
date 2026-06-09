@@ -7,8 +7,10 @@ import {
 } from "../../../mocks/blnkClientMocks";
 import {BlnkRequest} from "../../../../src/types/general";
 import {FormatResponse} from "../../../../src/blnk/utils/httpClient";
+import {coreCreateTransactionReferenceResponse} from "../../../fixtures/coreCreateTransactionResponse";
 import {
   BulkTransactions,
+  CreateTransactionResponse,
   CreateTransactions,
   UpdateTransactionStatus,
 } from "../../../../src/types/transactions";
@@ -133,6 +135,79 @@ tap.test(`Creates a transaction`, async t => {
 
       childTest.match(capturedRequest.args(), [[`transactions`, data, `POST`]]);
       childTest.equal(transaction.status, 201);
+      childTest.end();
+    },
+  );
+
+  t.test(`returns Core create response fields (issue #43)`, async childTest => {
+    const coreResponse = coreCreateTransactionReferenceResponse;
+    const responseReturningRequest: BlnkRequest = async () => ({
+      status: 201,
+      message: `Success`,
+      data: coreResponse,
+    });
+
+    const transactions = new Transactions(
+      responseReturningRequest,
+      mockLogger,
+      FormatResponse,
+    );
+
+    const data: CreateTransactions<meta_dataT> = {
+      amount: 1250.34,
+      currency: `USD`,
+      description: `Card payment on Stripe`,
+      meta_data: {company_name: `Test Company`},
+      precision: 100,
+      reference: `ref_2ye281ewiu-1e17-dh17-eh18728hd245`,
+      source: `@WorldUSD`,
+      destination: `@MyBalance`,
+      allow_overdraft: false,
+      inflight: false,
+    };
+
+    const transaction = await transactions.create<meta_dataT>(data);
+
+    childTest.equal(transaction.status, 201);
+    childTest.equal(transaction.data?.hash, coreResponse.hash);
+    childTest.equal(
+      transaction.data?.parent_transaction,
+      coreResponse.parent_transaction,
+    );
+    childTest.equal(
+      transaction.data?.allow_overdraft,
+      coreResponse.allow_overdraft,
+    );
+    childTest.equal(transaction.data?.inflight, coreResponse.inflight);
+    childTest.equal(
+      transaction.data?.scheduled_for,
+      coreResponse.scheduled_for,
+    );
+    childTest.equal(
+      transaction.data?.inflight_expiry_date,
+      coreResponse.inflight_expiry_date,
+    );
+    childTest.equal(
+      transaction.data?.inflight_commit_date,
+      coreResponse.inflight_commit_date,
+    );
+    childTest.end();
+  });
+
+  t.test(
+    `CreateTransactionResponse type includes gap fields (issue #43)`,
+    async childTest => {
+      const sample: CreateTransactionResponse<meta_dataT> = {
+        ...coreCreateTransactionReferenceResponse,
+        meta_data: {company_name: `Test Company`},
+      };
+
+      childTest.ok(sample.hash);
+      childTest.type(sample.parent_transaction, `string`);
+      childTest.type(sample.allow_overdraft, `boolean`);
+      childTest.ok(sample.inflight_expiry_date);
+      childTest.ok(sample.inflight_commit_date);
+      childTest.ok(sample.scheduled_for);
       childTest.end();
     },
   );

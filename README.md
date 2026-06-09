@@ -161,6 +161,36 @@ const newTransaction = await Transactions.create({
 console.log("Transaction Recorded:", newTransaction);
 ```
 
+### Create transaction response
+
+`Transactions.create` resolves to a `CreateTransactionResponse` that matches the Core API reference, including `hash`, `parent_transaction`, `allow_overdraft`, and inflight date fields (`scheduled_for`, `inflight_expiry_date`, `inflight_commit_date`):
+
+```typescript
+interface CreateTransactionResponse<T extends Record<string, unknown>> {
+  transaction_id: string;
+  amount: number;
+  precision: number;
+  precise_amount: number | string;
+  reference: string;
+  description: string;
+  rate: number;
+  currency: string;
+  status: StatusType;
+  hash: string;
+  parent_transaction: string; // empty string when none
+  allow_overdraft: boolean;
+  inflight: boolean;
+  created_at: Date | string;
+  scheduled_for: Date | string;
+  inflight_expiry_date: Date | string;
+  inflight_commit_date: Date | string;
+  effective_date?: Date | string;
+  source?: string;
+  destination?: string;
+  meta_data?: T;
+}
+```
+
 ---
 
 ## 7. Bulk Transactions

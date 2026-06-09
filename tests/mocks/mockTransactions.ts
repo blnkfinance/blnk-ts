@@ -91,6 +91,8 @@ export function createDummyTransactionResponse<
     description: `Sample transaction description`,
     currency: `USD` as Currency,
     status: `INFLIGHT` as StatusType,
+    hash: `0b9c25fb5b00d6c71cb4ca87026bf6dc316e63353d3330deb588bd0b3d74dcc0`,
+    parent_transaction: ``,
     source: `source_12345`,
     destination: `destination_67890`,
     sources: [
@@ -99,7 +101,14 @@ export function createDummyTransactionResponse<
         distribution: `left`,
       },
     ] as MultipleSourcesT[],
+    allow_overdraft: false,
+    inflight: true,
+    skip_queue: false,
+    atomic: false,
     created_at: new Date(),
+    scheduled_for: `0001-01-01T00:00:00Z`,
+    inflight_expiry_date: `0001-01-01T00:00:00Z`,
+    inflight_commit_date: `0001-01-01T00:00:00Z`,
     meta_data: {} as T,
   };
 }
