@@ -141,10 +141,10 @@ tap.test(`Creates a transaction`, async t => {
 
   t.test(`returns Core create response fields (issue #43)`, async childTest => {
     const coreResponse = coreCreateTransactionReferenceResponse;
-    const responseReturningRequest: BlnkRequest = async () => ({
+    const responseReturningRequest: BlnkRequest = async <R>() => ({
       status: 201,
       message: `Success`,
-      data: coreResponse,
+      data: coreResponse as unknown as R,
     });
 
     const transactions = new Transactions(
@@ -761,6 +761,52 @@ tap.test(`Creates bulk transactions`, async t => {
       };
 
       const bulkResponse = await transactions.createBulk<meta_dataT>(data);
+      childTest.match(capturedRequest.args(), [
+        [`transactions/bulk`, data, `POST`],
+      ]);
+      childTest.equal(bulkResponse.status, 201);
+      childTest.end();
+    },
+  );
+
+  t.test(
+    `createBulk forwards skip_queue on bulk request (issue #44)`,
+    async childTest => {
+      const capturedRequest = childTest.captureFn(thirdPartyRequest);
+      const transactions = new Transactions(
+        capturedRequest,
+        mockLogger,
+        FormatResponse,
+      );
+
+      const data: BulkTransactions<meta_dataT> = {
+        skip_queue: true,
+        transactions: [
+          {
+            amount: 1000,
+            currency: `USD`,
+            description: `Bulk txn with skip_queue`,
+            meta_data: {department: `sales`, project: `Q4_campaign`},
+            precision: 100,
+            reference: `bulk_skip_queue_001`,
+            source: `@source_account_1`,
+            destination: `@destination_account_1`,
+          },
+          {
+            amount: 2000,
+            currency: `USD`,
+            description: `Bulk txn 2`,
+            meta_data: {department: `marketing`, project: `Q4_campaign`},
+            precision: 100,
+            reference: `bulk_skip_queue_002`,
+            source: `@source_account_2`,
+            destination: `@destination_account_2`,
+          },
+        ],
+      };
+
+      const bulkResponse = await transactions.createBulk<meta_dataT>(data);
+
       childTest.match(capturedRequest.args(), [
         [`transactions/bulk`, data, `POST`],
       ]);

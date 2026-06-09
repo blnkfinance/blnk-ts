@@ -220,6 +220,7 @@ interface BulkTransactions<T extends Record<string, unknown>> {
   atomic?: boolean;        // Optional: All transactions succeed or fail together
   inflight?: boolean;      // Optional: Create transactions as inflight
   run_async?: boolean;     // Optional: Process transactions asynchronously
+  skip_queue?: boolean;    // Optional: Process without queuing
   transactions: CreateTransactions<T>[]; // Required: Array of transaction objects
 }
 ```
@@ -335,18 +336,22 @@ const asyncBulkData = {
 const asyncResponse = await Transactions.createBulk(asyncBulkData);
 ```
 
-### Response Format
+### Bulk transaction response
+
+`Transactions.createBulk` resolves to a `BulkTransactionResponse` that matches the Core API reference (`batch_id`, `status`, `transaction_count`, and optional `message` for async batches):
 
 ```typescript
-interface BulkTransactionResponse<T extends Record<string, unknown>> {
-  id: string;                                    // Bulk transaction ID
-  atomic: boolean;                               // Whether transactions were atomic
-  inflight: boolean;                             // Whether transactions were created as inflight
-  run_async: boolean;                            // Whether processing was asynchronous
-  transactions: CreateTransactionResponse<T>[];  // Array of individual transaction responses
-  created_at: Date;                              // Creation timestamp
+interface BulkTransactionResponse {
+  batch_id: string;
+  status: 'applied' | 'inflight' | 'queued' | string;
+  transaction_count?: number; // present on synchronous success
+  message?: string;           // present when run_async is true
 }
 ```
+
+### Response Format
+
+The bulk API returns batch metadata (not nested transaction objects). See **Bulk transaction response** above for the typed shape.
 
 ### Validation Rules
 
@@ -355,7 +360,7 @@ The bulk transactions API validates the following:
 1. **Required Fields**: `transactions` array must be provided and cannot be empty
 2. **Transaction Validation**: Each transaction in the array must pass standard transaction validation
 3. **Unique References**: All transaction references must be unique within the bulk request
-4. **Boolean Flags**: `atomic`, `inflight`, and `run_async` must be booleans if provided
+4. **Boolean Flags**: `atomic`, `inflight`, `run_async`, and `skip_queue` must be booleans if provided
 5. **Standard Transaction Rules**: All existing transaction validation rules apply to each transaction
 
 ### Error Handling

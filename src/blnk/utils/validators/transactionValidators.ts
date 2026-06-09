@@ -573,6 +573,10 @@ export function ValidateBulkTransactions<T extends Record<string, unknown>>(
     return `Run_async must be a boolean if provided.`;
   }
 
+  if (data.skip_queue !== undefined && typeof data.skip_queue !== `boolean`) {
+    return `skip_queue must be a boolean if provided.`;
+  }
+
   if (!Array.isArray(data.transactions)) {
     return `Transactions must be an array.`;
   }

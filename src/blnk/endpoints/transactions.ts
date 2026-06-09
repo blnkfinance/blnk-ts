@@ -201,9 +201,10 @@ export class Transactions {
    *   - atomic: Optional boolean to ensure all transactions succeed or fail together
    *   - inflight: Optional boolean to create inflight transactions
    *   - run_async: Optional boolean to process transactions asynchronously
+   *   - skip_queue: Optional boolean to process without queuing
    *   - transactions: Array of transaction objects to be created
    *
-   * @returns {Promise<BulkTransactionResponse<T>>} A promise that resolves to the response
+   * @returns {Promise<BulkTransactionResponse>} A promise that resolves to the response
    * from the server after processing the bulk transactions.
    *
    * @throws {Error} Throws an error if the request fails, which will be logged using the
@@ -255,7 +256,7 @@ export class Transactions {
 
       const response = await this.request<
         BulkTransactions<T>,
-        BulkTransactionResponse<T>
+        BulkTransactionResponse
       >(`transactions/bulk`, payload, `POST`);
 
       if (response.data === null) {
