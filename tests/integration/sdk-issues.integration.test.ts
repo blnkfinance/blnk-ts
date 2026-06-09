@@ -1,6 +1,6 @@
 /* eslint-disable n/no-unpublished-import */
 /**
- * Integration tests for SDK changes in issues #40–#44.
+ * Integration tests for SDK changes in issues #40–#45.
  * Requires Blnk Core at http://localhost:5001 (docker compose up in blnk/).
  *
  * Run: npm run test:integration
@@ -358,6 +358,33 @@ tap.test(`SDK integration — each added capability vs Blnk Core`, async t => {
       tt.end();
     },
   );
+
+  // Issue #45 — partial commit with precise_amount on updateStatus
+  t.test(`#45 partial commit with precise_amount`, async tt => {
+    const ledgerId = await createLedger(`Issue45 PartialCommit`);
+    const destination = await createBalance(ledgerId);
+
+    const createResp = await client.Transactions.create({
+      ...baseTxn,
+      amount: 1000,
+      reference: GenerateRandomNumbersWithPrefix(`issue45-inflight`, 6),
+      source: `@FundingPool`,
+      destination,
+      inflight: true,
+      inflight_expiry_date: `2026-12-31T23:59:59Z`,
+    } as CreateTransactions<Record<string, never>>);
+
+    tt.equal(createResp.status, 201);
+    await Sleep(2);
+
+    const partialCommitResp = await client.Transactions.updateStatus(
+      createResp.data!.transaction_id,
+      {status: `commit`, precise_amount: 50000},
+    );
+    tt.equal(partialCommitResp.status, 200);
+    tt.equal(partialCommitResp.data?.status, `APPLIED`);
+    tt.end();
+  });
 
   t.end();
 });

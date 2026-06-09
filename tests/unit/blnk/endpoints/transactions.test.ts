@@ -374,6 +374,30 @@ tap.test(`Updates a transaction`, async t => {
   });
 
   t.test(
+    `Partial commit forwards precise_amount (issue #45)`,
+    async childTest => {
+      const capturedRequest = childTest.captureFn(thirdPartyRequest);
+      const transactions = new Transactions(
+        capturedRequest,
+        mockLogger,
+        FormatResponse,
+      );
+
+      const data: UpdateTransactionStatus<{}> = {
+        status: `commit`,
+        precise_amount: 50000,
+      };
+
+      const transaction = await transactions.updateStatus(id, data);
+      childTest.match(capturedRequest.args(), [
+        [`transactions/inflight/${id}`, data, `PUT`],
+      ]);
+      childTest.equal(transaction.status, 200);
+      childTest.end();
+    },
+  );
+
+  t.test(
     `Updates fails for a transaction status with invalid data`,
     async childTest => {
       const capturedRequest = childTest.captureFn(thirdPartyRequest);
