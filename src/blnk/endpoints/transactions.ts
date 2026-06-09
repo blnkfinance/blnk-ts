@@ -253,6 +253,40 @@ export class Transactions {
    * };
    * const result = await createBulk(bulkData);
    */
+  /**
+   * Retrieves a transaction by its reference.
+   *
+   * @param reference - The unique reference of the transaction to retrieve.
+   * @returns A promise that resolves with the transaction matching the reference.
+   *
+   * @example
+   * const response = await transactions.getByReference('ref_04551509-d7d3-4eab-a1fd-2eb12809b5a4');
+   */
+  async getByReference<T extends Record<string, unknown>>(reference: string) {
+    try {
+      if (!reference) {
+        return this.formatResponse(400, `reference is required`, null);
+      }
+
+      const response = await this.request<
+        undefined,
+        CreateTransactionResponse<T>
+      >(
+        `transactions/reference/${encodeURIComponent(reference)}`,
+        undefined,
+        `GET`,
+      );
+      return response;
+    } catch (error: unknown) {
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.getByReference.name,
+      );
+    }
+  }
+
   async createBulk<T extends Record<string, unknown>>(
     data: BulkTransactions<T>,
   ) {

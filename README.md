@@ -170,6 +170,14 @@ const newTransaction = await Transactions.create({
 console.log("Transaction Recorded:", newTransaction);
 ```
 
+### Get transaction by reference
+
+`Transactions.getByReference` retrieves a transaction by its `reference` (GET `/transactions/reference/{reference}`):
+
+```typescript
+const response = await Transactions.getByReference('ref_04551509-d7d3-4eab-a1fd-2eb12809b5a4');
+```
+
 ### Update inflight transaction status
 
 `Transactions.updateStatus` accepts `precise_amount` for partial commits on inflight transactions (in addition to `amount`). Omit both fields to commit the full remaining inflight amount:

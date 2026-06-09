@@ -421,6 +421,76 @@ tap.test(`Updates a transaction`, async t => {
   );
 });
 
+tap.test(`GET transaction by reference`, async t => {
+  const mockLogger = createMockLogger();
+  let thirdPartyRequest: BlnkRequest;
+  t.beforeEach(() => {
+    thirdPartyRequest = createMockBlnkRequest(true, undefined, 200);
+  });
+
+  t.test(
+    `getByReference calls correct endpoint (issue #14)`,
+    async childTest => {
+      const capturedRequest = childTest.captureFn(thirdPartyRequest);
+      const transactions = new Transactions(
+        capturedRequest,
+        mockLogger,
+        FormatResponse,
+      );
+      const reference = `ref_issue14_abc123`;
+      const response = await transactions.getByReference(reference);
+      childTest.match(capturedRequest.args(), [
+        [
+          `transactions/reference/${encodeURIComponent(reference)}`,
+          undefined,
+          `GET`,
+        ],
+      ]);
+      childTest.equal(response.status, 200);
+      childTest.end();
+    },
+  );
+
+  t.test(
+    `getByReference path-escapes special characters (issue #14)`,
+    async childTest => {
+      const capturedRequest = childTest.captureFn(thirdPartyRequest);
+      const transactions = new Transactions(
+        capturedRequest,
+        mockLogger,
+        FormatResponse,
+      );
+      const reference = `ref/with space?query#hash%25`;
+      await transactions.getByReference(reference);
+      childTest.match(capturedRequest.args(), [
+        [
+          `transactions/reference/${encodeURIComponent(reference)}`,
+          undefined,
+          `GET`,
+        ],
+      ]);
+      childTest.end();
+    },
+  );
+
+  t.test(
+    `getByReference rejects empty reference (issue #14)`,
+    async childTest => {
+      const capturedRequest = childTest.captureFn(thirdPartyRequest);
+      const transactions = new Transactions(
+        capturedRequest,
+        mockLogger,
+        FormatResponse,
+      );
+      const response = await transactions.getByReference(``);
+      childTest.match(capturedRequest.args(), []);
+      childTest.equal(response.status, 400);
+      childTest.equal(response.message, `reference is required`);
+      childTest.end();
+    },
+  );
+});
+
 tap.test(`Refunds a transaction`, async t => {
   const mockLogger = createMockLogger();
   let thirdPartyRequest: BlnkRequest;

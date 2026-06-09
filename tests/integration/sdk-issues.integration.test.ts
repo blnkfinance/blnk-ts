@@ -394,6 +394,28 @@ tap.test(`SDK integration — each added capability vs Blnk Core`, async t => {
     tt.end();
   });
 
+  // Issue #14 — get transaction by reference
+  t.test(`#14 getByReference returns created transaction`, async tt => {
+    const reference = GenerateRandomNumbersWithPrefix(`issue14-ref`, 6);
+    const createResp = await client.Transactions.create({
+      ...baseTxn,
+      amount: 500,
+      reference,
+      source: `@FundingPool`,
+      destination: `@Recipient`,
+    } as CreateTransactions<Record<string, never>>);
+
+    tt.equal(createResp.status, 201);
+    tt.ok(createResp.data?.transaction_id);
+
+    const getResp = await client.Transactions.getByReference(reference);
+    tt.equal(getResp.status, 200);
+    tt.equal(getResp.data?.transaction_id, createResp.data?.transaction_id);
+    tt.equal(getResp.data?.reference, reference);
+    tt.equal(getResp.data?.currency, `USD`);
+    tt.end();
+  });
+
   // Issue #46 — refund with optional skip_queue body
   t.test(`#46 refund queued vs synchronous skip_queue`, async tt => {
     const ledgerId = await createLedger(`Issue46 Refund`);
