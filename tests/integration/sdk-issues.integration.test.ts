@@ -1,6 +1,6 @@
 /* eslint-disable n/no-unpublished-import */
 /**
- * Integration tests for SDK changes in issues #40–#43.
+ * Integration tests for SDK changes in issues #40–#44.
  * Requires Blnk Core at http://localhost:5001 (docker compose up in blnk/).
  *
  * Run: npm run test:integration
@@ -11,6 +11,7 @@ import {BlnkClientOptions} from "../../src/types/blnkClient";
 import {CreateLedger} from "../../src/types/ledger";
 import {CreateLedgerBalance} from "../../src/types/ledgerBalances";
 import {
+  BulkTransactionResponse,
   BulkTransactions,
   CreateTransactions,
 } from "../../src/types/transactions";
@@ -103,13 +104,10 @@ tap.test(`SDK integration — each added capability vs Blnk Core`, async t => {
     } as BulkTransactions<Record<string, never>>);
 
     tt.equal(response.status, 201);
-    const bulk = response.data as {
-      transaction_count?: number;
-      batch_id?: string;
-      status?: string;
-    };
+    const bulk = response.data as BulkTransactionResponse;
     tt.equal(bulk?.transaction_count, 2, `Core accepted 2 bulk transactions`);
     tt.ok(bulk?.batch_id, `batch_id returned from Core`);
+    tt.type(bulk?.status, `string`, `status returned from Core`);
     tt.end();
   });
 
@@ -250,31 +248,34 @@ tap.test(`SDK integration — each added capability vs Blnk Core`, async t => {
   });
 
   // Issue #43 — CreateTransactionResponse parity (hash, parent_transaction, inflight)
-  t.test(`#43 create response includes hash, parent_transaction, inflight`, async tt => {
-    const response = await client.Transactions.create({
-      ...baseTxn,
-      amount: 1000,
-      reference: GenerateRandomNumbersWithPrefix(`issue43-resp`, 6),
-      source: `@FundingPool`,
-      destination: `@Recipient`,
-      allow_overdraft: false,
-      inflight: false,
-    } as CreateTransactions<Record<string, never>>);
+  t.test(
+    `#43 create response includes hash, parent_transaction, inflight`,
+    async tt => {
+      const response = await client.Transactions.create({
+        ...baseTxn,
+        amount: 1000,
+        reference: GenerateRandomNumbersWithPrefix(`issue43-resp`, 6),
+        source: `@FundingPool`,
+        destination: `@Recipient`,
+        allow_overdraft: false,
+        inflight: false,
+      } as CreateTransactions<Record<string, never>>);
 
-    tt.equal(response.status, 201);
-    tt.ok(response.data?.hash, `hash present`);
-    tt.equal(response.data?.hash?.length, 64, `hash is SHA-256 hex`);
-    tt.type(response.data?.parent_transaction, `string`);
-    tt.equal(response.data?.inflight, false);
-    tt.type(response.data?.allow_overdraft, `boolean`);
-    tt.equal(response.data?.scheduled_for, `0001-01-01T00:00:00Z`);
-    tt.equal(response.data?.inflight_expiry_date, `0001-01-01T00:00:00Z`);
-  // Core omits inflight_commit_date when inflight is false
-    if (response.data?.inflight_commit_date !== undefined) {
-      tt.type(response.data.inflight_commit_date, `string`);
-    }
-    tt.end();
-  });
+      tt.equal(response.status, 201);
+      tt.ok(response.data?.hash, `hash present`);
+      tt.equal(response.data?.hash?.length, 64, `hash is SHA-256 hex`);
+      tt.type(response.data?.parent_transaction, `string`);
+      tt.equal(response.data?.inflight, false);
+      tt.type(response.data?.allow_overdraft, `boolean`);
+      tt.equal(response.data?.scheduled_for, `0001-01-01T00:00:00Z`);
+      tt.equal(response.data?.inflight_expiry_date, `0001-01-01T00:00:00Z`);
+      // Core omits inflight_commit_date when inflight is false
+      if (response.data?.inflight_commit_date !== undefined) {
+        tt.type(response.data.inflight_commit_date, `string`);
+      }
+      tt.end();
+    },
+  );
 
   // Issue #43 — decimal percentage distributions with precise_amount
   t.test(`#43 decimal percentage split (33.33% / 66.67%)`, async tt => {
@@ -320,6 +321,43 @@ tap.test(`SDK integration — each added capability vs Blnk Core`, async t => {
     tt.ok(response.data?.transaction_id);
     tt.end();
   });
+
+  // Issue #44 — BulkTransactionResponse parity + skip_queue on bulk
+  t.test(
+    `#44 createBulk skip_queue + BulkTransactionResponse shape`,
+    async tt => {
+      const response = await client.Transactions.createBulk({
+        skip_queue: true,
+        transactions: [
+          {
+            ...baseTxn,
+            amount: 500,
+            reference: GenerateRandomNumbersWithPrefix(`issue44-bulk-1`, 6),
+            source: `@FundingPool`,
+            destination: `@Recipient`,
+          },
+          {
+            ...baseTxn,
+            amount: 750,
+            reference: GenerateRandomNumbersWithPrefix(`issue44-bulk-2`, 6),
+            source: `@FundingPool`,
+            destination: `@Recipient`,
+          },
+        ],
+      } as BulkTransactions<Record<string, never>>);
+
+      tt.equal(response.status, 201);
+      const bulk = response.data as BulkTransactionResponse;
+      tt.ok(bulk?.batch_id, `batch_id present`);
+      tt.type(bulk?.status, `string`, `status present`);
+      tt.equal(
+        bulk?.transaction_count,
+        2,
+        `transaction_count matches batch size`,
+      );
+      tt.end();
+    },
+  );
 
   t.end();
 });
