@@ -170,6 +170,14 @@ const newTransaction = await Transactions.create({
 console.log("Transaction Recorded:", newTransaction);
 ```
 
+### Get transaction by ID
+
+`Transactions.get` retrieves a transaction by its `transaction_id` (GET `/transactions/{transaction_id}`):
+
+```typescript
+const response = await Transactions.get('txn_04551509-d7d3-4eab-a1fd-2eb12809b5a4');
+```
+
 ### Get transaction by reference
 
 `Transactions.getByReference` retrieves a transaction by its `reference` (GET `/transactions/reference/{reference}`):
