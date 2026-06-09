@@ -143,14 +143,25 @@ export interface BulkTransactions<T extends Record<string, unknown>> {
   atomic?: boolean;
   inflight?: boolean;
   run_async?: boolean;
+  /** Process synchronously without queuing. Default: `false`. */
+  skip_queue?: boolean;
   transactions: CreateTransactions<T>[];
 }
 
-export interface BulkTransactionResponse<T extends Record<string, unknown>> {
-  id: string;
-  atomic: boolean;
-  inflight: boolean;
-  run_async: boolean;
-  transactions: CreateTransactionResponse<T>[];
-  created_at: Date;
+/** Bulk batch status from `POST /transactions/bulk`. */
+export type BulkTransactionStatus = `applied` | `inflight` | `queued`;
+
+/**
+ * Response from `POST /transactions/bulk`.
+ * Field shapes follow the Blnk Core bulk-transactions reference.
+ *
+ * @see https://docs.blnkfinance.com/reference/bulk-transactions
+ */
+export interface BulkTransactionResponse {
+  batch_id: string;
+  status: BulkTransactionStatus | string;
+  /** Present when processing finished synchronously and the batch succeeded. */
+  transaction_count?: number;
+  /** Present when `run_async` is true (background processing started). */
+  message?: string;
 }

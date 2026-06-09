@@ -1,7 +1,13 @@
 /* eslint-disable n/no-unpublished-import */
 import tap from "tap";
-import {ValidateCreateTransactions} from "../../../../src/blnk/utils/validators/transactionValidators";
-import {CreateTransactions} from "../../../../src/types/transactions";
+import {
+  ValidateCreateTransactions,
+  ValidateBulkTransactions,
+} from "../../../../src/blnk/utils/validators/transactionValidators";
+import {
+  BulkTransactions,
+  CreateTransactions,
+} from "../../../../src/types/transactions";
 
 const baseFields = {
   precision: 100,
@@ -713,6 +719,46 @@ tap.test(`Issue #41 — ISO date strings and Distribution parity`, t => {
       tt.end();
     },
   );
+
+  t.end();
+});
+
+tap.test(`Issue #44 — bulk transaction request fields`, t => {
+  const baseBulkTxn: CreateTransactions<Record<string, never>> = {
+    ...baseFields,
+    amount: 1000,
+    source: `@FundingPool`,
+    destination: `@Recipient`,
+  };
+
+  t.test(`allows skip_queue on bulk payloads`, tt => {
+    const data: BulkTransactions<Record<string, never>> = {
+      skip_queue: true,
+      transactions: [
+        {...baseBulkTxn, reference: `bulk_ref_001`},
+        {...baseBulkTxn, reference: `bulk_ref_002`, amount: 2000},
+      ],
+    };
+
+    tt.equal(ValidateBulkTransactions(data), null);
+    tt.end();
+  });
+
+  t.test(`rejects invalid skip_queue on bulk payloads`, tt => {
+    const data = {
+      skip_queue: `true`,
+      transactions: [
+        {...baseBulkTxn, reference: `bulk_ref_001`},
+        {...baseBulkTxn, reference: `bulk_ref_002`, amount: 2000},
+      ],
+    } as unknown as BulkTransactions<Record<string, never>>;
+
+    tt.equal(
+      ValidateBulkTransactions(data),
+      `skip_queue must be a boolean if provided.`,
+    );
+    tt.end();
+  });
 
   t.end();
 });
