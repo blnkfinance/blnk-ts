@@ -254,6 +254,36 @@ export class Transactions {
    * const result = await createBulk(bulkData);
    */
   /**
+   * Retrieves a transaction by its ID.
+   *
+   * @param transactionId - The unique ID of the transaction to retrieve.
+   * @returns A promise that resolves with the transaction matching the ID.
+   *
+   * @example
+   * const response = await transactions.get('txn_04551509-d7d3-4eab-a1fd-2eb12809b5a4');
+   */
+  async get<T extends Record<string, unknown>>(transactionId: string) {
+    try {
+      if (!transactionId) {
+        return this.formatResponse(400, `transaction id is required`, null);
+      }
+
+      const response = await this.request<
+        undefined,
+        CreateTransactionResponse<T>
+      >(`transactions/${transactionId}`, undefined, `GET`);
+      return response;
+    } catch (error: unknown) {
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.get.name,
+      );
+    }
+  }
+
+  /**
    * Retrieves a transaction by its reference.
    *
    * @param reference - The unique reference of the transaction to retrieve.

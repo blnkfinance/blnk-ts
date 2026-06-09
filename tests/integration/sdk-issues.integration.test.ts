@@ -394,6 +394,30 @@ tap.test(`SDK integration — each added capability vs Blnk Core`, async t => {
     tt.end();
   });
 
+  // Issue #12 — get transaction by id
+  t.test(`#12 get returns created transaction`, async tt => {
+    const reference = GenerateRandomNumbersWithPrefix(`issue12-ref`, 6);
+    const createResp = await client.Transactions.create({
+      ...baseTxn,
+      amount: 500,
+      reference,
+      source: `@FundingPool`,
+      destination: `@Recipient`,
+    } as CreateTransactions<Record<string, never>>);
+
+    tt.equal(createResp.status, 201);
+    const transactionId = createResp.data!.transaction_id;
+    tt.ok(transactionId);
+
+    const getResp = await client.Transactions.get(transactionId);
+    tt.equal(getResp.status, 200);
+    tt.equal(getResp.data?.transaction_id, transactionId);
+    tt.equal(getResp.data?.reference, reference);
+    tt.equal(getResp.data?.currency, `USD`);
+    tt.type(getResp.data?.amount, `number`);
+    tt.end();
+  });
+
   // Issue #14 — get transaction by reference
   t.test(`#14 getByReference returns created transaction`, async tt => {
     const reference = GenerateRandomNumbersWithPrefix(`issue14-ref`, 6);
