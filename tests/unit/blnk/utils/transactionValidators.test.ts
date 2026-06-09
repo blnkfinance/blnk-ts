@@ -3,10 +3,12 @@ import tap from "tap";
 import {
   ValidateCreateTransactions,
   ValidateBulkTransactions,
+  ValidateUpdateTransactions,
 } from "../../../../src/blnk/utils/validators/transactionValidators";
 import {
   BulkTransactions,
   CreateTransactions,
+  UpdateTransactionStatus,
 } from "../../../../src/types/transactions";
 
 const baseFields = {
@@ -757,6 +759,74 @@ tap.test(`Issue #44 — bulk transaction request fields`, t => {
       ValidateBulkTransactions(data),
       `skip_queue must be a boolean if provided.`,
     );
+    tt.end();
+  });
+
+  t.end();
+});
+
+tap.test(`Issue #45 — updateStatus precise_amount on partial commit`, t => {
+  t.test(`allows commit with precise_amount only`, tt => {
+    const data: UpdateTransactionStatus<Record<string, never>> = {
+      status: `commit`,
+      precise_amount: 50000,
+    };
+
+    tt.equal(ValidateUpdateTransactions(data), null);
+    tt.end();
+  });
+
+  t.test(`allows precise_amount as a string for large integers`, tt => {
+    const data: UpdateTransactionStatus<Record<string, never>> = {
+      status: `commit`,
+      precise_amount: `9007199254740993`,
+    };
+
+    tt.equal(ValidateUpdateTransactions(data), null);
+    tt.end();
+  });
+
+  t.test(`allows full commit without amount or precise_amount`, tt => {
+    const data: UpdateTransactionStatus<Record<string, never>> = {
+      status: `commit`,
+    };
+
+    tt.equal(ValidateUpdateTransactions(data), null);
+    tt.end();
+  });
+
+  t.test(`allows amount and precise_amount together`, tt => {
+    const data: UpdateTransactionStatus<Record<string, never>> = {
+      status: `commit`,
+      amount: 500,
+      precise_amount: 50000,
+    };
+
+    tt.equal(ValidateUpdateTransactions(data), null);
+    tt.end();
+  });
+
+  t.test(`rejects invalid precise_amount string values`, tt => {
+    const data: UpdateTransactionStatus<Record<string, never>> = {
+      status: `commit`,
+      precise_amount: `12.5`,
+    };
+
+    tt.equal(
+      ValidateUpdateTransactions(data),
+      `precise_amount must be a non-negative integer string or number.`,
+    );
+    tt.end();
+  });
+
+  t.test(`rejects unknown fields`, tt => {
+    const data = {
+      status: `commit`,
+      precise_amount: 50000,
+      currency: `USD`,
+    } as unknown as UpdateTransactionStatus<Record<string, never>>;
+
+    tt.equal(ValidateUpdateTransactions(data), `Invalid field: currency`);
     tt.end();
   });
 

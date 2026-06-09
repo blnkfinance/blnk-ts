@@ -544,11 +544,23 @@ export function ValidateUpdateTransactions<T extends Record<string, unknown>>(
     return `Amount must be a number.`;
   }
 
+  if (data.precise_amount !== undefined && data.precise_amount !== null) {
+    const isValidPreciseAmount =
+      typeof data.precise_amount === `number` ||
+      typeof data.precise_amount === `string`;
+    if (!isValidPreciseAmount) {
+      return `precise_amount must be a string or number.`;
+    }
+    if (parsePreciseInteger(data.precise_amount) === null) {
+      return `precise_amount must be a non-negative integer string or number.`;
+    }
+  }
+
   if (data.meta_data !== undefined && !isValidMetaData(data.meta_data)) {
     return `meta_data must be a valid object if provided`;
   }
 
-  const allowedFields = [`status`, `amount`, `meta_data`];
+  const allowedFields = [`status`, `amount`, `precise_amount`, `meta_data`];
   for (const key in data) {
     if (!allowedFields.includes(key)) {
       return `Invalid field: ${key}`;

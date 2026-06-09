@@ -161,6 +161,21 @@ const newTransaction = await Transactions.create({
 console.log("Transaction Recorded:", newTransaction);
 ```
 
+### Update inflight transaction status
+
+`Transactions.updateStatus` accepts `precise_amount` for partial commits on inflight transactions (in addition to `amount`). Omit both fields to commit the full remaining inflight amount:
+
+```typescript
+// Partial commit in minor units
+await Transactions.updateStatus(transactionId, {
+  status: 'commit',
+  precise_amount: 50000,
+});
+
+// Full commit
+await Transactions.updateStatus(transactionId, { status: 'commit' });
+```
+
 ### Create transaction response
 
 `Transactions.create` resolves to a `CreateTransactionResponse` that matches the Core API reference, including `hash`, `parent_transaction`, `allow_overdraft`, and inflight date fields (`scheduled_for`, `inflight_expiry_date`, `inflight_commit_date`):

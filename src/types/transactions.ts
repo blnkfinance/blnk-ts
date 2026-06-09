@@ -135,7 +135,14 @@ export type Distribution =
 //so transaction.commit(id), transaction.commitPartial(id,amount)
 export type UpdateTransactionStatus<T extends Record<string, unknown>> = {
   status: InflightStatus;
+  /** Human-readable partial commit amount. Omit for full commit. */
   amount?: number;
+  /**
+   * Partial commit amount in minor units. Omit for full commit. Prefer strings
+   * for values larger than `Number.MAX_SAFE_INTEGER`. When both `amount` and
+   * `precise_amount` are set, Core uses `precise_amount`.
+   */
+  precise_amount?: number | string;
   meta_data?: T;
 };
 
