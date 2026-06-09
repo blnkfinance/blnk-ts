@@ -5,6 +5,7 @@ import {
   BulkTransactions,
   CreateTransactionResponse,
   CreateTransactions,
+  RefundTransactionRequest,
   UpdateTransactionStatus,
 } from "../../types/transactions";
 import {HandleError} from "../utils/logger";
@@ -12,6 +13,7 @@ import {serializeCreateTransaction} from "../utils/transactionSerialization";
 import {
   ValidateBulkTransactions,
   ValidateCreateTransactions,
+  ValidateRefundTransaction,
   ValidateUpdateTransactions,
 } from "../utils/validators/transactionValidators";
 
@@ -163,20 +165,31 @@ export class Transactions {
       see @link https://docs.blnkfinance.com/transactions/refunds
    *
    * @param id - The ID of the transaction to be refunded.
+   * @param options - Optional refund options (`skip_queue` for synchronous processing).
    * @returns A promise that resolves with the response of the refund transaction.
    * @throws If an error occurs during the refund process, an error response is returned.
    *
    * @example
    * const transactionId = "123456";
-   * const refundResponse = await refund<MyMetaDataType>(transactionId);
+   * const refundResponse = await Transactions.refund(transactionId);
+   * const syncRefund = await Transactions.refund(transactionId, { skip_queue: true });
    */
-  async refund<T extends Record<string, never>>(id: string) {
+  async refund<T extends Record<string, never>>(
+    id: string,
+    options?: RefundTransactionRequest,
+  ) {
     try {
-      const response = await this.request<null, CreateTransactionResponse<T>>(
-        `refund-transaction/${id}`,
-        null,
-        `POST`,
-      );
+      if (options !== undefined) {
+        const validatorResponse = ValidateRefundTransaction(options);
+        if (validatorResponse) {
+          return this.formatResponse(400, validatorResponse, null);
+        }
+      }
+
+      const response = await this.request<
+        RefundTransactionRequest | null,
+        CreateTransactionResponse<T>
+      >(`refund-transaction/${id}`, options ?? null, `POST`);
       return response;
     } catch (error: unknown) {
       return HandleError(

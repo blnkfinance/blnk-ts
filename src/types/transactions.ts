@@ -146,6 +146,12 @@ export type UpdateTransactionStatus<T extends Record<string, unknown>> = {
   meta_data?: T;
 };
 
+/** Optional body for `POST /refund-transaction/{transaction_id}`. */
+export interface RefundTransactionRequest {
+  /** Process synchronously without queuing. Default: `false`. */
+  skip_queue?: boolean;
+}
+
 export interface BulkTransactions<T extends Record<string, unknown>> {
   atomic?: boolean;
   inflight?: boolean;

@@ -3,6 +3,7 @@ import {
   BulkTransactions,
   CreateTransactions,
   MultipleSourcesT,
+  RefundTransactionRequest,
   TransactionDateInput,
   UpdateTransactionStatus,
 } from "../../../types/transactions";
@@ -561,6 +562,23 @@ export function ValidateUpdateTransactions<T extends Record<string, unknown>>(
   }
 
   const allowedFields = [`status`, `amount`, `precise_amount`, `meta_data`];
+  for (const key in data) {
+    if (!allowedFields.includes(key)) {
+      return `Invalid field: ${key}`;
+    }
+  }
+
+  return null;
+}
+
+export function ValidateRefundTransaction(
+  data: RefundTransactionRequest,
+): string | null {
+  if (data.skip_queue !== undefined && typeof data.skip_queue !== `boolean`) {
+    return `skip_queue must be a boolean if provided.`;
+  }
+
+  const allowedFields = [`skip_queue`];
   for (const key in data) {
     if (!allowedFields.includes(key)) {
       return `Invalid field: ${key}`;

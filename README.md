@@ -176,6 +176,18 @@ await Transactions.updateStatus(transactionId, {
 await Transactions.updateStatus(transactionId, { status: 'commit' });
 ```
 
+### Refund a transaction
+
+`Transactions.refund` accepts an optional body with `skip_queue` to process the refund synchronously. Omit the body to queue the refund (default):
+
+```typescript
+// Queued refund (default)
+await Transactions.refund(transactionId);
+
+// Synchronous refund
+await Transactions.refund(transactionId, { skip_queue: true });
+```
+
 ### Create transaction response
 
 `Transactions.create` resolves to a `CreateTransactionResponse` that matches the Core API reference, including `hash`, `parent_transaction`, `allow_overdraft`, and inflight date fields (`scheduled_for`, `inflight_expiry_date`, `inflight_commit_date`):

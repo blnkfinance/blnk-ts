@@ -12,6 +12,7 @@ import {
   BulkTransactions,
   CreateTransactionResponse,
   CreateTransactions,
+  RefundTransactionRequest,
   UpdateTransactionStatus,
 } from "../../../../src/types/transactions";
 
@@ -418,6 +419,74 @@ tap.test(`Updates a transaction`, async t => {
       childTest.equal(transaction.status, 400);
     },
   );
+});
+
+tap.test(`Refunds a transaction`, async t => {
+  const mockLogger = createMockLogger();
+  let thirdPartyRequest: BlnkRequest;
+  t.beforeEach(() => {
+    thirdPartyRequest = createMockBlnkRequest(true, undefined, 201);
+  });
+  const id = `txn_refund_1234`;
+
+  t.test(
+    `refund without body keeps backward-compatible call (issue #46)`,
+    async childTest => {
+      const capturedRequest = childTest.captureFn(thirdPartyRequest);
+      const transactions = new Transactions(
+        capturedRequest,
+        mockLogger,
+        FormatResponse,
+      );
+
+      const refundResponse = await transactions.refund(id);
+      childTest.match(capturedRequest.args(), [
+        [`refund-transaction/${id}`, null, `POST`],
+      ]);
+      childTest.equal(refundResponse.status, 201);
+      childTest.end();
+    },
+  );
+
+  t.test(
+    `refund forwards skip_queue on request body (issue #46)`,
+    async childTest => {
+      const capturedRequest = childTest.captureFn(thirdPartyRequest);
+      const transactions = new Transactions(
+        capturedRequest,
+        mockLogger,
+        FormatResponse,
+      );
+
+      const options = {skip_queue: true};
+      const refundResponse = await transactions.refund(id, options);
+      childTest.match(capturedRequest.args(), [
+        [`refund-transaction/${id}`, options, `POST`],
+      ]);
+      childTest.equal(refundResponse.status, 201);
+      childTest.end();
+    },
+  );
+
+  t.test(`refund rejects invalid skip_queue (issue #46)`, async childTest => {
+    const capturedRequest = childTest.captureFn(thirdPartyRequest);
+    const transactions = new Transactions(
+      capturedRequest,
+      mockLogger,
+      FormatResponse,
+    );
+
+    const refundResponse = await transactions.refund(id, {
+      skip_queue: `true`,
+    } as unknown as RefundTransactionRequest);
+    childTest.match(capturedRequest.args(), []);
+    childTest.equal(refundResponse.status, 400);
+    childTest.equal(
+      refundResponse.message,
+      `skip_queue must be a boolean if provided.`,
+    );
+    childTest.end();
+  });
 });
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
