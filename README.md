@@ -154,6 +154,18 @@ const newBalance = await LedgerBalances.create({
 console.log("Balance Created:", newBalance);
 ```
 
+### Get balance by indicator
+
+`LedgerBalances.getByIndicator` retrieves a balance by its indicator and currency (`GET /balances/indicator/{indicator}/currency/{currency}`):
+
+```typescript
+const response = await LedgerBalances.getByIndicator('@World', 'USD');
+
+// response.data.balance_id
+// response.data.indicator
+// response.data.currency
+```
+
 ### Get balance lineage
 
 `LedgerBalances.getLineage` retrieves the provider breakdown for a balance with fund lineage enabled (`GET /balances/{balance_id}/lineage`):

@@ -6,7 +6,10 @@ import {
   CreateLedgerBalanceResp,
 } from "../../types/ledgerBalances";
 import {HandleError} from "../utils/logger";
-import {ValidateCreateLedgerBalance} from "../utils/validators/ledgerBalance";
+import {
+  ValidateCreateLedgerBalance,
+  ValidateGetByIndicator,
+} from "../utils/validators/ledgerBalance";
 
 /**
  * Represents a class for managing ledger balances.
@@ -93,6 +96,44 @@ export class LedgerBalances {
         this.logger,
         this.formatResponse,
         this.create.name,
+      );
+    }
+  }
+
+  /**
+   * Retrieves a balance by its indicator and currency.
+   *
+   * @see https://docs.blnkfinance.com/reference/get-balance-by-indicator
+   *
+   * @example
+   * const response = await ledgerBalances.getByIndicator('@World', 'USD');
+   */
+  async getByIndicator<T extends Record<string, unknown>>(
+    indicator: string,
+    currency: string,
+  ) {
+    try {
+      const error = ValidateGetByIndicator(indicator, currency);
+      if (error) {
+        return this.formatResponse(400, error, null);
+      }
+
+      const response = await this.request<
+        undefined,
+        CreateLedgerBalanceResp<T>
+      >(
+        `balances/indicator/${encodeURIComponent(indicator)}/currency/${encodeURIComponent(currency)}`,
+        undefined,
+        `GET`,
+      );
+
+      return response;
+    } catch (error: unknown) {
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.getByIndicator.name,
       );
     }
   }

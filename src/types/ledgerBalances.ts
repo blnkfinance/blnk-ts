@@ -20,6 +20,8 @@ export interface CreateLedgerBalanceResp<T extends Record<string, unknown>> {
   indicator: string;
   currency: string;
   created_at: string;
+  queued_credit_balance?: number;
+  queued_debit_balance?: number;
   meta_data?: T;
 }
 
