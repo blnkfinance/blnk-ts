@@ -285,6 +285,10 @@ export function ValidateCreateTransactions<T extends Record<string, unknown>>(
     return `skip_queue must be a boolean if provided.`;
   }
 
+  if (data.atomic !== undefined && typeof data.atomic !== `boolean`) {
+    return `atomic must be a boolean if provided.`;
+  }
+
   if (
     data.allow_overdraft !== undefined &&
     typeof data.allow_overdraft !== `boolean`

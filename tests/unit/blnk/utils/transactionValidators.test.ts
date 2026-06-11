@@ -25,6 +25,51 @@ const baseFields = {
   currency: `USD`,
 };
 
+tap.test(`Issue #5 — atomic on split transactions`, t => {
+  t.test(`allows atomic on split create payloads`, tt => {
+    const data: CreateTransactions<Record<string, unknown>> = {
+      amount: 1000,
+      precision: 100,
+      reference: `ref_atomic_split`,
+      description: `Atomic split`,
+      currency: `USD`,
+      source: `@FundingPool`,
+      destinations: [
+        {identifier: `bln_fee`, distribution: `50%`},
+        {identifier: `bln_recipient`, distribution: `left`},
+      ],
+      atomic: true,
+    };
+
+    tt.equal(ValidateCreateTransactions(data), null);
+    tt.end();
+  });
+
+  t.test(`rejects non-boolean atomic`, tt => {
+    const data = {
+      amount: 1000,
+      precision: 100,
+      reference: `ref_bad_atomic`,
+      description: `Bad atomic`,
+      currency: `USD`,
+      source: `@FundingPool`,
+      destinations: [
+        {identifier: `bln_fee`, distribution: `50%`},
+        {identifier: `bln_recipient`, distribution: `left`},
+      ],
+      atomic: `true`,
+    } as unknown as CreateTransactions<Record<string, unknown>>;
+
+    tt.equal(
+      ValidateCreateTransactions(data),
+      `atomic must be a boolean if provided.`,
+    );
+    tt.end();
+  });
+
+  t.end();
+});
+
 tap.test(`Issue #42 — split-transaction validator`, t => {
   t.test(`allows multiple sources with a single destination`, tt => {
     const data: CreateTransactions<Record<string, never>> = {

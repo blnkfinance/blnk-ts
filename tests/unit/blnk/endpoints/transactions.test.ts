@@ -143,6 +143,70 @@ tap.test(`Creates a transaction`, async t => {
     },
   );
 
+  t.test(
+    `forwards atomic on split transaction create (issue #5)`,
+    async childTest => {
+      const capturedRequest = childTest.captureFn(thirdPartyRequest);
+      const transactions = new Transactions(
+        capturedRequest,
+        mockLogger,
+        FormatResponse,
+      );
+
+      const data: CreateTransactions<meta_dataT> = {
+        amount: 1000,
+        currency: `USD`,
+        description: `Atomic split transaction`,
+        meta_data: {company_name: `Test Company`},
+        precision: 100,
+        reference: `issue_5_atomic_split`,
+        source: `@FundingPool`,
+        destinations: [
+          {identifier: `bln_fee`, distribution: `240.23`},
+          {identifier: `bln_recipient`, distribution: `left`},
+        ],
+        atomic: true,
+        skip_queue: true,
+      };
+
+      const transaction = await transactions.create<meta_dataT>(data);
+
+      childTest.match(capturedRequest.args(), [[`transactions`, data, `POST`]]);
+      childTest.equal(transaction.status, 201);
+      childTest.end();
+    },
+  );
+
+  t.test(`rejects invalid atomic on create (issue #5)`, async childTest => {
+    const capturedRequest = childTest.captureFn(thirdPartyRequest);
+    const transactions = new Transactions(
+      capturedRequest,
+      mockLogger,
+      FormatResponse,
+    );
+
+    const data = {
+      amount: 1000,
+      currency: `USD`,
+      description: `Invalid atomic`,
+      precision: 100,
+      reference: `issue_5_bad_atomic`,
+      source: `@FundingPool`,
+      destinations: [
+        {identifier: `bln_fee`, distribution: `50%`},
+        {identifier: `bln_recipient`, distribution: `left`},
+      ],
+      atomic: `true`,
+    } as unknown as CreateTransactions<meta_dataT>;
+
+    const response = await transactions.create<meta_dataT>(data);
+
+    childTest.match(capturedRequest.args(), []);
+    childTest.equal(response.status, 400);
+    childTest.equal(response.message, `atomic must be a boolean if provided.`);
+    childTest.end();
+  });
+
   t.test(`returns Core create response fields (issue #43)`, async childTest => {
     const coreResponse = coreCreateTransactionReferenceResponse;
     const responseReturningRequest: BlnkRequest = async <R>() => ({
