@@ -35,3 +35,18 @@ export function ValidateCreateLedgerBalance<T extends Record<string, unknown>>(
 
 export const isValidMetaData = <T extends Record<string, unknown>>(meta: T) =>
   typeof meta === `object` && meta !== null;
+
+export function ValidateGetByIndicator(
+  indicator: string,
+  currency: string,
+): null | string {
+  if (!IsValidString(indicator) || indicator === ``) {
+    return `indicator is required`;
+  }
+
+  if (!IsValidString(currency) || currency === ``) {
+    return `currency is required`;
+  }
+
+  return null;
+}

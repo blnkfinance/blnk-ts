@@ -206,5 +206,85 @@ tap.test(`Ledger Balance Tests`, t => {
     tt.end();
   });
 
+  t.test(`getByIndicator calls correct endpoint (issue #8)`, async tt => {
+    const thirdPartyRequest = createMockBlnkRequest(true, undefined, 200);
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const ledgerBalance = new LedgerBalances(
+      capturedRequest,
+      mockLogger,
+      FormatResponse,
+    );
+    const indicator = `@World`;
+    const currency = `USD`;
+    const response = await ledgerBalance.getByIndicator(indicator, currency);
+
+    tt.match(capturedRequest.args(), [
+      [
+        `balances/indicator/${encodeURIComponent(indicator)}/currency/${encodeURIComponent(currency)}`,
+        undefined,
+        `GET`,
+      ],
+    ]);
+    tt.equal(response.status, 200);
+    tt.end();
+  });
+
+  t.test(
+    `getByIndicator path-escapes special characters (issue #8)`,
+    async tt => {
+      const thirdPartyRequest = createMockBlnkRequest(true, undefined, 200);
+      const capturedRequest = tt.captureFn(thirdPartyRequest);
+      const ledgerBalance = new LedgerBalances(
+        capturedRequest,
+        mockLogger,
+        FormatResponse,
+      );
+      const indicator = `@user/name`;
+      const currency = `USD/EUR`;
+      await ledgerBalance.getByIndicator(indicator, currency);
+
+      tt.match(capturedRequest.args(), [
+        [
+          `balances/indicator/${encodeURIComponent(indicator)}/currency/${encodeURIComponent(currency)}`,
+          undefined,
+          `GET`,
+        ],
+      ]);
+      tt.end();
+    },
+  );
+
+  t.test(`getByIndicator rejects empty indicator (issue #8)`, async tt => {
+    const thirdPartyRequest = createMockBlnkRequest(true, undefined, 200);
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const ledgerBalance = new LedgerBalances(
+      capturedRequest,
+      mockLogger,
+      FormatResponse,
+    );
+    const response = await ledgerBalance.getByIndicator(``, `USD`);
+
+    tt.match(capturedRequest.args(), []);
+    tt.equal(response.status, 400);
+    tt.equal(response.message, `indicator is required`);
+    tt.end();
+  });
+
+  t.test(`getByIndicator rejects empty currency (issue #8)`, async tt => {
+    const thirdPartyRequest = createMockBlnkRequest(true, undefined, 200);
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const ledgerBalance = new LedgerBalances(
+      capturedRequest,
+      mockLogger,
+      FormatResponse,
+    );
+    const response = await ledgerBalance.getByIndicator(`@World`, ``);
+
+    tt.match(capturedRequest.args(), []);
+    tt.equal(response.status, 400);
+    tt.equal(response.message, `currency is required`);
+    tt.end();
+  });
+
   t.end();
 });
