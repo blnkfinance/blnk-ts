@@ -3,6 +3,11 @@ export interface CreateLedger<T extends Record<string, unknown>> {
   meta_data?: T;
 }
 
+/** Request body for `PUT /ledgers/{id}`. */
+export interface UpdateLedger {
+  name: string;
+}
+
 export interface CreateLedgerResp<T extends Record<string, unknown>> {
   ledger_id: string;
   name: string;

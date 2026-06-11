@@ -7,7 +7,7 @@ import {
 import {BlnkRequest} from "../../../../src/types/general";
 import {Ledgers} from "../../../../src/blnk/endpoints/ledgers";
 import {FormatResponse} from "../../../../src/blnk/utils/httpClient";
-import {CreateLedger} from "../../../../src/types/ledger";
+import {CreateLedger, UpdateLedger} from "../../../../src/types/ledger";
 
 tap.test(`Ledger Tests`, async t => {
   const mockLogger = createMockLogger();
@@ -78,6 +78,54 @@ tap.test(`Ledger Tests`, async t => {
 
     tt.equal(response.status, 500, `Response is 500`);
     tt.equal(response.data, null);
+    tt.equal(response.message, `Network Error`);
+  });
+
+  t.test(`update calls PUT /ledgers/{id} (issue #6)`, async tt => {
+    const thirdPartyRequest = createMockBlnkRequest(true, undefined, 200);
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const ledgers = new Ledgers(capturedRequest, mockLogger, FormatResponse);
+    const ledgerId = `ldg_073f7ffe-9dfd-42ce-aa50-d1dca1788adc`;
+    const data: UpdateLedger = {name: `Updated Customer Savings Account`};
+
+    const response = await ledgers.update(ledgerId, data);
+
+    tt.match(capturedRequest.args(), [[`ledgers/${ledgerId}`, data, `PUT`]]);
+    tt.equal(response.status, 200);
+    tt.equal(response.data?.name, data.name);
+  });
+
+  t.test(`update rejects empty ledger id (issue #6)`, async tt => {
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const ledgers = new Ledgers(capturedRequest, mockLogger, FormatResponse);
+    const response = await ledgers.update(``, {name: `Updated Name`});
+
+    tt.match(capturedRequest.args(), []);
+    tt.equal(response.status, 400);
+    tt.equal(response.message, `ledger id is required`);
+  });
+
+  t.test(`update rejects missing name (issue #6)`, async tt => {
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const ledgers = new Ledgers(capturedRequest, mockLogger, FormatResponse);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response = await ledgers.update(`ldg_123`, {} as any);
+
+    tt.match(capturedRequest.args(), []);
+    tt.equal(response.status, 400);
+    tt.equal(response.data, null);
+  });
+
+  t.test(`update handles thrown errors gracefully (issue #6)`, async tt => {
+    const thirdPartyRequest = createMockBlnkRequest(true, `Network Error`);
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const ledgers = new Ledgers(capturedRequest, mockLogger, FormatResponse);
+    const data: UpdateLedger = {name: `Updated Name`};
+
+    const response = await ledgers.update(`ldg_123`, data);
+
+    tt.match(capturedRequest.args(), [[`ledgers/ldg_123`, data, `PUT`]]);
+    tt.equal(response.status, 500);
     tt.equal(response.message, `Network Error`);
   });
 });

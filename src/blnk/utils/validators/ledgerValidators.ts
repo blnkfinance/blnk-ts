@@ -1,4 +1,4 @@
-import {CreateLedger} from "../../../types/ledger";
+import {CreateLedger, UpdateLedger} from "../../../types/ledger";
 import {isValidMetaData} from "./ledgerBalance";
 
 export function ValidateCreateLedger<T extends Record<string, unknown>>(
@@ -15,6 +15,22 @@ export function ValidateCreateLedger<T extends Record<string, unknown>>(
   // Validate meta_data if provided
   if (data.meta_data !== undefined && !isValidMetaData(data.meta_data)) {
     return `meta_data must be a valid object if provided`;
+  }
+
+  return null;
+}
+
+export function ValidateUpdateLedger(data: UpdateLedger): null | string {
+  if (!data || typeof data !== `object`) {
+    return `Data must be a valid object of type UpdateLedger`;
+  }
+
+  if (typeof data.name !== `string`) {
+    return `name field must be a valid string`;
+  }
+
+  if (data.name.trim() === ``) {
+    return `name field is required`;
   }
 
   return null;

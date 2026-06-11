@@ -117,6 +117,18 @@ console.log("Ledger Created:", newLedger);
 
 This creates a new ledger for storing customer balances.
 
+### Updating a ledger name
+
+Rename an existing ledger without changing its ID or affecting balances and transactions:
+
+```typescript
+const updatedLedger = await Ledgers.update(
+  'ldg_073f7ffe-9dfd-42ce-aa50-d1dca1788adc',
+  { name: 'Updated Customer Savings Account' },
+);
+console.log('Ledger Updated:', updatedLedger);
+```
+
 ---
 
 ## 5. Creating Balances

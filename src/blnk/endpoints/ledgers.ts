@@ -1,8 +1,11 @@
 import {BlnkLogger} from "../../types/blnkClient";
 import {BlnkRequest, FormatResponseType} from "../../types/general";
-import {CreateLedger, CreateLedgerResp} from "../../types/ledger";
+import {CreateLedger, CreateLedgerResp, UpdateLedger} from "../../types/ledger";
 import {HandleError} from "../utils/logger";
-import {ValidateCreateLedger} from "../utils/validators/ledgerValidators";
+import {
+  ValidateCreateLedger,
+  ValidateUpdateLedger,
+} from "../utils/validators/ledgerValidators";
 
 /**
  * Represents a class for managing ledger operations.
@@ -19,6 +22,10 @@ import {ValidateCreateLedger} from "../utils/validators/ledgerValidators";
  * @method getLedger - Retrieves a ledger entry by ID.
  * @param {string} id - The ID of the ledger entry to retrieve.
  * @returns {Promise<ApiResponse<CreateLedgerResp<T> | null>>} The response of the get operation.
+ * @method update - Updates an existing ledger's name.
+ * @param {string} id - The ID of the ledger to update.
+ * @param {UpdateLedger} data - The new ledger name.
+ * @returns {Promise<ApiResponse<CreateLedgerResp<T> | null>>} The response of the update operation.
  * @example
  * const ledgers = new Ledgers(requestFunction, loggerInstance, formatResponseFunction);
  * const newLedger = await ledgers.create({ name: 'New Ledger' });
@@ -78,5 +85,46 @@ export class Ledgers {
       undefined,
       `GET`,
     );
+  }
+
+  /**
+   * Updates an existing ledger's name.
+   *
+   * @see https://docs.blnkfinance.com/reference/update-ledger-name
+   *
+   * @example
+   * const response = await ledgers.update('ldg_073f7ffe-9dfd-42ce-aa50-d1dca1788adc', {
+   *   name: 'Updated Customer Savings Account',
+   * });
+   */
+  async update<T extends Record<string, unknown>>(
+    id: string,
+    data: UpdateLedger,
+  ) {
+    try {
+      if (!id) {
+        return this.formatResponse(400, `ledger id is required`, null);
+      }
+
+      const error = ValidateUpdateLedger(data);
+      if (error) {
+        return this.formatResponse(400, error, null);
+      }
+
+      const response = await this.request<UpdateLedger, CreateLedgerResp<T>>(
+        `ledgers/${id}`,
+        data,
+        `PUT`,
+      );
+
+      return response;
+    } catch (error: unknown) {
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.update.name,
+      );
+    }
   }
 }
