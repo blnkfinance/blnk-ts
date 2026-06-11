@@ -3,6 +3,8 @@ import {BlnkRequest, FormatResponseType} from "../../types/general";
 import {
   BulkCommitInflightRequest,
   BulkCommitInflightResponse,
+  BulkVoidInflightRequest,
+  BulkVoidInflightResponse,
   BulkTransactionResponse,
   BulkTransactions,
   CreateTransactionResponse,
@@ -14,6 +16,7 @@ import {HandleError} from "../utils/logger";
 import {serializeCreateTransaction} from "../utils/transactionSerialization";
 import {
   ValidateBulkCommitInflight,
+  ValidateBulkVoidInflight,
   ValidateBulkTransactions,
   ValidateCreateTransactions,
   ValidateRefundTransaction,
@@ -352,6 +355,41 @@ export class Transactions {
         this.logger,
         this.formatResponse,
         this.bulkCommitInflight.name,
+      );
+    }
+  }
+
+  /**
+   * Voids multiple independently-created inflight transactions in one call.
+   *
+   * @see https://docs.blnkfinance.com/reference/bulk-void-inflight
+   *
+   * @example
+   * const response = await blnk.Transactions.bulkVoidInflight({
+   *   transaction_ids: [
+   *     'txn_11111111-1111-4111-8111-111111111111',
+   *     'txn_22222222-2222-4222-8222-222222222222',
+   *   ],
+   * });
+   */
+  async bulkVoidInflight(data: BulkVoidInflightRequest) {
+    try {
+      const validatorResponse = ValidateBulkVoidInflight(data);
+      if (validatorResponse) {
+        return this.formatResponse(400, validatorResponse, null);
+      }
+
+      const response = await this.request<
+        BulkVoidInflightRequest,
+        BulkVoidInflightResponse
+      >(`transactions/inflight/bulk/void`, data, `POST`);
+      return response;
+    } catch (error: unknown) {
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.bulkVoidInflight.name,
       );
     }
   }

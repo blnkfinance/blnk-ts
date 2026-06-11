@@ -3,12 +3,14 @@ import tap from "tap";
 import {
   ValidateCreateTransactions,
   ValidateBulkCommitInflight,
+  ValidateBulkVoidInflight,
   ValidateBulkTransactions,
   ValidateRefundTransaction,
   ValidateUpdateTransactions,
 } from "../../../../src/blnk/utils/validators/transactionValidators";
 import {
   BulkCommitInflightRequest,
+  BulkVoidInflightRequest,
   BulkTransactions,
   CreateTransactions,
   MAX_BULK_INFLIGHT_ITEMS,
@@ -924,6 +926,51 @@ tap.test(`Issue #15 — bulkCommitInflight validation`, t => {
     tt.equal(
       ValidateBulkCommitInflight(data),
       `precise_amount must be a non-negative integer string or number at index 0.`,
+    );
+    tt.end();
+  });
+
+  t.end();
+});
+
+tap.test(`Issue #16 — bulkVoidInflight validation`, t => {
+  t.test(`allows valid bulk void inflight payloads`, tt => {
+    const data: BulkVoidInflightRequest = {
+      transaction_ids: [
+        `txn_11111111-1111-4111-8111-111111111111`,
+        `txn_22222222-2222-4222-8222-222222222222`,
+      ],
+    };
+
+    tt.equal(ValidateBulkVoidInflight(data), null);
+    tt.end();
+  });
+
+  t.test(`rejects empty transaction_ids array`, tt => {
+    tt.equal(
+      ValidateBulkVoidInflight({transaction_ids: []}),
+      `transaction_ids array cannot be empty.`,
+    );
+    tt.end();
+  });
+
+  t.test(`rejects oversized transaction_ids array`, tt => {
+    const transaction_ids = Array.from(
+      {length: MAX_BULK_INFLIGHT_ITEMS + 1},
+      () => `txn_test`,
+    );
+
+    tt.equal(
+      ValidateBulkVoidInflight({transaction_ids}),
+      `Too many transaction_ids; max is ${MAX_BULK_INFLIGHT_ITEMS}.`,
+    );
+    tt.end();
+  });
+
+  t.test(`rejects missing transaction_id`, tt => {
+    tt.equal(
+      ValidateBulkVoidInflight({transaction_ids: [``]}),
+      `transaction_id is required at index 0.`,
     );
     tt.end();
   });
