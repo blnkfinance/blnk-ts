@@ -1,7 +1,9 @@
 /* eslint-disable n/no-unsupported-features/es-builtins */
 import {
+  BulkCommitInflightRequest,
   BulkTransactions,
   CreateTransactions,
+  MAX_BULK_INFLIGHT_ITEMS,
   MultipleSourcesT,
   RefundTransactionRequest,
   TransactionDateInput,
@@ -582,6 +584,51 @@ export function ValidateRefundTransaction(
   for (const key in data) {
     if (!allowedFields.includes(key)) {
       return `Invalid field: ${key}`;
+    }
+  }
+
+  return null;
+}
+
+export function ValidateBulkCommitInflight(
+  data: BulkCommitInflightRequest,
+): string | null {
+  if (!Array.isArray(data.transactions)) {
+    return `Transactions must be an array.`;
+  }
+
+  if (data.transactions.length === 0) {
+    return `Transactions array cannot be empty.`;
+  }
+
+  if (data.transactions.length > MAX_BULK_INFLIGHT_ITEMS) {
+    return `Too many transactions; max is ${MAX_BULK_INFLIGHT_ITEMS}.`;
+  }
+
+  for (let i = 0; i < data.transactions.length; i++) {
+    const item = data.transactions[i];
+
+    if (
+      typeof item.transaction_id !== `string` ||
+      item.transaction_id.trim() === ``
+    ) {
+      return `transaction_id is required at index ${i}.`;
+    }
+
+    if (item.amount !== undefined && typeof item.amount !== `number`) {
+      return `amount must be a number at index ${i}.`;
+    }
+
+    if (item.precise_amount !== undefined && item.precise_amount !== null) {
+      const isValidPreciseAmount =
+        typeof item.precise_amount === `number` ||
+        typeof item.precise_amount === `string`;
+      if (!isValidPreciseAmount) {
+        return `precise_amount must be a string or number at index ${i}.`;
+      }
+      if (parsePreciseInteger(item.precise_amount) === null) {
+        return `precise_amount must be a non-negative integer string or number at index ${i}.`;
+      }
     }
   }
 

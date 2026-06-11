@@ -178,3 +178,47 @@ export interface BulkTransactionResponse {
   /** Present when `run_async` is true (background processing started). */
   message?: string;
 }
+
+/** Maximum items per bulk commit or bulk void inflight request. */
+export const MAX_BULK_INFLIGHT_ITEMS = 100;
+
+/** One transaction in `POST /transactions/inflight/bulk/commit`. */
+export interface BulkCommitInflightItem {
+  transaction_id: string;
+  /**
+   * Optional partial commit amount. When omitted or zero, Core commits the
+   * full remaining inflight amount.
+   */
+  amount?: number;
+  /**
+   * Optional partial commit amount in minor units. When set, takes precedence
+   * over `amount`. Prefer strings for values larger than `Number.MAX_SAFE_INTEGER`.
+   */
+  precise_amount?: number | string;
+}
+
+/** Request body for `POST /transactions/inflight/bulk/commit`. */
+export interface BulkCommitInflightRequest {
+  transactions: BulkCommitInflightItem[];
+}
+
+export type BulkInflightResultStatus = `succeeded` | `failed`;
+
+/** Per-item outcome in `BulkCommitInflightResponse`. */
+export interface BulkCommitInflightResult {
+  transaction_id: string;
+  status: BulkInflightResultStatus | string;
+  code?: string;
+  message?: string;
+}
+
+/**
+ * Response from `POST /transactions/inflight/bulk/commit`.
+ *
+ * @see https://docs.blnkfinance.com/reference/bulk-commit-inflight
+ */
+export interface BulkCommitInflightResponse {
+  succeeded: number;
+  failed: number;
+  results: BulkCommitInflightResult[];
+}

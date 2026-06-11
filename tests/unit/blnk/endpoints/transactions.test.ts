@@ -9,9 +9,11 @@ import {BlnkRequest} from "../../../../src/types/general";
 import {FormatResponse} from "../../../../src/blnk/utils/httpClient";
 import {coreCreateTransactionReferenceResponse} from "../../../fixtures/coreCreateTransactionResponse";
 import {
+  BulkCommitInflightRequest,
   BulkTransactions,
   CreateTransactionResponse,
   CreateTransactions,
+  MAX_BULK_INFLIGHT_ITEMS,
   RefundTransactionRequest,
   UpdateTransactionStatus,
 } from "../../../../src/types/transactions";
@@ -1015,4 +1017,102 @@ tap.test(`Creates bulk transactions`, async t => {
       childTest.end();
     },
   );
+});
+
+tap.test(`Issue #15 — bulkCommitInflight`, async t => {
+  const mockLogger = createMockLogger();
+  let thirdPartyRequest: BlnkRequest;
+  t.beforeEach(() => {
+    thirdPartyRequest = createMockBlnkRequest(true, undefined, 200);
+  });
+
+  t.test(`commits inflight transactions with valid data`, async childTest => {
+    const capturedRequest = childTest.captureFn(thirdPartyRequest);
+    const transactions = new Transactions(
+      capturedRequest,
+      mockLogger,
+      FormatResponse,
+    );
+
+    const data: BulkCommitInflightRequest = {
+      transactions: [
+        {transaction_id: `txn_11111111-1111-4111-8111-111111111111`},
+        {
+          transaction_id: `txn_22222222-2222-4222-8222-222222222222`,
+          amount: 40,
+        },
+        {
+          transaction_id: `txn_33333333-3333-4333-8333-333333333333`,
+          precise_amount: 125034,
+        },
+      ],
+    };
+
+    const response = await transactions.bulkCommitInflight(data);
+
+    childTest.match(capturedRequest.args(), [
+      [`transactions/inflight/bulk/commit`, data, `POST`],
+    ]);
+    childTest.equal(response.status, 200);
+    childTest.end();
+  });
+
+  t.test(`rejects empty transactions array`, async childTest => {
+    const capturedRequest = childTest.captureFn(thirdPartyRequest);
+    const transactions = new Transactions(
+      capturedRequest,
+      mockLogger,
+      FormatResponse,
+    );
+
+    const response = await transactions.bulkCommitInflight({transactions: []});
+
+    childTest.match(capturedRequest.args(), []);
+    childTest.equal(response.status, 400);
+    childTest.equal(response.message, `Transactions array cannot be empty.`);
+    childTest.end();
+  });
+
+  t.test(`rejects too many transactions`, async childTest => {
+    const capturedRequest = childTest.captureFn(thirdPartyRequest);
+    const transactions = new Transactions(
+      capturedRequest,
+      mockLogger,
+      FormatResponse,
+    );
+
+    const items = Array.from({length: MAX_BULK_INFLIGHT_ITEMS + 1}, () => ({
+      transaction_id: `txn_test`,
+    }));
+
+    const response = await transactions.bulkCommitInflight({
+      transactions: items,
+    });
+
+    childTest.match(capturedRequest.args(), []);
+    childTest.equal(response.status, 400);
+    childTest.equal(
+      response.message,
+      `Too many transactions; max is ${MAX_BULK_INFLIGHT_ITEMS}.`,
+    );
+    childTest.end();
+  });
+
+  t.test(`rejects missing transaction_id`, async childTest => {
+    const capturedRequest = childTest.captureFn(thirdPartyRequest);
+    const transactions = new Transactions(
+      capturedRequest,
+      mockLogger,
+      FormatResponse,
+    );
+
+    const response = await transactions.bulkCommitInflight({
+      transactions: [{transaction_id: ``}],
+    });
+
+    childTest.match(capturedRequest.args(), []);
+    childTest.equal(response.status, 400);
+    childTest.equal(response.message, `transaction_id is required at index 0.`);
+    childTest.end();
+  });
 });
