@@ -22,3 +22,28 @@ export interface CreateLedgerBalanceResp<T extends Record<string, unknown>> {
   created_at: string;
   meta_data?: T;
 }
+
+/** Per-provider fund breakdown in `BalanceLineageResponse.providers`. */
+export interface LineageProviderBreakdown {
+  provider: string;
+  /** Total received from this provider, in minor units. */
+  amount: string | number;
+  /** Still available from this provider, in minor units. */
+  available: string | number;
+  /** Already spent from this provider, in minor units. */
+  spent: string | number;
+  shadow_balance_id: string;
+}
+
+/**
+ * Response from `GET /balances/{balance_id}/lineage`.
+ *
+ * @see https://docs.blnkfinance.com/reference/get-balance-lineage
+ */
+export interface BalanceLineageResponse {
+  balance_id: string;
+  aggregate_balance_id: string;
+  /** Total lineage-tracked funds available, in minor units. */
+  total_with_lineage: string | number;
+  providers: LineageProviderBreakdown[];
+}
