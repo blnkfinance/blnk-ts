@@ -208,6 +208,18 @@ const response = await Transactions.get('txn_04551509-d7d3-4eab-a1fd-2eb12809b5a
 const response = await Transactions.getByReference('ref_04551509-d7d3-4eab-a1fd-2eb12809b5a4');
 ```
 
+### Get transaction lineage
+
+`Transactions.getLineage` retrieves fund allocation and shadow transactions for a transaction (GET `/transactions/{transaction_id}/lineage`):
+
+```typescript
+const response = await Transactions.getLineage('txn_8d2ce2f0-0d75-4a91-9d43-2ad2c2e6b9ad');
+
+// response.data.transaction_id
+// response.data.fund_allocation
+// response.data.shadow_transactions
+```
+
 ### Update inflight transaction status
 
 `Transactions.updateStatus` accepts `precise_amount` for partial commits on inflight transactions (in addition to `amount`). Omit both fields to commit the full remaining inflight amount:

@@ -526,6 +526,47 @@ tap.test(`GET transaction by id`, async t => {
   });
 });
 
+tap.test(`GET transaction lineage`, async t => {
+  const mockLogger = createMockLogger();
+  let thirdPartyRequest: BlnkRequest;
+  t.beforeEach(() => {
+    thirdPartyRequest = createMockBlnkRequest(true, undefined, 200);
+  });
+
+  t.test(`getLineage calls correct endpoint (issue #13)`, async childTest => {
+    const capturedRequest = childTest.captureFn(thirdPartyRequest);
+    const transactions = new Transactions(
+      capturedRequest,
+      mockLogger,
+      FormatResponse,
+    );
+    const transactionId = `txn_issue13_abc123`;
+    const response = await transactions.getLineage(transactionId);
+    childTest.match(capturedRequest.args(), [
+      [`transactions/${transactionId}/lineage`, undefined, `GET`],
+    ]);
+    childTest.equal(response.status, 200);
+    childTest.end();
+  });
+
+  t.test(
+    `getLineage rejects empty transaction id (issue #13)`,
+    async childTest => {
+      const capturedRequest = childTest.captureFn(thirdPartyRequest);
+      const transactions = new Transactions(
+        capturedRequest,
+        mockLogger,
+        FormatResponse,
+      );
+      const response = await transactions.getLineage(``);
+      childTest.match(capturedRequest.args(), []);
+      childTest.equal(response.status, 400);
+      childTest.equal(response.message, `transaction id is required`);
+      childTest.end();
+    },
+  );
+});
+
 tap.test(`GET transaction by reference`, async t => {
   const mockLogger = createMockLogger();
   let thirdPartyRequest: BlnkRequest;
