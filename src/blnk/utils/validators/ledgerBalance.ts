@@ -1,5 +1,6 @@
 import {
   CreateLedgerBalance,
+  CreateBalanceSnapshotRequest,
   UpdateBalanceIdentity,
 } from "../../../types/ledgerBalances";
 import {IsValidString} from "../stringUtils";
@@ -63,6 +64,24 @@ export function ValidateUpdateBalanceIdentity(
 
   if (!IsValidString(data.identity_id) || data.identity_id === ``) {
     return `identity_id is required`;
+  }
+
+  return null;
+}
+
+export function ValidateCreateBalanceSnapshot(
+  data?: CreateBalanceSnapshotRequest,
+): null | string {
+  if (data === undefined) {
+    return null;
+  }
+
+  if (!data || typeof data !== `object`) {
+    return `Data must be a valid object of type CreateBalanceSnapshotRequest`;
+  }
+
+  if (data.batch_size !== undefined && data.batch_size < 0) {
+    return `batch_size must be positive`;
   }
 
   return null;

@@ -1,6 +1,7 @@
 /* eslint-disable n/no-unpublished-import */
 import tap from "tap";
 import {
+  ValidateCreateBalanceSnapshot,
   ValidateGetByIndicator,
   ValidateUpdateBalanceIdentity,
 } from "../../../../src/blnk/utils/validators/ledgerBalance";
@@ -48,6 +49,33 @@ tap.test(`Issue #9 — ValidateUpdateBalanceIdentity`, t => {
     tt.equal(
       ValidateUpdateBalanceIdentity({identity_id: ``}),
       `identity_id is required`,
+    );
+    tt.end();
+  });
+
+  t.end();
+});
+
+tap.test(`Issue #10 — ValidateCreateBalanceSnapshot`, t => {
+  t.test(`accepts empty options`, tt => {
+    tt.equal(ValidateCreateBalanceSnapshot(undefined), null);
+    tt.end();
+  });
+
+  t.test(`accepts positive batch_size`, tt => {
+    tt.equal(ValidateCreateBalanceSnapshot({batch_size: 500}), null);
+    tt.end();
+  });
+
+  t.test(`accepts zero batch_size`, tt => {
+    tt.equal(ValidateCreateBalanceSnapshot({batch_size: 0}), null);
+    tt.end();
+  });
+
+  t.test(`rejects negative batch_size`, tt => {
+    tt.equal(
+      ValidateCreateBalanceSnapshot({batch_size: -1}),
+      `batch_size must be positive`,
     );
     tt.end();
   });

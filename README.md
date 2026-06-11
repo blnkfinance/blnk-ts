@@ -179,6 +179,16 @@ const response = await LedgerBalances.updateIdentity(
 // response.data.message
 ```
 
+### Create balance snapshots
+
+`LedgerBalances.createSnapshot` triggers daily balance snapshots in batches (`POST /balances-snapshots`). Omit `batch_size` or pass zero to use the server default (1000):
+
+```typescript
+const response = await LedgerBalances.createSnapshot({ batch_size: 500 });
+
+// response.data.message
+```
+
 ### Get balance lineage
 
 `LedgerBalances.getLineage` retrieves the provider breakdown for a balance with fund lineage enabled (`GET /balances/{balance_id}/lineage`):

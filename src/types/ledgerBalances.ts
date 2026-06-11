@@ -59,3 +59,14 @@ export interface UpdateBalanceIdentity {
 export interface UpdateBalanceIdentityResponse {
   message: string;
 }
+
+/** Optional request for `POST /balances-snapshots`. */
+export interface CreateBalanceSnapshotRequest {
+  /** Balances processed per batch. Omit or zero uses the server default (1000). */
+  batch_size?: number;
+}
+
+/** Response from `POST /balances-snapshots`. */
+export interface CreateBalanceSnapshotResponse {
+  message: string;
+}

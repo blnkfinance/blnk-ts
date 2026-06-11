@@ -343,5 +343,79 @@ tap.test(`Ledger Balance Tests`, t => {
     tt.end();
   });
 
+  t.test(
+    `createSnapshot calls POST /balances-snapshots (issue #10)`,
+    async tt => {
+      const thirdPartyRequest = createMockBlnkRequest(true, undefined, 200);
+      const capturedRequest = tt.captureFn(thirdPartyRequest);
+      const ledgerBalance = new LedgerBalances(
+        capturedRequest,
+        mockLogger,
+        FormatResponse,
+      );
+      const response = await ledgerBalance.createSnapshot();
+
+      tt.match(capturedRequest.args(), [
+        [`balances-snapshots`, undefined, `POST`],
+      ]);
+      tt.equal(response.status, 200);
+      tt.end();
+    },
+  );
+
+  t.test(
+    `createSnapshot forwards batch_size query param (issue #10)`,
+    async tt => {
+      const thirdPartyRequest = createMockBlnkRequest(true, undefined, 200);
+      const capturedRequest = tt.captureFn(thirdPartyRequest);
+      const ledgerBalance = new LedgerBalances(
+        capturedRequest,
+        mockLogger,
+        FormatResponse,
+      );
+      await ledgerBalance.createSnapshot({batch_size: 500});
+
+      tt.match(capturedRequest.args(), [
+        [`balances-snapshots?batch_size=500`, undefined, `POST`],
+      ]);
+      tt.end();
+    },
+  );
+
+  t.test(
+    `createSnapshot omits query when batch_size is zero (issue #10)`,
+    async tt => {
+      const thirdPartyRequest = createMockBlnkRequest(true, undefined, 200);
+      const capturedRequest = tt.captureFn(thirdPartyRequest);
+      const ledgerBalance = new LedgerBalances(
+        capturedRequest,
+        mockLogger,
+        FormatResponse,
+      );
+      await ledgerBalance.createSnapshot({batch_size: 0});
+
+      tt.match(capturedRequest.args(), [
+        [`balances-snapshots`, undefined, `POST`],
+      ]);
+      tt.end();
+    },
+  );
+
+  t.test(`createSnapshot rejects negative batch_size (issue #10)`, async tt => {
+    const thirdPartyRequest = createMockBlnkRequest(true, undefined, 200);
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const ledgerBalance = new LedgerBalances(
+      capturedRequest,
+      mockLogger,
+      FormatResponse,
+    );
+    const response = await ledgerBalance.createSnapshot({batch_size: -1});
+
+    tt.match(capturedRequest.args(), []);
+    tt.equal(response.status, 400);
+    tt.equal(response.message, `batch_size must be positive`);
+    tt.end();
+  });
+
   t.end();
 });
