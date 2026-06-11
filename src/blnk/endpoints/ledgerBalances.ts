@@ -4,11 +4,14 @@ import {
   BalanceLineageResponse,
   CreateLedgerBalance,
   CreateLedgerBalanceResp,
+  UpdateBalanceIdentity,
+  UpdateBalanceIdentityResponse,
 } from "../../types/ledgerBalances";
 import {HandleError} from "../utils/logger";
 import {
   ValidateCreateLedgerBalance,
   ValidateGetByIndicator,
+  ValidateUpdateBalanceIdentity,
 } from "../utils/validators/ledgerBalance";
 
 /**
@@ -134,6 +137,44 @@ export class LedgerBalances {
         this.logger,
         this.formatResponse,
         this.getByIndicator.name,
+      );
+    }
+  }
+
+  /**
+   * Updates the identity linked to a balance.
+   *
+   * @see https://docs.blnkfinance.com/reference/update-balance-identity
+   *
+   * @example
+   * const response = await ledgerBalances.updateIdentity(
+   *   'bln_5ce86029-3c2e-4e2a-aae2-7fb931ca4c4f',
+   *   { identity_id: 'idt_3b63c8da-af29-4cc3-ad38-df17d87456e6' },
+   * );
+   */
+  async updateIdentity(balanceId: string, data: UpdateBalanceIdentity) {
+    try {
+      if (!balanceId) {
+        return this.formatResponse(400, `balance id is required`, null);
+      }
+
+      const error = ValidateUpdateBalanceIdentity(data);
+      if (error) {
+        return this.formatResponse(400, error, null);
+      }
+
+      const response = await this.request<
+        UpdateBalanceIdentity,
+        UpdateBalanceIdentityResponse
+      >(`balances/${balanceId}/identity`, data, `PUT`);
+
+      return response;
+    } catch (error: unknown) {
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.updateIdentity.name,
       );
     }
   }

@@ -1,4 +1,7 @@
-import {CreateLedgerBalance} from "../../../types/ledgerBalances";
+import {
+  CreateLedgerBalance,
+  UpdateBalanceIdentity,
+} from "../../../types/ledgerBalances";
 import {IsValidString} from "../stringUtils";
 
 export function ValidateCreateLedgerBalance<T extends Record<string, unknown>>(
@@ -46,6 +49,20 @@ export function ValidateGetByIndicator(
 
   if (!IsValidString(currency) || currency === ``) {
     return `currency is required`;
+  }
+
+  return null;
+}
+
+export function ValidateUpdateBalanceIdentity(
+  data: UpdateBalanceIdentity,
+): null | string {
+  if (!data || typeof data !== `object`) {
+    return `Data must be a valid object of type UpdateBalanceIdentity`;
+  }
+
+  if (!IsValidString(data.identity_id) || data.identity_id === ``) {
+    return `identity_id is required`;
   }
 
   return null;

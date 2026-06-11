@@ -286,5 +286,62 @@ tap.test(`Ledger Balance Tests`, t => {
     tt.end();
   });
 
+  t.test(
+    `updateIdentity calls PUT /balances/{id}/identity (issue #9)`,
+    async tt => {
+      const thirdPartyRequest = createMockBlnkRequest(true, undefined, 200);
+      const capturedRequest = tt.captureFn(thirdPartyRequest);
+      const ledgerBalance = new LedgerBalances(
+        capturedRequest,
+        mockLogger,
+        FormatResponse,
+      );
+      const balanceId = `bln_5ce86029-3c2e-4e2a-aae2-7fb931ca4c4f`;
+      const data = {identity_id: `idt_3b63c8da-af29-4cc3-ad38-df17d87456e6`};
+      const response = await ledgerBalance.updateIdentity(balanceId, data);
+
+      tt.match(capturedRequest.args(), [
+        [`balances/${balanceId}/identity`, data, `PUT`],
+      ]);
+      tt.equal(response.status, 200);
+      tt.end();
+    },
+  );
+
+  t.test(`updateIdentity rejects empty balance id (issue #9)`, async tt => {
+    const thirdPartyRequest = createMockBlnkRequest(true, undefined, 200);
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const ledgerBalance = new LedgerBalances(
+      capturedRequest,
+      mockLogger,
+      FormatResponse,
+    );
+    const response = await ledgerBalance.updateIdentity(``, {
+      identity_id: `idt_3b63c8da-af29-4cc3-ad38-df17d87456e6`,
+    });
+
+    tt.match(capturedRequest.args(), []);
+    tt.equal(response.status, 400);
+    tt.equal(response.message, `balance id is required`);
+    tt.end();
+  });
+
+  t.test(`updateIdentity rejects missing identity_id (issue #9)`, async tt => {
+    const thirdPartyRequest = createMockBlnkRequest(true, undefined, 200);
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const ledgerBalance = new LedgerBalances(
+      capturedRequest,
+      mockLogger,
+      FormatResponse,
+    );
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response = await ledgerBalance.updateIdentity(`bln_123`, {} as any);
+
+    tt.match(capturedRequest.args(), []);
+    tt.equal(response.status, 400);
+    tt.equal(response.message, `identity_id is required`);
+    tt.end();
+  });
+
   t.end();
 });

@@ -1,6 +1,9 @@
 /* eslint-disable n/no-unpublished-import */
 import tap from "tap";
-import {ValidateGetByIndicator} from "../../../../src/blnk/utils/validators/ledgerBalance";
+import {
+  ValidateGetByIndicator,
+  ValidateUpdateBalanceIdentity,
+} from "../../../../src/blnk/utils/validators/ledgerBalance";
 
 tap.test(`Issue #8 — ValidateGetByIndicator`, t => {
   t.test(`accepts valid indicator and currency`, tt => {
@@ -15,6 +18,37 @@ tap.test(`Issue #8 — ValidateGetByIndicator`, t => {
 
   t.test(`rejects empty currency`, tt => {
     tt.equal(ValidateGetByIndicator(`@World`, ``), `currency is required`);
+    tt.end();
+  });
+
+  t.end();
+});
+
+tap.test(`Issue #9 — ValidateUpdateBalanceIdentity`, t => {
+  t.test(`accepts valid identity_id`, tt => {
+    tt.equal(
+      ValidateUpdateBalanceIdentity({
+        identity_id: `idt_3b63c8da-af29-4cc3-ad38-df17d87456e6`,
+      }),
+      null,
+    );
+    tt.end();
+  });
+
+  t.test(`rejects missing identity_id`, tt => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    tt.equal(
+      ValidateUpdateBalanceIdentity({} as any),
+      `identity_id is required`,
+    );
+    tt.end();
+  });
+
+  t.test(`rejects empty identity_id`, tt => {
+    tt.equal(
+      ValidateUpdateBalanceIdentity({identity_id: ``}),
+      `identity_id is required`,
+    );
     tt.end();
   });
 
