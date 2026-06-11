@@ -2,6 +2,8 @@ import {BlnkLogger} from "../../types/blnkClient";
 import {BlnkRequest, FormatResponseType} from "../../types/general";
 import {
   BalanceLineageResponse,
+  CreateBalanceSnapshotRequest,
+  CreateBalanceSnapshotResponse,
   CreateLedgerBalance,
   CreateLedgerBalanceResp,
   UpdateBalanceIdentity,
@@ -9,6 +11,7 @@ import {
 } from "../../types/ledgerBalances";
 import {HandleError} from "../utils/logger";
 import {
+  ValidateCreateBalanceSnapshot,
   ValidateCreateLedgerBalance,
   ValidateGetByIndicator,
   ValidateUpdateBalanceIdentity,
@@ -175,6 +178,45 @@ export class LedgerBalances {
         this.logger,
         this.formatResponse,
         this.updateIdentity.name,
+      );
+    }
+  }
+
+  /**
+   * Triggers daily balance snapshots in batches.
+   *
+   * @see https://docs.blnkfinance.com/reference/balances-snapshots
+   *
+   * @example
+   * const response = await ledgerBalances.createSnapshot({ batch_size: 500 });
+   * // response.data.message
+   */
+  async createSnapshot(options?: CreateBalanceSnapshotRequest) {
+    try {
+      if (options !== undefined) {
+        const error = ValidateCreateBalanceSnapshot(options);
+        if (error) {
+          return this.formatResponse(400, error, null);
+        }
+      }
+
+      const endpoint =
+        options?.batch_size && options.batch_size > 0
+          ? `balances-snapshots?batch_size=${options.batch_size}`
+          : `balances-snapshots`;
+
+      const response = await this.request<
+        undefined,
+        CreateBalanceSnapshotResponse
+      >(endpoint, undefined, `POST`);
+
+      return response;
+    } catch (error: unknown) {
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.createSnapshot.name,
       );
     }
   }
