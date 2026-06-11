@@ -567,6 +567,67 @@ tap.test(`GET transaction lineage`, async t => {
   );
 });
 
+tap.test(`POST recover queued transactions`, async t => {
+  const mockLogger = createMockLogger();
+  let thirdPartyRequest: BlnkRequest;
+  t.beforeEach(() => {
+    thirdPartyRequest = createMockBlnkRequest(true, undefined, 200);
+  });
+
+  t.test(`recoverQueue calls default endpoint (issue #17)`, async childTest => {
+    const capturedRequest = childTest.captureFn(thirdPartyRequest);
+    const transactions = new Transactions(
+      capturedRequest,
+      mockLogger,
+      FormatResponse,
+    );
+    const response = await transactions.recoverQueue();
+    childTest.match(capturedRequest.args(), [
+      [`transactions/recover`, undefined, `POST`],
+    ]);
+    childTest.equal(response.status, 200);
+    childTest.end();
+  });
+
+  t.test(
+    `recoverQueue forwards threshold query param (issue #17)`,
+    async childTest => {
+      const capturedRequest = childTest.captureFn(thirdPartyRequest);
+      const transactions = new Transactions(
+        capturedRequest,
+        mockLogger,
+        FormatResponse,
+      );
+      const response = await transactions.recoverQueue({threshold: `5m`});
+      childTest.match(capturedRequest.args(), [
+        [`transactions/recover?threshold=5m`, undefined, `POST`],
+      ]);
+      childTest.equal(response.status, 200);
+      childTest.end();
+    },
+  );
+
+  t.test(
+    `recoverQueue rejects invalid threshold before request (issue #17)`,
+    async childTest => {
+      const capturedRequest = childTest.captureFn(thirdPartyRequest);
+      const transactions = new Transactions(
+        capturedRequest,
+        mockLogger,
+        FormatResponse,
+      );
+      const response = await transactions.recoverQueue({threshold: `bogus`});
+      childTest.match(capturedRequest.args(), []);
+      childTest.equal(response.status, 400);
+      childTest.equal(
+        response.message,
+        `threshold must be a valid duration string (e.g. 5m, 1h).`,
+      );
+      childTest.end();
+    },
+  );
+});
+
 tap.test(`GET transaction by reference`, async t => {
   const mockLogger = createMockLogger();
   let thirdPartyRequest: BlnkRequest;

@@ -5,6 +5,7 @@ import {
   ValidateBulkCommitInflight,
   ValidateBulkVoidInflight,
   ValidateBulkTransactions,
+  ValidateRecoverQueue,
   ValidateRefundTransaction,
   ValidateUpdateTransactions,
 } from "../../../../src/blnk/utils/validators/transactionValidators";
@@ -14,6 +15,7 @@ import {
   BulkTransactions,
   CreateTransactions,
   MAX_BULK_INFLIGHT_ITEMS,
+  RecoverQueueRequest,
   RefundTransactionRequest,
   UpdateTransactionStatus,
 } from "../../../../src/types/transactions";
@@ -1016,6 +1018,43 @@ tap.test(`Issue #16 — bulkVoidInflight validation`, t => {
     tt.equal(
       ValidateBulkVoidInflight({transaction_ids: [``]}),
       `transaction_id is required at index 0.`,
+    );
+    tt.end();
+  });
+
+  t.end();
+});
+
+tap.test(`Issue #17 — recoverQueue`, t => {
+  t.test(`allows valid threshold durations`, tt => {
+    const cases: RecoverQueueRequest[] = [
+      {threshold: `5m`},
+      {threshold: `1h`},
+      {threshold: `2h45m`},
+      {},
+    ];
+    for (const data of cases) {
+      tt.equal(ValidateRecoverQueue(data), null);
+    }
+    tt.end();
+  });
+
+  t.test(`rejects invalid threshold`, tt => {
+    tt.equal(
+      ValidateRecoverQueue({threshold: `bogus`}),
+      `threshold must be a valid duration string (e.g. 5m, 1h).`,
+    );
+    tt.equal(
+      ValidateRecoverQueue({threshold: ``}),
+      `threshold must be a valid duration string (e.g. 5m, 1h).`,
+    );
+    tt.end();
+  });
+
+  t.test(`rejects unknown fields`, tt => {
+    tt.equal(
+      ValidateRecoverQueue({threshold: `5m`, amount: 1} as RecoverQueueRequest),
+      `Invalid field: amount`,
     );
     tt.end();
   });

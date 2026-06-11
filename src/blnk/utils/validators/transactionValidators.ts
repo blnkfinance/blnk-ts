@@ -6,6 +6,7 @@ import {
   CreateTransactions,
   MAX_BULK_INFLIGHT_ITEMS,
   MultipleSourcesT,
+  RecoverQueueRequest,
   RefundTransactionRequest,
   TransactionDateInput,
   UpdateTransactionStatus,
@@ -705,6 +706,38 @@ export function ValidateBulkTransactions<T extends Record<string, unknown>>(
   const uniqueReferences = new Set(references);
   if (references.length !== uniqueReferences.size) {
     return `All transactions must have unique references within the bulk request.`;
+  }
+
+  return null;
+}
+
+const GO_DURATION_UNIT = `(?:ns|us|µs|ms|s|m|h)`;
+const GO_DURATION_PATTERN = new RegExp(
+  `^(?:\\d+(?:\\.\\d+)?${GO_DURATION_UNIT})+$`,
+);
+
+function isValidGoDuration(value: string): boolean {
+  const trimmed = value.trim();
+  return trimmed.length > 0 && GO_DURATION_PATTERN.test(trimmed);
+}
+
+export function ValidateRecoverQueue(data: RecoverQueueRequest): string | null {
+  const allowedFields = [`threshold`];
+  for (const key in data) {
+    if (!allowedFields.includes(key)) {
+      return `Invalid field: ${key}`;
+    }
+  }
+
+  if (data.threshold === undefined) {
+    return null;
+  }
+
+  if (
+    typeof data.threshold !== `string` ||
+    !isValidGoDuration(data.threshold)
+  ) {
+    return `threshold must be a valid duration string (e.g. 5m, 1h).`;
   }
 
   return null;

@@ -290,3 +290,24 @@ export interface TransactionLineageResponse<
   /** Empty when no shadow transactions exist; Core may return `null`. */
   shadow_transactions: TransactionLineageShadowTransaction<T>[] | null;
 }
+
+/** Optional query options for `POST /transactions/recover`. */
+export interface RecoverQueueRequest {
+  /**
+   * Minimum age of queued transactions to recover (Go duration string).
+   * Examples: `5m`, `10m`, `1h`. Core default: `2m`.
+   */
+  threshold?: string;
+}
+
+/**
+ * Response from `POST /transactions/recover`.
+ *
+ * @see https://docs.blnkfinance.com/reference/queue-recovery
+ */
+export interface RecoverQueueResponse {
+  /** Number of transactions re-enqueued for processing. */
+  recovered: number;
+  /** Threshold duration Core applied (e.g. `5m0s`). */
+  threshold: string;
+}
