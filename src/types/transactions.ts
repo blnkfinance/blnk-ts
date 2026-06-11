@@ -251,3 +251,41 @@ export interface BulkVoidInflightResponse {
   failed: number;
   results: BulkVoidInflightResult[];
 }
+
+/** One provider entry in `TransactionLineageResponse.fund_allocation`. */
+export type TransactionLineageFundAllocation = Record<
+  string,
+  string | number | boolean | null
+>;
+
+/**
+ * Shadow transaction created for fund lineage tracking.
+ * Items mirror Core transaction objects; fields vary by lineage type.
+ */
+export type TransactionLineageShadowTransaction<
+  T extends Record<string, unknown> = Record<string, unknown>,
+> = {
+  transaction_id: string;
+  reference?: string;
+  precise_amount?: number | string;
+  amount?: number;
+  precision?: number;
+  currency?: string;
+  status?: StatusType | string;
+  parent_transaction?: string;
+  meta_data?: T;
+} & Record<string, unknown>;
+
+/**
+ * Response from `GET /transactions/{transaction_id}/lineage`.
+ *
+ * @see https://docs.blnkfinance.com/reference/get-transaction-lineage
+ */
+export interface TransactionLineageResponse<
+  T extends Record<string, unknown> = Record<string, unknown>,
+> {
+  transaction_id: string;
+  /** Present for debits from lineage-enabled balances. Amounts are minor units. */
+  fund_allocation?: TransactionLineageFundAllocation[];
+  shadow_transactions: TransactionLineageShadowTransaction<T>[];
+}

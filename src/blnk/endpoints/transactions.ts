@@ -10,6 +10,7 @@ import {
   CreateTransactionResponse,
   CreateTransactions,
   RefundTransactionRequest,
+  TransactionLineageResponse,
   UpdateTransactionStatus,
 } from "../../types/transactions";
 import {HandleError} from "../utils/logger";
@@ -320,6 +321,35 @@ export class Transactions {
         this.logger,
         this.formatResponse,
         this.getByReference.name,
+      );
+    }
+  }
+
+  /**
+   * Retrieves fund lineage for a transaction (allocation and shadow transactions).
+   *
+   * @see https://docs.blnkfinance.com/reference/get-transaction-lineage
+   *
+   * @example
+   * const response = await transactions.getLineage('txn_8d2ce2f0-0d75-4a91-9d43-2ad2c2e6b9ad');
+   */
+  async getLineage<T extends Record<string, unknown>>(transactionId: string) {
+    try {
+      if (!transactionId) {
+        return this.formatResponse(400, `transaction id is required`, null);
+      }
+
+      const response = await this.request<
+        undefined,
+        TransactionLineageResponse<T>
+      >(`transactions/${transactionId}/lineage`, undefined, `GET`);
+      return response;
+    } catch (error: unknown) {
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.getLineage.name,
       );
     }
   }
