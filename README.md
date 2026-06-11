@@ -221,6 +221,21 @@ const response = await Transactions.bulkCommitInflight({
 // response.data.succeeded, response.data.failed, response.data.results
 ```
 
+### Bulk void inflight transactions
+
+`Transactions.bulkVoidInflight` voids multiple independently-created inflight transactions in one request (`POST /transactions/inflight/bulk/void`):
+
+```typescript
+const response = await Transactions.bulkVoidInflight({
+  transaction_ids: [
+    'txn_11111111-1111-4111-8111-111111111111',
+    'txn_22222222-2222-4222-8222-222222222222',
+  ],
+});
+
+// response.data.succeeded, response.data.failed, response.data.results
+```
+
 ### Refund a transaction
 
 `Transactions.refund` accepts an optional body with `skip_queue` to process the refund synchronously. Omit the body to queue the refund (default):

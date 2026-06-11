@@ -1,6 +1,7 @@
 /* eslint-disable n/no-unsupported-features/es-builtins */
 import {
   BulkCommitInflightRequest,
+  BulkVoidInflightRequest,
   BulkTransactions,
   CreateTransactions,
   MAX_BULK_INFLIGHT_ITEMS,
@@ -584,6 +585,32 @@ export function ValidateRefundTransaction(
   for (const key in data) {
     if (!allowedFields.includes(key)) {
       return `Invalid field: ${key}`;
+    }
+  }
+
+  return null;
+}
+
+export function ValidateBulkVoidInflight(
+  data: BulkVoidInflightRequest,
+): string | null {
+  if (!Array.isArray(data.transaction_ids)) {
+    return `transaction_ids must be an array.`;
+  }
+
+  if (data.transaction_ids.length === 0) {
+    return `transaction_ids array cannot be empty.`;
+  }
+
+  if (data.transaction_ids.length > MAX_BULK_INFLIGHT_ITEMS) {
+    return `Too many transaction_ids; max is ${MAX_BULK_INFLIGHT_ITEMS}.`;
+  }
+
+  for (let i = 0; i < data.transaction_ids.length; i++) {
+    const id = data.transaction_ids[i];
+
+    if (typeof id !== `string` || id.trim() === ``) {
+      return `transaction_id is required at index ${i}.`;
     }
   }
 

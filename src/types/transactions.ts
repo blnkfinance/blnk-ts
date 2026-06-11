@@ -222,3 +222,27 @@ export interface BulkCommitInflightResponse {
   failed: number;
   results: BulkCommitInflightResult[];
 }
+
+/** Request body for `POST /transactions/inflight/bulk/void`. */
+export interface BulkVoidInflightRequest {
+  transaction_ids: string[];
+}
+
+/** Per-item outcome in `BulkVoidInflightResponse`. */
+export interface BulkVoidInflightResult {
+  transaction_id: string;
+  status: BulkInflightResultStatus | string;
+  code?: string;
+  message?: string;
+}
+
+/**
+ * Response from `POST /transactions/inflight/bulk/void`.
+ *
+ * @see https://docs.blnkfinance.com/reference/bulk-void-inflight
+ */
+export interface BulkVoidInflightResponse {
+  succeeded: number;
+  failed: number;
+  results: BulkVoidInflightResult[];
+}
