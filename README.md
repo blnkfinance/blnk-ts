@@ -171,6 +171,27 @@ const newTransaction = await Transactions.create({
 console.log("Transaction Recorded:", newTransaction);
 ```
 
+### Atomic split transactions
+
+Set `atomic: true` when creating a split transaction (`destinations` or `sources`) so all legs succeed or fail together:
+
+```typescript
+const response = await Transactions.create({
+  amount: 1000,
+  precision: 100,
+  reference: 'atomic_split_ref_001',
+  description: 'Atomic fee split',
+  currency: 'USD',
+  source: '@FundingPool',
+  destinations: [
+    { identifier: 'bln_fee', distribution: '240.23' },
+    { identifier: 'bln_recipient', distribution: 'left' },
+  ],
+  atomic: true,
+  skip_queue: true,
+});
+```
+
 ### Get transaction by ID
 
 `Transactions.get` retrieves a transaction by its `transaction_id` (GET `/transactions/{transaction_id}`):

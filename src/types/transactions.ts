@@ -38,6 +38,11 @@ export interface CreateTransactions<T extends Record<string, unknown>> {
   effective_date?: TransactionDateInput;
   /** Process synchronously without queuing. Default: `false`. */
   skip_queue?: boolean;
+  /**
+   * When true on a split transaction (`sources` or `destinations`), all legs
+   * succeed or fail together. Optional; omit for default Core behavior.
+   */
+  atomic?: boolean;
   allow_overdraft?: boolean;
   meta_data?: T;
 }
