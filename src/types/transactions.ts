@@ -286,6 +286,7 @@ export interface TransactionLineageResponse<
 > {
   transaction_id: string;
   /** Present for debits from lineage-enabled balances. Amounts are minor units. */
-  fund_allocation?: TransactionLineageFundAllocation[];
-  shadow_transactions: TransactionLineageShadowTransaction<T>[];
+  fund_allocation?: TransactionLineageFundAllocation[] | null;
+  /** Empty when no shadow transactions exist; Core may return `null`. */
+  shadow_transactions: TransactionLineageShadowTransaction<T>[] | null;
 }
