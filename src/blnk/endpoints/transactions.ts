@@ -1,6 +1,8 @@
 import {BlnkLogger} from "../../types/blnkClient";
 import {BlnkRequest, FormatResponseType} from "../../types/general";
 import {
+  BulkCommitInflightRequest,
+  BulkCommitInflightResponse,
   BulkTransactionResponse,
   BulkTransactions,
   CreateTransactionResponse,
@@ -11,6 +13,7 @@ import {
 import {HandleError} from "../utils/logger";
 import {serializeCreateTransaction} from "../utils/transactionSerialization";
 import {
+  ValidateBulkCommitInflight,
   ValidateBulkTransactions,
   ValidateCreateTransactions,
   ValidateRefundTransaction,
@@ -27,6 +30,7 @@ import {
  * @method create - Creates a new transaction with the provided data.
  * @method createBulk - Creates multiple transactions in a single request with the provided data.
  * @method updateStatus - Updates the status of a transaction with the provided data.
+ * @method bulkCommitInflight - Commits multiple inflight transactions in one request.
  * @method refund - Refunds a transaction with the provided data.
  * @example
  * const transactions = new Transactions(requestFunction, loggerInstance, formatResponseFunction);
@@ -313,6 +317,41 @@ export class Transactions {
         this.logger,
         this.formatResponse,
         this.getByReference.name,
+      );
+    }
+  }
+
+  /**
+   * Commits multiple independently-created inflight transactions in one call.
+   *
+   * @see https://docs.blnkfinance.com/reference/bulk-commit-inflight
+   *
+   * @example
+   * const response = await blnk.Transactions.bulkCommitInflight({
+   *   transactions: [
+   *     { transaction_id: 'txn_11111111-1111-4111-8111-111111111111' },
+   *     { transaction_id: 'txn_22222222-2222-4222-8222-222222222222', amount: 40 },
+   *   ],
+   * });
+   */
+  async bulkCommitInflight(data: BulkCommitInflightRequest) {
+    try {
+      const validatorResponse = ValidateBulkCommitInflight(data);
+      if (validatorResponse) {
+        return this.formatResponse(400, validatorResponse, null);
+      }
+
+      const response = await this.request<
+        BulkCommitInflightRequest,
+        BulkCommitInflightResponse
+      >(`transactions/inflight/bulk/commit`, data, `POST`);
+      return response;
+    } catch (error: unknown) {
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.bulkCommitInflight.name,
       );
     }
   }

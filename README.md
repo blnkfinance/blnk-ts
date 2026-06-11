@@ -202,6 +202,25 @@ await Transactions.updateStatus(transactionId, {
 await Transactions.updateStatus(transactionId, { status: 'commit' });
 ```
 
+### Bulk commit inflight transactions
+
+`Transactions.bulkCommitInflight` commits multiple independently-created inflight transactions in one request (`POST /transactions/inflight/bulk/commit`). Omit `amount` and `precise_amount` on an item to commit the full remaining inflight amount:
+
+```typescript
+const response = await Transactions.bulkCommitInflight({
+  transactions: [
+    { transaction_id: 'txn_11111111-1111-4111-8111-111111111111' },
+    { transaction_id: 'txn_22222222-2222-4222-8222-222222222222', amount: 40 },
+    {
+      transaction_id: 'txn_33333333-3333-4333-8333-333333333333',
+      precise_amount: 125034,
+    },
+  ],
+});
+
+// response.data.succeeded, response.data.failed, response.data.results
+```
+
 ### Refund a transaction
 
 `Transactions.refund` accepts an optional body with `skip_queue` to process the refund synchronously. Omit the body to queue the refund (default):

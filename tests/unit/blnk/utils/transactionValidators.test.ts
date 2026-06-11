@@ -2,13 +2,16 @@
 import tap from "tap";
 import {
   ValidateCreateTransactions,
+  ValidateBulkCommitInflight,
   ValidateBulkTransactions,
   ValidateRefundTransaction,
   ValidateUpdateTransactions,
 } from "../../../../src/blnk/utils/validators/transactionValidators";
 import {
+  BulkCommitInflightRequest,
   BulkTransactions,
   CreateTransactions,
+  MAX_BULK_INFLIGHT_ITEMS,
   RefundTransactionRequest,
   UpdateTransactionStatus,
 } from "../../../../src/types/transactions";
@@ -864,6 +867,64 @@ tap.test(`Issue #46 — refund transaction request fields`, t => {
     } as unknown as RefundTransactionRequest;
 
     tt.equal(ValidateRefundTransaction(data), `Invalid field: amount`);
+    tt.end();
+  });
+
+  t.end();
+});
+
+tap.test(`Issue #15 — bulkCommitInflight validation`, t => {
+  t.test(`allows valid bulk commit inflight payloads`, tt => {
+    const data: BulkCommitInflightRequest = {
+      transactions: [
+        {transaction_id: `txn_11111111-1111-4111-8111-111111111111`},
+        {
+          transaction_id: `txn_22222222-2222-4222-8222-222222222222`,
+          amount: 40,
+          precise_amount: `125034`,
+        },
+      ],
+    };
+
+    tt.equal(ValidateBulkCommitInflight(data), null);
+    tt.end();
+  });
+
+  t.test(`rejects empty transactions array`, tt => {
+    tt.equal(
+      ValidateBulkCommitInflight({transactions: []}),
+      `Transactions array cannot be empty.`,
+    );
+    tt.end();
+  });
+
+  t.test(`rejects oversized transactions array`, tt => {
+    const transactions = Array.from(
+      {length: MAX_BULK_INFLIGHT_ITEMS + 1},
+      () => ({transaction_id: `txn_test`}),
+    );
+
+    tt.equal(
+      ValidateBulkCommitInflight({transactions}),
+      `Too many transactions; max is ${MAX_BULK_INFLIGHT_ITEMS}.`,
+    );
+    tt.end();
+  });
+
+  t.test(`rejects invalid precise_amount`, tt => {
+    const data: BulkCommitInflightRequest = {
+      transactions: [
+        {
+          transaction_id: `txn_11111111-1111-4111-8111-111111111111`,
+          precise_amount: `-1`,
+        },
+      ],
+    };
+
+    tt.equal(
+      ValidateBulkCommitInflight(data),
+      `precise_amount must be a non-negative integer string or number at index 0.`,
+    );
     tt.end();
   });
 
