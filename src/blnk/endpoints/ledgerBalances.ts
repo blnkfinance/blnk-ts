@@ -101,16 +101,6 @@ export class LedgerBalances {
   }
 
   /**
-   * Retrieves fund lineage for a balance (provider breakdown when lineage is enabled).
-   *
-   * @see https://docs.blnkfinance.com/reference/get-balance-lineage
-   *
-   * @example
-   * const response = await ledgerBalances.getLineage(
-   *   'bln_5ce86029-3c2e-4e2a-aae2-7fb931ca4c4f',
-   * );
-   */
-  /**
    * Retrieves a balance by its indicator and currency.
    *
    * @see https://docs.blnkfinance.com/reference/get-balance-by-indicator
@@ -148,6 +138,16 @@ export class LedgerBalances {
     }
   }
 
+  /**
+   * Retrieves fund lineage for a balance (provider breakdown when lineage is enabled).
+   *
+   * @see https://docs.blnkfinance.com/reference/get-balance-lineage
+   *
+   * @example
+   * const response = await ledgerBalances.getLineage(
+   *   'bln_5ce86029-3c2e-4e2a-aae2-7fb931ca4c4f',
+   * );
+   */
   async getLineage(balanceId: string) {
     try {
       if (!balanceId) {
