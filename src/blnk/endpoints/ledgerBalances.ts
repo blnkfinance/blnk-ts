@@ -1,6 +1,7 @@
 import {BlnkLogger} from "../../types/blnkClient";
 import {BlnkRequest, FormatResponseType} from "../../types/general";
 import {
+  BalanceLineageResponse,
   CreateLedgerBalance,
   CreateLedgerBalanceResp,
 } from "../../types/ledgerBalances";
@@ -92,6 +93,39 @@ export class LedgerBalances {
         this.logger,
         this.formatResponse,
         this.create.name,
+      );
+    }
+  }
+
+  /**
+   * Retrieves fund lineage for a balance (provider breakdown when lineage is enabled).
+   *
+   * @see https://docs.blnkfinance.com/reference/get-balance-lineage
+   *
+   * @example
+   * const response = await ledgerBalances.getLineage(
+   *   'bln_5ce86029-3c2e-4e2a-aae2-7fb931ca4c4f',
+   * );
+   */
+  async getLineage(balanceId: string) {
+    try {
+      if (!balanceId) {
+        return this.formatResponse(400, `balance id is required`, null);
+      }
+
+      const response = await this.request<undefined, BalanceLineageResponse>(
+        `balances/${balanceId}/lineage`,
+        undefined,
+        `GET`,
+      );
+
+      return response;
+    } catch (error: unknown) {
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.getLineage.name,
       );
     }
   }

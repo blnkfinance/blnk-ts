@@ -154,6 +154,20 @@ const newBalance = await LedgerBalances.create({
 console.log("Balance Created:", newBalance);
 ```
 
+### Get balance lineage
+
+`LedgerBalances.getLineage` retrieves the provider breakdown for a balance with fund lineage enabled (`GET /balances/{balance_id}/lineage`):
+
+```typescript
+const response = await LedgerBalances.getLineage(
+  'bln_5ce86029-3c2e-4e2a-aae2-7fb931ca4c4f',
+);
+
+// response.data.balance_id
+// response.data.total_with_lineage
+// response.data.providers
+```
+
 ---
 
 ## 6. Recording Transactions

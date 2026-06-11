@@ -171,5 +171,40 @@ tap.test(`Ledger Balance Tests`, t => {
     tt.equal(response.message, `meta_data must be a valid object if provided`);
     tt.end();
   });
+
+  t.test(`getLineage calls correct endpoint (issue #7)`, async tt => {
+    const thirdPartyRequest = createMockBlnkRequest(true, undefined, 200);
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const ledgerBalance = new LedgerBalances(
+      capturedRequest,
+      mockLogger,
+      FormatResponse,
+    );
+    const balanceId = `bln_5ce86029-3c2e-4e2a-aae2-7fb931ca4c4f`;
+    const response = await ledgerBalance.getLineage(balanceId);
+
+    tt.match(capturedRequest.args(), [
+      [`balances/${balanceId}/lineage`, undefined, `GET`],
+    ]);
+    tt.equal(response.status, 200);
+    tt.end();
+  });
+
+  t.test(`getLineage rejects empty balance id (issue #7)`, async tt => {
+    const thirdPartyRequest = createMockBlnkRequest(true, undefined, 200);
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const ledgerBalance = new LedgerBalances(
+      capturedRequest,
+      mockLogger,
+      FormatResponse,
+    );
+    const response = await ledgerBalance.getLineage(``);
+
+    tt.match(capturedRequest.args(), []);
+    tt.equal(response.status, 400);
+    tt.equal(response.message, `balance id is required`);
+    tt.end();
+  });
+
   t.end();
 });
