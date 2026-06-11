@@ -49,3 +49,13 @@ export interface BalanceLineageResponse {
   total_with_lineage: string | number;
   providers: LineageProviderBreakdown[];
 }
+
+/** Request body for `PUT /balances/{id}/identity`. */
+export interface UpdateBalanceIdentity {
+  identity_id: string;
+}
+
+/** Response from `PUT /balances/{id}/identity`. */
+export interface UpdateBalanceIdentityResponse {
+  message: string;
+}

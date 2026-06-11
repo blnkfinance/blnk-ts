@@ -166,6 +166,19 @@ const response = await LedgerBalances.getByIndicator('@World', 'USD');
 // response.data.currency
 ```
 
+### Update balance identity
+
+`LedgerBalances.updateIdentity` links a balance to an identity (`PUT /balances/{id}/identity`):
+
+```typescript
+const response = await LedgerBalances.updateIdentity(
+  'bln_5ce86029-3c2e-4e2a-aae2-7fb931ca4c4f',
+  { identity_id: 'idt_3b63c8da-af29-4cc3-ad38-df17d87456e6' },
+);
+
+// response.data.message
+```
+
 ### Get balance lineage
 
 `LedgerBalances.getLineage` retrieves the provider breakdown for a balance with fund lineage enabled (`GET /balances/{balance_id}/lineage`):
