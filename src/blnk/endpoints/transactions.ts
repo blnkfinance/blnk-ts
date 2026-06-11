@@ -9,6 +9,8 @@ import {
   BulkTransactions,
   CreateTransactionResponse,
   CreateTransactions,
+  RecoverQueueRequest,
+  RecoverQueueResponse,
   RefundTransactionRequest,
   TransactionLineageResponse,
   UpdateTransactionStatus,
@@ -20,6 +22,7 @@ import {
   ValidateBulkVoidInflight,
   ValidateBulkTransactions,
   ValidateCreateTransactions,
+  ValidateRecoverQueue,
   ValidateRefundTransaction,
   ValidateUpdateTransactions,
 } from "../utils/validators/transactionValidators";
@@ -350,6 +353,44 @@ export class Transactions {
         this.logger,
         this.formatResponse,
         this.getLineage.name,
+      );
+    }
+  }
+
+  /**
+   * Manually triggers recovery of stuck queued transactions.
+   *
+   * @see https://docs.blnkfinance.com/reference/queue-recovery
+   *
+   * @example
+   * const response = await transactions.recoverQueue({ threshold: '5m' });
+   * // response.data.recovered, response.data.threshold
+   */
+  async recoverQueue(options?: RecoverQueueRequest) {
+    try {
+      if (options !== undefined) {
+        const validatorResponse = ValidateRecoverQueue(options);
+        if (validatorResponse) {
+          return this.formatResponse(400, validatorResponse, null);
+        }
+      }
+
+      const endpoint = options?.threshold
+        ? `transactions/recover?threshold=${encodeURIComponent(options.threshold)}`
+        : `transactions/recover`;
+
+      const response = await this.request<undefined, RecoverQueueResponse>(
+        endpoint,
+        undefined,
+        `POST`,
+      );
+      return response;
+    } catch (error: unknown) {
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.recoverQueue.name,
       );
     }
   }

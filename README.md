@@ -208,6 +208,16 @@ const response = await Transactions.get('txn_04551509-d7d3-4eab-a1fd-2eb12809b5a
 const response = await Transactions.getByReference('ref_04551509-d7d3-4eab-a1fd-2eb12809b5a4');
 ```
 
+### Recover queued transactions
+
+`Transactions.recoverQueue` manually triggers recovery of stuck queued transactions (`POST /transactions/recover`). Optionally pass a `threshold` duration query (e.g. `5m`, `1h`):
+
+```typescript
+const response = await Transactions.recoverQueue({ threshold: '5m' });
+
+// response.data.recovered, response.data.threshold
+```
+
 ### Get transaction lineage
 
 `Transactions.getLineage` retrieves fund allocation and shadow transactions for a transaction (GET `/transactions/{transaction_id}/lineage`):
