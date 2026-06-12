@@ -759,9 +759,28 @@ See the [Get reindex status reference](https://docs.blnkfinance.com/reference/ge
 |--------|----------|----------|
 | `Reconciliation.upload(file, source)` | `POST /reconciliation/upload` | Upload external data file |
 | `Reconciliation.createMatchingRule(data)` | `POST /reconciliation/matching-rules` | Define match criteria |
+| `Reconciliation.updateMatchingRule(id, data)` | `PUT /reconciliation/matching-rules/{rule_id}` | Update an existing matching rule |
 | `Reconciliation.run(data)` | `POST /reconciliation/start` | Start batch reconciliation from upload |
 | `Reconciliation.runInstant(data)` | `POST /reconciliation/start-instant` | Reconcile inline external transactions |
 | `Reconciliation.get(id)` | `GET /reconciliation/{reconciliation_id}` | View reconciliation status and counts |
+
+### Update a matching rule
+
+```typescript
+const { Reconciliation } = blnk;
+
+const updated = await Reconciliation.updateMatchingRule('rule_abc123', {
+  name: 'Updated matcher',
+  description: 'Amount with 2% drift matcher',
+  criteria: [
+    { field: 'amount', operator: 'equals', allowable_drift: 0.02 },
+    { field: 'currency', operator: 'equals' },
+  ],
+});
+// updated.data?.rule_id, updated.data?.updated_at
+```
+
+See the [Update matching rule reference](https://docs.blnkfinance.com/reference/update-matching-rule).
 
 ### Get reconciliation status
 
