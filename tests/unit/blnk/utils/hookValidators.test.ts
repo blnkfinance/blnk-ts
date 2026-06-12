@@ -1,6 +1,9 @@
 /* eslint-disable n/no-unpublished-import */
 import tap from "tap";
-import {ValidateCreateHookData} from "../../../../src/blnk/utils/validators/hookValidators";
+import {
+  ValidateCreateHookData,
+  ValidateUpdateHookData,
+} from "../../../../src/blnk/utils/validators/hookValidators";
 import {CreateHookData} from "../../../../src/types/hooks";
 
 const validData: CreateHookData = {
@@ -59,6 +62,24 @@ tap.test(`ValidateCreateHookData`, async t => {
     tt.match(
       ValidateCreateHookData({...validData, retry_count: -1}),
       /retry_count/,
+    );
+    tt.end();
+  });
+});
+
+tap.test(`ValidateUpdateHookData`, async t => {
+  t.test(`accepts valid payload`, tt => {
+    tt.equal(ValidateUpdateHookData(validData), null);
+    tt.end();
+  });
+
+  t.test(`rejects invalid type`, tt => {
+    tt.match(
+      ValidateUpdateHookData({
+        ...validData,
+        type: `INVALID` as CreateHookData[`type`],
+      }),
+      /type/,
     );
     tt.end();
   });

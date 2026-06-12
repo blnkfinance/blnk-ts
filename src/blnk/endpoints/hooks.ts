@@ -1,8 +1,11 @@
 import {BlnkLogger} from "../../types/blnkClient";
 import {BlnkRequest, FormatResponseType} from "../../types/general";
-import {CreateHookData, HookResp} from "../../types/hooks";
+import {CreateHookData, HookResp, UpdateHookData} from "../../types/hooks";
 import {HandleError} from "../utils/logger";
-import {ValidateCreateHookData} from "../utils/validators/hookValidators";
+import {
+  ValidateCreateHookData,
+  ValidateUpdateHookData,
+} from "../utils/validators/hookValidators";
 
 /**
  * Webhook management operations (master key required on Core).
@@ -47,6 +50,39 @@ export class Hooks {
         this.logger,
         this.formatResponse,
         this.create.name,
+      );
+    }
+  }
+
+  /**
+   * Updates an existing webhook.
+   *
+   * @see https://docs.blnkfinance.com/reference/update-hooks
+   */
+  async update(id: string, data: UpdateHookData) {
+    try {
+      if (!id) {
+        return this.formatResponse(400, `hook id is required`, null);
+      }
+
+      const validatorResponse = ValidateUpdateHookData(data);
+      if (validatorResponse) {
+        return this.formatResponse(400, validatorResponse, null);
+      }
+
+      const response = await this.request<UpdateHookData, HookResp>(
+        `hooks/${id}`,
+        data,
+        `PUT`,
+      );
+
+      return response;
+    } catch (error: unknown) {
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.update.name,
       );
     }
   }

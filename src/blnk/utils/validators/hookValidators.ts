@@ -1,4 +1,4 @@
-import {CreateHookData, HookType} from "../../../types/hooks";
+import {CreateHookData, HookType, UpdateHookData} from "../../../types/hooks";
 import {IsValidNumber, IsValidString} from "../stringUtils";
 
 const isValidHookType = (type: HookType) =>
@@ -34,4 +34,8 @@ export function ValidateCreateHookData(data: CreateHookData): string | null {
   }
 
   return null;
+}
+
+export function ValidateUpdateHookData(data: UpdateHookData): string | null {
+  return ValidateCreateHookData(data);
 }

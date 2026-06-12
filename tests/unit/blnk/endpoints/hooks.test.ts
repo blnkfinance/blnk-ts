@@ -3,7 +3,11 @@ import tap from "tap";
 import {Hooks} from "../../../../src/blnk/endpoints/hooks";
 import {FormatResponse} from "../../../../src/blnk/utils/httpClient";
 import {createMockLogger} from "../../../mocks/blnkClientMocks";
-import {CreateHookData, HookResp} from "../../../../src/types/hooks";
+import {
+  CreateHookData,
+  HookResp,
+  UpdateHookData,
+} from "../../../../src/types/hooks";
 
 const validData: CreateHookData = {
   name: `Pre-transaction validation`,
@@ -82,6 +86,94 @@ tap.test(`Issue #28 — Hooks.create`, async t => {
 
     tt.match(capturedRequest.args(), [[`hooks`, validData, `POST`]]);
     tt.equal(response.status, 403);
+    tt.end();
+  });
+});
+
+tap.test(`Issue #29 — Hooks.update`, async t => {
+  const updateData: UpdateHookData = {
+    name: `Pre-transaction validation (updated)`,
+    url: `https://api.example.com/validate-v2`,
+    type: `PRE_TRANSACTION`,
+    active: false,
+    timeout: 45,
+    retry_count: 5,
+  };
+
+  t.test(`update PUTs hooks/{id}`, async tt => {
+    const mockLogger = createMockLogger();
+    const thirdPartyRequest = async <R>() => ({
+      status: 200,
+      message: `Success`,
+      data: {...mockResponse, ...updateData} as unknown as R,
+    });
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const hooks = new Hooks(capturedRequest, mockLogger, FormatResponse);
+
+    const response = await hooks.update(`hk_test_123`, updateData);
+
+    tt.match(capturedRequest.args(), [
+      [`hooks/hk_test_123`, updateData, `PUT`],
+    ]);
+    tt.equal(response.status, 200);
+    tt.equal(response.data?.active, false);
+    tt.equal(response.data?.timeout, 45);
+    tt.end();
+  });
+
+  t.test(`update returns 400 for empty id`, async tt => {
+    const mockLogger = createMockLogger();
+    const thirdPartyRequest = async <R>() => ({
+      status: 200,
+      message: `Success`,
+      data: mockResponse as unknown as R,
+    });
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const hooks = new Hooks(capturedRequest, mockLogger, FormatResponse);
+
+    const response = await hooks.update(``, updateData);
+
+    tt.equal(capturedRequest.calls.length, 0);
+    tt.equal(response.status, 400);
+    tt.match(response.message, /hook id/);
+    tt.end();
+  });
+
+  t.test(`update returns 400 for invalid payload`, async tt => {
+    const mockLogger = createMockLogger();
+    const thirdPartyRequest = async <R>() => ({
+      status: 200,
+      message: `Success`,
+      data: mockResponse as unknown as R,
+    });
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const hooks = new Hooks(capturedRequest, mockLogger, FormatResponse);
+
+    const response = await hooks.update(`hk_test_123`, {
+      ...updateData,
+      timeout: 0,
+    });
+
+    tt.equal(capturedRequest.calls.length, 0);
+    tt.equal(response.status, 400);
+    tt.match(response.message, /timeout/);
+    tt.end();
+  });
+
+  t.test(`update forwards API errors`, async tt => {
+    const mockLogger = createMockLogger();
+    const thirdPartyRequest = async <R>() => ({
+      status: 404,
+      message: `hook not found`,
+      data: null as R | null,
+    });
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const hooks = new Hooks(capturedRequest, mockLogger, FormatResponse);
+
+    const response = await hooks.update(`hk_missing`, updateData);
+
+    tt.match(capturedRequest.args(), [[`hooks/hk_missing`, updateData, `PUT`]]);
+    tt.equal(response.status, 404);
     tt.end();
   });
 });
