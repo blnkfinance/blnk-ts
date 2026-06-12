@@ -1,9 +1,17 @@
 import {BlnkLogger} from "../../types/blnkClient";
 import {BlnkRequest, FormatResponseType} from "../../types/general";
-import {IdentityData, IdentityDataResponse} from "../../types/identity";
+import {
+  IdentityData,
+  IdentityDataResponse,
+  TokenizeIdentityData,
+  TokenizeIdentityResp,
+} from "../../types/identity";
 import {HandleError} from "../utils/logger";
 import {serializeIdentityData} from "../utils/identitySerialization";
-import {ValidateIdentity} from "../utils/validators/identityValidators";
+import {
+  ValidateIdentity,
+  ValidateTokenizeIdentityData,
+} from "../utils/validators/identityValidators";
 
 /**
  * Represents an Identity class that handles operations related to identity data.
@@ -179,6 +187,34 @@ export class Identity {
         this.logger,
         this.formatResponse,
         this.update.name,
+      );
+    }
+  }
+
+  /**
+   * Tokenizes multiple PII fields on an identity.
+   *
+   * @see https://docs.blnkfinance.com/reference/tokenize-identity
+   */
+  async tokenize(id: string, data: TokenizeIdentityData) {
+    try {
+      const validatorResponse = ValidateTokenizeIdentityData(id, data);
+      if (validatorResponse) {
+        return this.formatResponse(400, validatorResponse, null);
+      }
+
+      const response = await this.request<
+        TokenizeIdentityData,
+        TokenizeIdentityResp
+      >(`identities/${id}/tokenize`, data, `POST`);
+
+      return response;
+    } catch (error: unknown) {
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.tokenize.name,
       );
     }
   }
