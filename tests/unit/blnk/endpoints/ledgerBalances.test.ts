@@ -483,6 +483,59 @@ tap.test(`Ledger Balance Tests`, t => {
     tt.end();
   });
 
+  t.test(`get calls GET /balances/{id} (issue #48)`, async tt => {
+    const thirdPartyRequest = createMockBlnkRequest(true, undefined, 200);
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const ledgerBalance = new LedgerBalances(
+      capturedRequest,
+      mockLogger,
+      FormatResponse,
+    );
+    const balanceId = `bln_5ce86029-3c2e-4e2a-aae2-7fb931ca4c4f`;
+    await ledgerBalance.get(balanceId);
+
+    tt.match(capturedRequest.args(), [
+      [`balances/${balanceId}`, undefined, `GET`],
+    ]);
+    tt.end();
+  });
+
+  t.test(`get forwards from_source query param (issue #48)`, async tt => {
+    const thirdPartyRequest = createMockBlnkRequest(true, undefined, 200);
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const ledgerBalance = new LedgerBalances(
+      capturedRequest,
+      mockLogger,
+      FormatResponse,
+    );
+    const balanceId = `bln_5ce86029-3c2e-4e2a-aae2-7fb931ca4c4f`;
+    await ledgerBalance.get(balanceId, {from_source: true});
+
+    tt.match(capturedRequest.args(), [
+      [`balances/${balanceId}?from_source=true`, undefined, `GET`],
+    ]);
+    tt.end();
+  });
+
+  t.test(`get rejects invalid from_source (issue #48)`, async tt => {
+    const thirdPartyRequest = createMockBlnkRequest(true, undefined, 200);
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const ledgerBalance = new LedgerBalances(
+      capturedRequest,
+      mockLogger,
+      FormatResponse,
+    );
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response = await ledgerBalance.get(`bln_123`, {
+      from_source: `true`,
+    } as any);
+
+    tt.match(capturedRequest.args(), []);
+    tt.equal(response.status, 400);
+    tt.equal(response.message, `from_source must be a boolean if provided`);
+    tt.end();
+  });
+
   t.test(`getAt calls GET /balances/{id}/at (issue #11)`, async tt => {
     const thirdPartyRequest = createMockBlnkRequest(true, undefined, 200);
     const capturedRequest = tt.captureFn(thirdPartyRequest);

@@ -3,6 +3,7 @@ import tap from "tap";
 import {
   ValidateCreateBalanceSnapshot,
   ValidateCreateLedgerBalance,
+  ValidateGetBalance,
   ValidateGetBalanceAt,
   ValidateGetByIndicator,
   ValidateUpdateBalanceIdentity,
@@ -133,6 +134,29 @@ tap.test(`Issue #47 — ValidateCreateLedgerBalance lineage fields`, t => {
         allocation_strategy: `INVALID` as any,
       }),
       `allocation_strategy must be one of FIFO, LIFO, or PROPORTIONAL`,
+    );
+    tt.end();
+  });
+
+  t.end();
+});
+
+tap.test(`Issue #48 — ValidateGetBalance`, t => {
+  t.test(`accepts from_source flag`, tt => {
+    tt.equal(ValidateGetBalance({from_source: true}), null);
+    tt.end();
+  });
+
+  t.test(`accepts empty options object`, tt => {
+    tt.equal(ValidateGetBalance({}), null);
+    tt.end();
+  });
+
+  t.test(`rejects non-boolean from_source`, tt => {
+    tt.equal(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ValidateGetBalance({from_source: `true` as any}),
+      `from_source must be a boolean if provided`,
     );
     tt.end();
   });
