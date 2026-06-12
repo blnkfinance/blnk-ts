@@ -1,3 +1,8 @@
+import {IdentityDataResponse} from "./identity";
+import {CreateLedgerResp} from "./ledger";
+import {CreateLedgerBalanceResp} from "./ledgerBalances";
+import {CreateTransactionResponse} from "./transactions";
+
 export interface SearchParams {
   q: string;
   query_by?: string;
@@ -155,3 +160,57 @@ export type SearchLedgerResponse = SearchResponse<SearchLedgerDocument>;
 export type SearchBalanceResponse = SearchResponse<SearchBalanceDocument>;
 export type SearchTransactionResponse =
   SearchResponse<SearchTransactionDocument>;
+
+/** Filter operators supported by `POST /{collection}/filter`. */
+export type FilterOperator =
+  | `eq`
+  | `ne`
+  | `gt`
+  | `gte`
+  | `lt`
+  | `lte`
+  | `in`
+  | `between`
+  | `like`
+  | `ilike`
+  | `isnull`
+  | `isnotnull`;
+
+export type FilterLogicalOperator = `and` | `or`;
+export type FilterSortOrder = `asc` | `desc`;
+
+/** Single filter condition in a DB filter request. */
+export interface FilterCondition {
+  field: string;
+  operator: FilterOperator;
+  value?: unknown;
+  values?: unknown[];
+}
+
+/** Request body for `POST /{collection}/filter` (Search via DB). */
+export interface FilterParams {
+  filters: FilterCondition[];
+  logical_operator?: FilterLogicalOperator;
+  sort_by?: string;
+  sort_order?: FilterSortOrder;
+  include_count?: boolean;
+  limit?: number;
+  offset?: number;
+}
+
+/** Response from `POST /{collection}/filter`. */
+export interface FilterResponse<TRecord> {
+  data: TRecord[];
+  total_count?: number;
+}
+
+export type FilterRecordByCollection = {
+  ledgers: CreateLedgerResp<Record<string, unknown>>;
+  transactions: CreateTransactionResponse<Record<string, unknown>>;
+  balances: CreateLedgerBalanceResp<Record<string, unknown>>;
+  identities: IdentityDataResponse<Record<string, unknown>>;
+};
+
+export type FilterResponseByCollection = {
+  [K in SearchCollection]: FilterResponse<FilterRecordByCollection[K]>;
+};

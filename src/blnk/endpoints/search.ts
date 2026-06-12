@@ -5,6 +5,9 @@ import {
   FormatResponseType,
 } from "../../types/general";
 import {
+  FilterParams,
+  FilterRecordByCollection,
+  FilterResponse,
   SearchCollection,
   SearchDocumentByCollection,
   SearchParams,
@@ -12,6 +15,7 @@ import {
 } from "../../types/search";
 import {HandleError} from "../utils/logger";
 import {
+  ValidateFilterParams,
   ValidateSearchCollection,
   ValidateSearchParams,
 } from "../utils/validators/searchValidators";
@@ -64,6 +68,37 @@ export class Search {
         this.logger,
         this.formatResponse,
         this.search.name,
+      );
+    }
+  }
+
+  async filter<C extends SearchCollection>(
+    data: FilterParams,
+    collection: C,
+  ): Promise<ApiResponse<FilterResponse<FilterRecordByCollection[C]> | null>> {
+    try {
+      const collectionError = ValidateSearchCollection(collection);
+      if (collectionError) {
+        return this.formatResponse(400, collectionError, null);
+      }
+
+      const paramsError = ValidateFilterParams(data);
+      if (paramsError) {
+        return this.formatResponse(400, paramsError, null);
+      }
+
+      const response = await this.request<
+        FilterParams,
+        FilterResponse<FilterRecordByCollection[typeof collection]>
+      >(`${collection}/filter`, data, `POST`);
+
+      return response;
+    } catch (error) {
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.filter.name,
       );
     }
   }
