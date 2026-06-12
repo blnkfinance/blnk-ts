@@ -1,7 +1,16 @@
 import {BlnkLogger} from "../../types/blnkClient";
 import {BlnkRequest, FormatResponseType} from "../../types/general";
-import {SearchParams, SearchResponse} from "../../types/search";
+import {
+  SearchCollection,
+  SearchIdentityResponse,
+  SearchParams,
+  SearchResponse,
+} from "../../types/search";
 import {HandleError} from "../utils/logger";
+import {
+  ValidateSearchCollection,
+  ValidateSearchParams,
+} from "../utils/validators/searchValidators";
 
 /**
  * Represents a Search class that handles searching functionality.
@@ -12,13 +21,12 @@ import {HandleError} from "../utils/logger";
  * @param {FormatResponseType} formatResponse - The function for formatting API responses.
  * @method search - Performs a search operation based on the provided data and service type.
  * @param {SearchParams} data - The search parameters.
- * @param {`ledgers` | `transactions` | `balances`} service - The type of service to search within.
- * @returns {Promise<SearchResponse>} - A promise that resolves to the search response.
+ * @param {SearchCollection} service - The collection to search (`ledgers`, `transactions`, `balances`, or `identities`).
+ * @returns {Promise<SearchResponse | SearchIdentityResponse>} - A promise that resolves to the search response.
  * @example
  * const search = new Search(requestFunction, loggerInstance, formatResponseFunction);
- * const searchData = { q: 'search query', page: 1, per_page: 10 };
- * const searchService = 'ledgers';
- * const result = await search.search(searchData, searchService);
+ * const searchData = { q: 'jane', query_by: 'first_name,last_name,email_address', page: 1, per_page: 10 };
+ * const result = await search.search(searchData, 'identities');
  */
 export class Search {
   private request: BlnkRequest;
@@ -35,19 +43,22 @@ export class Search {
     this.formatResponse = formatResponse;
   }
 
-  async search(
-    data: SearchParams,
-    service: `ledgers` | `transactions` | `balances`,
-  ) {
+  async search(data: SearchParams, service: SearchCollection) {
     try {
-      if (!data.q) {
-        return this.formatResponse(400, `Field "q" must be filled`, null);
+      const collectionError = ValidateSearchCollection(service);
+      if (collectionError) {
+        return this.formatResponse(400, collectionError, null);
       }
-      const response = await this.request<SearchParams, SearchResponse>(
-        `search/${service}`,
-        data,
-        `POST`,
-      );
+
+      const paramsError = ValidateSearchParams(data);
+      if (paramsError) {
+        return this.formatResponse(400, paramsError, null);
+      }
+
+      const response = await this.request<
+        SearchParams,
+        SearchResponse | SearchIdentityResponse
+      >(`search/${service}`, data, `POST`);
 
       return response;
     } catch (error) {
