@@ -6,6 +6,7 @@ import {
   ServicesMap,
 } from "../../types/general";
 import {HandleError} from "../utils/logger";
+import {ApiKeys} from "./apiKeys";
 import {BalanceMonitor} from "./balanceMonitors";
 import {Hooks} from "./hooks";
 import {Identity} from "./identity";
@@ -214,6 +215,10 @@ export class Blnk {
 
   get Hooks(): Hooks {
     return this.getService<Hooks>(`Hooks`);
+  }
+
+  get ApiKeys(): ApiKeys {
+    return this.getService<ApiKeys>(`ApiKeys`);
   }
 
   get getApiKey() {
