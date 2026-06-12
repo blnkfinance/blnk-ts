@@ -133,7 +133,19 @@ console.log('Ledger Updated:', updatedLedger);
 
 ## 5. Creating Identities
 
-Register customers or organizations before linking them to balances. Pass an optional caller-supplied `identity_id` (`idt_` + UUID) and an ISO 8601 `dob` string:
+Register customers or organizations before linking them to balances. Only `identity_type` is required; all other fields are optional and match the [Create Identity API reference](https://docs.blnkfinance.com/reference/create-identity). The SDK validates `identity_type` and field formats (for example `identity_id`, `dob`, `gender`) when you provide them.
+
+Minimal create:
+
+```typescript
+const { Identity } = blnk;
+
+const minimal = await Identity.create({
+  identity_type: 'individual',
+});
+```
+
+Full example with optional caller-supplied `identity_id` (`idt_` + UUID) and ISO 8601 `dob`:
 
 ```typescript
 const { Identity } = blnk;

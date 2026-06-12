@@ -41,7 +41,7 @@ tap.test(`Identity`, async t => {
   });
 
   t.test(
-    `It should handle missing fields if organization is selected`,
+    `create accepts minimal organization payload (issue #50)`,
     async childTest => {
       const mockLogger = createMockLogger();
       const thirdPartyRequest: BlnkRequest = createMockBlnkRequest(
@@ -56,27 +56,18 @@ tap.test(`Identity`, async t => {
         FormatResponse,
       );
       const data: IdentityData<{}> = {
-        category: `test`,
         identity_type: `organization`,
-        city: `test`,
-        country: `test`,
-        email_address: `test@test.com`,
-        state: `test`,
-        post_code: `test`,
-        street: `test`,
-        phone_number: `1234567890`,
       };
 
       const response = await identity.create(data);
-      childTest.match(capturedRequest.args(), []);
-      childTest.equal(response.data, null);
-      childTest.equal(response.status, 400);
+      childTest.match(capturedRequest.args(), [[`identities`, data, `POST`]]);
+      childTest.equal(response.status, 201);
       childTest.end();
     },
   );
 
   t.test(
-    `It should handle missing fields if individual is selected`,
+    `create accepts minimal individual payload (issue #50)`,
     async childTest => {
       const mockLogger = createMockLogger();
       const thirdPartyRequest: BlnkRequest = createMockBlnkRequest(
@@ -91,21 +82,12 @@ tap.test(`Identity`, async t => {
         FormatResponse,
       );
       const data: IdentityData<{}> = {
-        category: `test`,
         identity_type: `individual`,
-        city: `test`,
-        country: `test`,
-        email_address: `test@test.com`,
-        state: `test`,
-        post_code: `test`,
-        street: `test`,
-        phone_number: `1234567890`,
       };
 
       const response = await identity.create(data);
-      childTest.match(capturedRequest.args(), []);
-      childTest.equal(response.data, null);
-      childTest.equal(response.status, 400);
+      childTest.match(capturedRequest.args(), [[`identities`, data, `POST`]]);
+      childTest.equal(response.status, 201);
       childTest.end();
     },
   );
