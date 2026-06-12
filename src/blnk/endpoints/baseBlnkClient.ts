@@ -141,7 +141,7 @@ export class Blnk {
     const canRetry =
       !isMultipart && maxAttempts > 1 && isRetryableHttpMethod(method);
     const headers: Record<string, string> = {
-      "X-Blnk-Key": this.apiKey,
+      ...(this.apiKey !== `` ? {"X-Blnk-Key": this.apiKey} : {}),
       ...(!isMultipart ? {"content-type": `application/json`} : {}),
       ...headerOptions,
       ...formDataHeaders,

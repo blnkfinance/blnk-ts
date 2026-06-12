@@ -48,6 +48,42 @@ tap.test(`Blnk SDK tests`, t => {
     });
   });
 
+  t.test(`Issue #56 — omits X-Blnk-Key for local unauthenticated mode`, async tt => {
+    const capturedFetch = tt.captureFn(fetchMock.fetch);
+    const localBlnk = new Blnk(
+      ``,
+      options,
+      mockServices,
+      FormatResponse,
+      capturedFetch,
+    );
+
+    await localBlnk[`request`](`health`, {}, `GET`);
+
+    const init = capturedFetch.calls[0]?.args[1] as RequestInit;
+    const headers = init.headers as Record<string, string>;
+    tt.notOk(`X-Blnk-Key` in headers);
+    tt.end();
+  });
+
+  t.test(`Issue #56 — sends X-Blnk-Key when api key is set`, async tt => {
+    const capturedFetch = tt.captureFn(fetchMock.fetch);
+    const authedBlnk = new Blnk(
+      apiKey,
+      options,
+      mockServices,
+      FormatResponse,
+      capturedFetch,
+    );
+
+    await authedBlnk[`request`](`health`, {}, `GET`);
+
+    const init = capturedFetch.calls[0]?.args[1] as RequestInit;
+    const headers = init.headers as Record<string, string>;
+    tt.equal(headers[`X-Blnk-Key`], apiKey);
+    tt.end();
+  });
+
   t.test(`Issue #55 — does not expose public getApiKey getter`, async tt => {
     tt.equal(
       Object.getOwnPropertyDescriptor(
