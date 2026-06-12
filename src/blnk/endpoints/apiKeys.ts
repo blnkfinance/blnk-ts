@@ -1,8 +1,16 @@
 import {BlnkLogger} from "../../types/blnkClient";
-import {ApiKeyResp, CreateApiKeyData} from "../../types/apiKeys";
+import {
+  ApiKeyListItem,
+  ApiKeyResp,
+  CreateApiKeyData,
+  ListApiKeysOptions,
+} from "../../types/apiKeys";
 import {BlnkRequest, FormatResponseType} from "../../types/general";
 import {HandleError} from "../utils/logger";
-import {ValidateCreateApiKeyData} from "../utils/validators/apiKeyValidators";
+import {
+  ValidateCreateApiKeyData,
+  ValidateListApiKeysOptions,
+} from "../utils/validators/apiKeyValidators";
 
 /**
  * API key management operations (master key or `api-keys:write` scope required).
@@ -47,6 +55,40 @@ export class ApiKeys {
         this.logger,
         this.formatResponse,
         this.create.name,
+      );
+    }
+  }
+
+  /**
+   * Lists API keys for an owner.
+   *
+   * @see https://docs.blnkfinance.com/reference/get-api-key
+   */
+  async list(options?: ListApiKeysOptions) {
+    try {
+      const validatorResponse = ValidateListApiKeysOptions(options);
+      if (validatorResponse) {
+        return this.formatResponse(400, validatorResponse, null);
+      }
+
+      const endpoint =
+        options?.owner !== undefined
+          ? `api-keys?owner=${options.owner}`
+          : `api-keys`;
+
+      const response = await this.request<undefined, ApiKeyListItem[]>(
+        endpoint,
+        undefined,
+        `GET`,
+      );
+
+      return response;
+    } catch (error: unknown) {
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.list.name,
       );
     }
   }

@@ -3,7 +3,11 @@ import tap from "tap";
 import {ApiKeys} from "../../../../src/blnk/endpoints/apiKeys";
 import {FormatResponse} from "../../../../src/blnk/utils/httpClient";
 import {createMockLogger} from "../../../mocks/blnkClientMocks";
-import {ApiKeyResp, CreateApiKeyData} from "../../../../src/types/apiKeys";
+import {
+  ApiKeyListItem,
+  ApiKeyResp,
+  CreateApiKeyData,
+} from "../../../../src/types/apiKeys";
 
 const validData: CreateApiKeyData = {
   name: `Service Account`,
@@ -79,6 +83,94 @@ tap.test(`Issue #36 — ApiKeys.create`, async t => {
     const response = await apiKeys.create(validData);
 
     tt.match(capturedRequest.args(), [[`api-keys`, validData, `POST`]]);
+    tt.equal(response.status, 403);
+    tt.end();
+  });
+});
+
+tap.test(`Issue #37 — ApiKeys.list`, async t => {
+  const listItem: ApiKeyListItem = {
+    api_key_id: `api_key_test_123`,
+    name: `Service Account`,
+    owner_id: `merchant_a`,
+    scopes: [`ledgers:read`],
+    expires_at: `2026-03-11T00:00:00Z`,
+    created_at: `2026-06-12T05:50:00.000Z`,
+    last_used_at: `0001-01-01T00:00:00Z`,
+    is_revoked: false,
+  };
+
+  t.test(`list GETs api-keys without owner filter`, async tt => {
+    const mockLogger = createMockLogger();
+    const thirdPartyRequest = async <R>() => ({
+      status: 200,
+      message: `Success`,
+      data: [listItem] as unknown as R,
+    });
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const apiKeys = new ApiKeys(capturedRequest, mockLogger, FormatResponse);
+
+    const response = await apiKeys.list();
+
+    tt.match(capturedRequest.args(), [[`api-keys`, undefined, `GET`]]);
+    tt.equal(response.status, 200);
+    tt.equal(response.data?.length, 1);
+    tt.equal(response.data?.[0]?.api_key_id, `api_key_test_123`);
+    tt.end();
+  });
+
+  t.test(`list GETs api-keys?owner= when owner provided`, async tt => {
+    const mockLogger = createMockLogger();
+    const thirdPartyRequest = async <R>() => ({
+      status: 200,
+      message: `Success`,
+      data: [] as unknown as R,
+    });
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const apiKeys = new ApiKeys(capturedRequest, mockLogger, FormatResponse);
+
+    const response = await apiKeys.list({owner: `merchant_a`});
+
+    tt.match(capturedRequest.args(), [
+      [`api-keys?owner=merchant_a`, undefined, `GET`],
+    ]);
+    tt.equal(response.status, 200);
+    tt.end();
+  });
+
+  t.test(`list returns 400 for empty owner`, async tt => {
+    const mockLogger = createMockLogger();
+    const thirdPartyRequest = async <R>() => ({
+      status: 200,
+      message: `Success`,
+      data: [] as unknown as R,
+    });
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const apiKeys = new ApiKeys(capturedRequest, mockLogger, FormatResponse);
+
+    const response = await apiKeys.list({owner: ``});
+
+    tt.equal(capturedRequest.calls.length, 0);
+    tt.equal(response.status, 400);
+    tt.match(response.message, /owner/);
+    tt.end();
+  });
+
+  t.test(`list forwards API errors`, async tt => {
+    const mockLogger = createMockLogger();
+    const thirdPartyRequest = async <R>() => ({
+      status: 403,
+      message: `forbidden`,
+      data: null as R | null,
+    });
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const apiKeys = new ApiKeys(capturedRequest, mockLogger, FormatResponse);
+
+    const response = await apiKeys.list({owner: `merchant_a`});
+
+    tt.match(capturedRequest.args(), [
+      [`api-keys?owner=merchant_a`, undefined, `GET`],
+    ]);
     tt.equal(response.status, 403);
     tt.end();
   });

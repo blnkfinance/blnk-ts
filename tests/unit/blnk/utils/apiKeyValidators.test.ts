@@ -1,6 +1,9 @@
 /* eslint-disable n/no-unpublished-import */
 import tap from "tap";
-import {ValidateCreateApiKeyData} from "../../../../src/blnk/utils/validators/apiKeyValidators";
+import {
+  ValidateCreateApiKeyData,
+  ValidateListApiKeysOptions,
+} from "../../../../src/blnk/utils/validators/apiKeyValidators";
 import {CreateApiKeyData} from "../../../../src/types/apiKeys";
 
 tap.test(`ValidateCreateApiKeyData`, async t => {
@@ -32,5 +35,13 @@ tap.test(`ValidateCreateApiKeyData`, async t => {
     ValidateCreateApiKeyData({...validData, expires_at: `not-a-date`}),
     /expires_at/,
   );
+  t.end();
+});
+
+tap.test(`ValidateListApiKeysOptions`, async t => {
+  t.equal(ValidateListApiKeysOptions(undefined), null);
+  t.equal(ValidateListApiKeysOptions({}), null);
+  t.equal(ValidateListApiKeysOptions({owner: `merchant_a`}), null);
+  t.match(ValidateListApiKeysOptions({owner: ``}), /owner/);
   t.end();
 });

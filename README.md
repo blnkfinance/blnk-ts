@@ -957,8 +957,9 @@ See the [Delete hooks reference](https://docs.blnkfinance.com/reference/delete-h
 | Method | Endpoint | Use case |
 |--------|----------|----------|
 | `ApiKeys.create(data)` | `POST /api-keys` | Create a scoped API key |
+| `ApiKeys.list(options?)` | `GET /api-keys` | List API keys for an owner |
 
-> Requires the **master key** or an API key with `api-keys:write` scope. The raw `key` value is only returned once at creation.
+> API key management requires the **master key** or scoped permissions (`api-keys:write` to create, `api-keys:read` to list). The raw `key` value is only returned once at creation.
 
 ### Create an API key
 
@@ -975,6 +976,15 @@ const apiKey = await ApiKeys.create({
 ```
 
 See the [Create API key reference](https://docs.blnkfinance.com/reference/create-api-key).
+
+### List API keys
+
+```typescript
+const keys = await ApiKeys.list({ owner: 'merchant_a' });
+// keys.data?.[0]?.api_key_id, keys.data?.[0]?.scopes, etc.
+```
+
+See the [List API keys reference](https://docs.blnkfinance.com/reference/get-api-key).
 
 ---
 
