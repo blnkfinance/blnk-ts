@@ -1,4 +1,8 @@
-import {CreateApiKeyData, ListApiKeysOptions} from "../../../types/apiKeys";
+import {
+  CreateApiKeyData,
+  DeleteApiKeyOptions,
+  ListApiKeysOptions,
+} from "../../../types/apiKeys";
 import {IsValidArray, IsValidString} from "../stringUtils";
 import {isValidTransactionDateInput} from "../transactionSerialization";
 
@@ -56,4 +60,10 @@ export function ValidateListApiKeysOptions(
   }
 
   return null;
+}
+
+export function ValidateDeleteApiKeyOptions(
+  options?: DeleteApiKeyOptions,
+): string | null {
+  return ValidateListApiKeysOptions(options);
 }

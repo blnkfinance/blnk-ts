@@ -10,6 +10,10 @@ export interface ListApiKeysOptions {
   owner?: string;
 }
 
+export interface DeleteApiKeyOptions {
+  owner?: string;
+}
+
 export interface ApiKeyResp {
   api_key_id: string;
   key: string;

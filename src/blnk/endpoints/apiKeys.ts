@@ -2,12 +2,14 @@ import {BlnkLogger} from "../../types/blnkClient";
 import {
   ApiKeyResp,
   CreateApiKeyData,
+  DeleteApiKeyOptions,
   ListApiKeysOptions,
 } from "../../types/apiKeys";
 import {BlnkRequest, FormatResponseType} from "../../types/general";
 import {HandleError} from "../utils/logger";
 import {
   ValidateCreateApiKeyData,
+  ValidateDeleteApiKeyOptions,
   ValidateListApiKeysOptions,
 } from "../utils/validators/apiKeyValidators";
 
@@ -88,6 +90,44 @@ export class ApiKeys {
         this.logger,
         this.formatResponse,
         this.list.name,
+      );
+    }
+  }
+
+  /**
+   * Revokes an API key by ID.
+   *
+   * @see https://docs.blnkfinance.com/reference/delete-api-key
+   */
+  async delete(id: string, options?: DeleteApiKeyOptions) {
+    try {
+      if (!id) {
+        return this.formatResponse(400, `api key id is required`, null);
+      }
+
+      const validatorResponse = ValidateDeleteApiKeyOptions(options);
+      if (validatorResponse) {
+        return this.formatResponse(400, validatorResponse, null);
+      }
+
+      let endpoint = `api-keys/${encodeURIComponent(id)}`;
+      if (options?.owner !== undefined) {
+        endpoint += `?owner=${encodeURIComponent(options.owner)}`;
+      }
+
+      const response = await this.request<undefined, null>(
+        endpoint,
+        undefined,
+        `DELETE`,
+      );
+
+      return response;
+    } catch (error: unknown) {
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.delete.name,
       );
     }
   }
