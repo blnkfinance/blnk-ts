@@ -6,6 +6,8 @@ import {
   CreateBalanceSnapshotResponse,
   CreateLedgerBalance,
   CreateLedgerBalanceResp,
+  GetBalanceAtRequest,
+  GetBalanceAtResponse,
   UpdateBalanceIdentity,
   UpdateBalanceIdentityResponse,
 } from "../../types/ledgerBalances";
@@ -13,6 +15,7 @@ import {HandleError} from "../utils/logger";
 import {
   ValidateCreateBalanceSnapshot,
   ValidateCreateLedgerBalance,
+  ValidateGetBalanceAt,
   ValidateGetByIndicator,
   ValidateUpdateBalanceIdentity,
 } from "../utils/validators/ledgerBalance";
@@ -217,6 +220,50 @@ export class LedgerBalances {
         this.logger,
         this.formatResponse,
         this.createSnapshot.name,
+      );
+    }
+  }
+
+  /**
+   * Retrieves a balance's state at a specific point in time.
+   *
+   * @see https://docs.blnkfinance.com/reference/historical-balances
+   *
+   * @example
+   * const response = await ledgerBalances.getAt(
+   *   'bln_5ce86029-3c2e-4e2a-aae2-7fb931ca4c4f',
+   *   { timestamp: '2025-02-24T08:55:26Z', from_source: true },
+   * );
+   */
+  async getAt(balanceId: string, options: GetBalanceAtRequest) {
+    try {
+      if (!balanceId) {
+        return this.formatResponse(400, `balance id is required`, null);
+      }
+
+      const error = ValidateGetBalanceAt(options);
+      if (error) {
+        return this.formatResponse(400, error, null);
+      }
+
+      let endpoint = `balances/${balanceId}/at?timestamp=${encodeURIComponent(options.timestamp)}`;
+      if (options.from_source) {
+        endpoint += `&from_source=true`;
+      }
+
+      const response = await this.request<undefined, GetBalanceAtResponse>(
+        endpoint,
+        undefined,
+        `GET`,
+      );
+
+      return response;
+    } catch (error: unknown) {
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.getAt.name,
       );
     }
   }

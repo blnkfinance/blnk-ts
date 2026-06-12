@@ -70,3 +70,27 @@ export interface CreateBalanceSnapshotRequest {
 export interface CreateBalanceSnapshotResponse {
   message: string;
 }
+
+/** Balance amounts in `GetBalanceAtResponse.balance`. */
+export interface HistoricalBalanceDetails {
+  balance: string | number;
+  balance_id: string;
+  credit_balance: string | number;
+  currency: string;
+  debit_balance: string | number;
+}
+
+/** Options for `GET /balances/{balance_id}/at`. */
+export interface GetBalanceAtRequest {
+  /** ISO 8601 timestamp (RFC3339), e.g. `2025-02-24T08:55:26Z`. */
+  timestamp: string;
+  /** Reconstruct from transactions instead of snapshots when true. */
+  from_source?: boolean;
+}
+
+/** Response from `GET /balances/{balance_id}/at`. */
+export interface GetBalanceAtResponse {
+  balance: HistoricalBalanceDetails;
+  timestamp: string;
+  from_source: boolean;
+}

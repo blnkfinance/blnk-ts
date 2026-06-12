@@ -189,6 +189,21 @@ const response = await LedgerBalances.createSnapshot({ batch_size: 500 });
 // response.data.message
 ```
 
+### Get historical balance
+
+`LedgerBalances.getAt` retrieves a balance at a specific timestamp (`GET /balances/{balance_id}/at`):
+
+```typescript
+const response = await LedgerBalances.getAt(
+  'bln_5ce86029-3c2e-4e2a-aae2-7fb931ca4c4f',
+  { timestamp: '2025-02-24T08:55:26Z', from_source: true },
+);
+
+// response.data.balance.balance_id
+// response.data.balance.balance
+// response.data.timestamp
+```
+
 ### Get balance lineage
 
 `LedgerBalances.getLineage` retrieves the provider breakdown for a balance with fund lineage enabled (`GET /balances/{balance_id}/lineage`):

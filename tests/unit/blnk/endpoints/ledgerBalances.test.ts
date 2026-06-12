@@ -417,5 +417,83 @@ tap.test(`Ledger Balance Tests`, t => {
     tt.end();
   });
 
+  t.test(`getAt calls GET /balances/{id}/at (issue #11)`, async tt => {
+    const thirdPartyRequest = createMockBlnkRequest(true, undefined, 200);
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const ledgerBalance = new LedgerBalances(
+      capturedRequest,
+      mockLogger,
+      FormatResponse,
+    );
+    const balanceId = `bln_5ce86029-3c2e-4e2a-aae2-7fb931ca4c4f`;
+    const timestamp = `2025-02-24T08:55:26Z`;
+    await ledgerBalance.getAt(balanceId, {timestamp});
+
+    tt.match(capturedRequest.args(), [
+      [
+        `balances/${balanceId}/at?timestamp=${encodeURIComponent(timestamp)}`,
+        undefined,
+        `GET`,
+      ],
+    ]);
+    tt.end();
+  });
+
+  t.test(`getAt forwards from_source query param (issue #11)`, async tt => {
+    const thirdPartyRequest = createMockBlnkRequest(true, undefined, 200);
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const ledgerBalance = new LedgerBalances(
+      capturedRequest,
+      mockLogger,
+      FormatResponse,
+    );
+    const balanceId = `bln_5ce86029-3c2e-4e2a-aae2-7fb931ca4c4f`;
+    const timestamp = `2025-02-24T08:55:26Z`;
+    await ledgerBalance.getAt(balanceId, {timestamp, from_source: true});
+
+    tt.match(capturedRequest.args(), [
+      [
+        `balances/${balanceId}/at?timestamp=${encodeURIComponent(timestamp)}&from_source=true`,
+        undefined,
+        `GET`,
+      ],
+    ]);
+    tt.end();
+  });
+
+  t.test(`getAt rejects empty balance id (issue #11)`, async tt => {
+    const thirdPartyRequest = createMockBlnkRequest(true, undefined, 200);
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const ledgerBalance = new LedgerBalances(
+      capturedRequest,
+      mockLogger,
+      FormatResponse,
+    );
+    const response = await ledgerBalance.getAt(``, {
+      timestamp: `2025-02-24T08:55:26Z`,
+    });
+
+    tt.match(capturedRequest.args(), []);
+    tt.equal(response.status, 400);
+    tt.equal(response.message, `balance id is required`);
+    tt.end();
+  });
+
+  t.test(`getAt rejects empty timestamp (issue #11)`, async tt => {
+    const thirdPartyRequest = createMockBlnkRequest(true, undefined, 200);
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const ledgerBalance = new LedgerBalances(
+      capturedRequest,
+      mockLogger,
+      FormatResponse,
+    );
+    const response = await ledgerBalance.getAt(`bln_123`, {timestamp: ``});
+
+    tt.match(capturedRequest.args(), []);
+    tt.equal(response.status, 400);
+    tt.equal(response.message, `timestamp is required`);
+    tt.end();
+  });
+
   t.end();
 });
