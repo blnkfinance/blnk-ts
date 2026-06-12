@@ -1,4 +1,4 @@
-import {CreateApiKeyData} from "../../../types/apiKeys";
+import {CreateApiKeyData, ListApiKeysOptions} from "../../../types/apiKeys";
 import {IsValidArray, IsValidString} from "../stringUtils";
 import {isValidTransactionDateInput} from "../transactionSerialization";
 
@@ -32,6 +32,27 @@ export function ValidateCreateApiKeyData(
     !isValidTransactionDateInput(data.expires_at)
   ) {
     return `expires_at must be a valid ISO 8601 datetime string`;
+  }
+
+  return null;
+}
+
+export function ValidateListApiKeysOptions(
+  options?: ListApiKeysOptions,
+): string | null {
+  if (options === undefined) {
+    return null;
+  }
+
+  if (!options || typeof options !== `object`) {
+    return `options must be a valid object`;
+  }
+
+  if (
+    options.owner !== undefined &&
+    (!IsValidString(options.owner) || options.owner === ``)
+  ) {
+    return `owner must be a non-empty string`;
   }
 
   return null;

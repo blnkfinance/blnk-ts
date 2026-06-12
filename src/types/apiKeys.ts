@@ -6,6 +6,10 @@ export interface CreateApiKeyData {
   expires_at: string;
 }
 
+export interface ListApiKeysOptions {
+  owner?: string;
+}
+
 export interface ApiKeyResp {
   api_key_id: string;
   key: string;
