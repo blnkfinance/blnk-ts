@@ -323,8 +323,4 @@ export class Blnk {
   get ApiKeys(): ApiKeys {
     return this.getService<ApiKeys>(`ApiKeys`);
   }
-
-  get getApiKey() {
-    return this.apiKey;
-  }
 }
