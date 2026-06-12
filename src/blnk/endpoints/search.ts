@@ -12,6 +12,7 @@ import {
   SearchDocumentByCollection,
   SearchParams,
   SearchResponse,
+  GetReindexStatusResponse,
   StartReindexRequest,
   StartReindexResponse,
 } from "../../types/search";
@@ -137,6 +138,30 @@ export class Search {
         this.logger,
         this.formatResponse,
         this.startReindex.name,
+      );
+    }
+  }
+
+  /**
+   * Polls Typesense reindex progress.
+   *
+   * @see https://docs.blnkfinance.com/reference/get-reindex
+   */
+  async getReindexStatus() {
+    try {
+      const response = await this.request<undefined, GetReindexStatusResponse>(
+        `search/reindex`,
+        undefined,
+        `GET`,
+      );
+
+      return response;
+    } catch (error) {
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.getReindexStatus.name,
       );
     }
   }

@@ -236,3 +236,6 @@ export interface StartReindexResponse {
   message: string;
   progress: ReindexProgress;
 }
+
+/** Response from `GET /search/reindex`. */
+export type GetReindexStatusResponse = ReindexProgress;
