@@ -166,6 +166,20 @@ const lineageBalance = await LedgerBalances.create({
 });
 ```
 
+### Get balance
+
+`LedgerBalances.get` retrieves a balance by ID (`GET /balances/{balance_id}`). Pass `{ from_source: true }` to reconstruct the balance from transactions instead of snapshots:
+
+```typescript
+const response = await LedgerBalances.get(
+  'bln_5ce86029-3c2e-4e2a-aae2-7fb931ca4c4f',
+  { from_source: true },
+);
+
+// response.data.balance_id
+// response.data.balance
+```
+
 ### Get balance by indicator
 
 `LedgerBalances.getByIndicator` retrieves a balance by its indicator and currency (`GET /balances/indicator/{indicator}/currency/{currency}`):

@@ -8,6 +8,7 @@ import {
   CreateLedgerBalanceResp,
   GetBalanceAtRequest,
   GetBalanceAtResponse,
+  GetBalanceRequest,
   UpdateBalanceIdentity,
   UpdateBalanceIdentityResponse,
 } from "../../types/ledgerBalances";
@@ -15,6 +16,7 @@ import {HandleError} from "../utils/logger";
 import {
   ValidateCreateBalanceSnapshot,
   ValidateCreateLedgerBalance,
+  ValidateGetBalance,
   ValidateGetBalanceAt,
   ValidateGetByIndicator,
   ValidateUpdateBalanceIdentity,
@@ -94,9 +96,41 @@ export class LedgerBalances {
     }
   }
 
-  async get(id: string) {
+  /**
+   * Retrieves a balance by its ID.
+   *
+   * Pass `{ from_source: true }` to reconstruct the balance from transactions
+   * instead of snapshots (`GET /balances/{balance_id}?from_source=true`).
+   *
+   * @see https://docs.blnkfinance.com/reference/balance-from-source
+   *
+   * @example
+   * const response = await ledgerBalances.get(
+   *   'bln_5ce86029-3c2e-4e2a-aae2-7fb931ca4c4f',
+   *   { from_source: true },
+   * );
+   */
+  async get<T extends Record<string, unknown>>(
+    id: string,
+    options?: GetBalanceRequest,
+  ) {
     try {
-      const response = await this.request(`balances/${id}`, undefined, `GET`);
+      if (options !== undefined) {
+        const error = ValidateGetBalance(options);
+        if (error) {
+          return this.formatResponse(400, error, null);
+        }
+      }
+
+      let endpoint = `balances/${id}`;
+      if (options?.from_source) {
+        endpoint += `?from_source=true`;
+      }
+
+      const response = await this.request<
+        undefined,
+        CreateLedgerBalanceResp<T>
+      >(endpoint, undefined, `GET`);
 
       return response;
     } catch (error: unknown) {
@@ -104,7 +138,7 @@ export class LedgerBalances {
         error,
         this.logger,
         this.formatResponse,
-        this.create.name,
+        this.get.name,
       );
     }
   }

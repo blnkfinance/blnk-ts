@@ -89,6 +89,12 @@ export interface HistoricalBalanceDetails {
   debit_balance: string | number;
 }
 
+/** Options for `GET /balances/{balance_id}`. */
+export interface GetBalanceRequest {
+  /** Reconstruct balance from transactions instead of snapshots when true. */
+  from_source?: boolean;
+}
+
 /** Options for `GET /balances/{balance_id}/at`. */
 export interface GetBalanceAtRequest {
   /** ISO 8601 timestamp (RFC3339), e.g. `2025-02-24T08:55:26Z`. */
