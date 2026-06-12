@@ -753,6 +753,43 @@ See the [Get reindex status reference](https://docs.blnkfinance.com/reference/ge
 
 ---
 
+## Reconciliation
+
+| Method | Endpoint | Use case |
+|--------|----------|----------|
+| `Reconciliation.upload(file, source)` | `POST /reconciliation/upload` | Upload external data file |
+| `Reconciliation.createMatchingRule(data)` | `POST /reconciliation/matching-rules` | Define match criteria |
+| `Reconciliation.run(data)` | `POST /reconciliation/start` | Start batch reconciliation from upload |
+| `Reconciliation.runInstant(data)` | `POST /reconciliation/start-instant` | Reconcile inline external transactions |
+
+### Instant reconciliation
+
+```typescript
+const { Reconciliation } = blnk;
+
+const instant = await Reconciliation.runInstant({
+  external_transactions: [
+    {
+      id: 'txn_1',
+      amount: 5.49,
+      reference: 'INV-2023-002',
+      currency: 'GBP',
+      description: 'Card payment',
+      date: '2024-11-15T14:25:30Z',
+      source: 'bank-api',
+    },
+  ],
+  strategy: 'one_to_one',
+  dry_run: true,
+  matching_rule_ids: ['rule_abc123'],
+});
+// instant.data?.reconciliation_id — reconciliation run ID
+```
+
+See the [Instant reconciliation reference](https://docs.blnkfinance.com/reference/instant-reconciliation).
+
+---
+
 ## Additional Resources
 
 For more examples and advanced use cases, please refer to the [Examples Code](https://github.com/blnkfinance/blnk-ts/tree/main/examples).
