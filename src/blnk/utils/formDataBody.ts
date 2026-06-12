@@ -13,6 +13,10 @@ export function isWebFormData(data: unknown): data is FormData {
  * Converts npm `form-data` (including stream-backed file parts) to a body
  * native `fetch` accepts.
  */
+export function isStreamingFetchBody(body: BodyInit | undefined): boolean {
+  return typeof ReadableStream !== `undefined` && body instanceof ReadableStream;
+}
+
 export function nodeFormDataToFetchBody(formData: FormDataNode): {
   body: ReadableStream<Uint8Array>;
   headers: Record<string, string>;

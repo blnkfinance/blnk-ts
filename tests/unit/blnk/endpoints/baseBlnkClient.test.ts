@@ -96,6 +96,7 @@ tap.test(`Blnk SDK tests`, t => {
     const headers = init.headers as Record<string, string>;
     tt.match(headers[`content-type`], /multipart\/form-data/);
     tt.notMatch(headers[`content-type`], /application\/json/);
+    tt.equal((init as RequestInit & {duplex?: string}).duplex, `half`);
     tt.end();
   });
 
@@ -138,6 +139,7 @@ tap.test(`Blnk SDK tests`, t => {
       );
       tt.match(payload, /amount,ref/);
       tt.match(payload, /100,abc/);
+      tt.equal((init as RequestInit & {duplex?: string}).duplex, `half`);
       tt.end();
     },
   );
@@ -179,6 +181,7 @@ tap.test(`Blnk SDK tests`, t => {
       );
       tt.match(payload, /stripe/);
       tt.match(payload, /200,xyz/);
+      tt.equal((init as RequestInit & {duplex?: string}).duplex, `half`);
       tt.end();
     },
   );

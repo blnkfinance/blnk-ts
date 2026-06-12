@@ -7,6 +7,7 @@ import {
 } from "../../types/general";
 import {
   isNodeFormData,
+  isStreamingFetchBody,
   isWebFormData,
   nodeFormDataToFetchBody,
 } from "../utils/formDataBody";
@@ -125,15 +126,23 @@ export class Blnk {
       ...formDataHeaders,
     };
 
+    type FetchInitWithDuplex = RequestInit & {duplex?: `half`};
+
+    const fetchInit: FetchInitWithDuplex = {
+      method,
+      headers,
+      body,
+      signal: controller.signal,
+    };
+
+    if (isStreamingFetchBody(body)) {
+      fetchInit.duplex = `half`;
+    }
+
     try {
       const response = await this.thirdPartyRequest(
         `${this.options.baseUrl}${endpoint}`,
-        {
-          method,
-          headers,
-          body,
-          signal: controller.signal,
-        },
+        fetchInit,
       );
 
       if (!response.ok) {
