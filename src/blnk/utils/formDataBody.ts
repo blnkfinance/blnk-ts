@@ -1,4 +1,5 @@
 import FormDataNode from "form-data";
+import {PassThrough, Readable} from "node:stream";
 
 export function isNodeFormData(data: unknown): data is FormDataNode {
   return data instanceof FormDataNode;
@@ -9,14 +10,18 @@ export function isWebFormData(data: unknown): data is FormData {
 }
 
 /**
- * Converts the npm `form-data` payload to a body + headers native `fetch` accepts.
+ * Converts npm `form-data` (including stream-backed file parts) to a body
+ * native `fetch` accepts.
  */
 export function nodeFormDataToFetchBody(formData: FormDataNode): {
-  body: Uint8Array;
+  body: ReadableStream<Uint8Array>;
   headers: Record<string, string>;
 } {
+  const passthrough = new PassThrough();
+  formData.pipe(passthrough);
+
   return {
-    body: new Uint8Array(formData.getBuffer()),
+    body: Readable.toWeb(passthrough) as ReadableStream<Uint8Array>,
     headers: formData.getHeaders() as Record<string, string>,
   };
 }

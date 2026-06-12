@@ -9,6 +9,11 @@ import {
 import {BlnkClientOptions} from "../../../../src/types/blnkClient";
 import {FormatResponse} from "../../../../src/blnk/utils/httpClient";
 import FormDataNode from "form-data";
+import {createReadStream, mkdtempSync, writeFileSync} from "fs";
+import {tmpdir} from "os";
+import {join} from "path";
+import {Reconciliation} from "../../../../src/blnk/endpoints/reconciliation";
+import {readWebStreamBody} from "../../../mocks/streamTestUtils";
 
 tap.test(`Blnk SDK tests`, t => {
   const options: BlnkClientOptions = createMockBlnkClientOptions();
@@ -83,12 +88,100 @@ tap.test(`Blnk SDK tests`, t => {
     await formBlnk[`request`](`reconciliation/upload`, formData, `POST`);
 
     const init = capturedFetch.calls[0]?.args[1] as RequestInit;
-    tt.ok(init.body instanceof Uint8Array);
+    tt.ok(init.body instanceof ReadableStream);
+    const payload = await readWebStreamBody(
+      init.body as ReadableStream<Uint8Array>,
+    );
+    tt.match(payload, /a,b,c/);
     const headers = init.headers as Record<string, string>;
     tt.match(headers[`content-type`], /multipart\/form-data/);
     tt.notMatch(headers[`content-type`], /application\/json/);
     tt.end();
   });
+
+  t.test(
+    `request converts stream-backed npm FormData for native fetch`,
+    async tt => {
+      const dir = mkdtempSync(join(tmpdir(), `blnk-upload-`));
+      const filePath = join(dir, `upload.csv`);
+      writeFileSync(filePath, `amount,ref\n100,abc`);
+
+      const formData = new FormDataNode();
+      formData.append(`source`, `stripe`);
+      formData.append(`file`, createReadStream(filePath), {
+        filename: `upload.csv`,
+      });
+
+      const capturedFetch = tt.captureFn(
+        async (_input: RequestInfo | URL, _init?: RequestInit) =>
+          ({
+            ok: true,
+            status: 201,
+            json: async () => ({upload_id: `upl_test`}),
+            statusText: `Created`,
+          }) as Response,
+      );
+      const formBlnk = new Blnk(
+        apiKey,
+        options,
+        mockServices,
+        FormatResponse,
+        capturedFetch,
+      );
+
+      await formBlnk[`request`](`reconciliation/upload`, formData, `POST`);
+
+      const init = capturedFetch.calls[0]?.args[1] as RequestInit;
+      tt.ok(init.body instanceof ReadableStream);
+      const payload = await readWebStreamBody(
+        init.body as ReadableStream<Uint8Array>,
+      );
+      tt.match(payload, /amount,ref/);
+      tt.match(payload, /100,abc/);
+      tt.end();
+    },
+  );
+
+  t.test(
+    `reconciliation.upload sends stream multipart body through native fetch`,
+    async tt => {
+      const dir = mkdtempSync(join(tmpdir(), `blnk-recon-upload-`));
+      const filePath = join(dir, `upload.csv`);
+      writeFileSync(filePath, `amount,ref\n200,xyz`);
+
+      const capturedFetch = tt.captureFn(
+        async (_input: RequestInfo | URL, _init?: RequestInit) =>
+          ({
+            ok: true,
+            status: 201,
+            json: async () => ({upload_id: `upl_test`}),
+            statusText: `Created`,
+          }) as Response,
+      );
+      const uploadBlnk = new Blnk(
+        apiKey,
+        options,
+        {...mockServices, Reconciliation},
+        FormatResponse,
+        capturedFetch,
+      );
+
+      const response = await uploadBlnk.Reconciliation.upload(
+        filePath,
+        `stripe`,
+      );
+
+      tt.equal(response.status, 201);
+      const init = capturedFetch.calls[0]?.args[1] as RequestInit;
+      tt.ok(init.body instanceof ReadableStream);
+      const payload = await readWebStreamBody(
+        init.body as ReadableStream<Uint8Array>,
+      );
+      tt.match(payload, /stripe/);
+      tt.match(payload, /200,xyz/);
+      tt.end();
+    },
+  );
 
   t.test(`request passes AbortSignal for timeout`, async tt => {
     const signalFetch = async (
@@ -116,6 +209,26 @@ tap.test(`Blnk SDK tests`, t => {
       | RequestInit
       | undefined;
     tt.ok(capturedInit?.signal instanceof AbortSignal);
+    tt.end();
+  });
+
+  t.test(`request returns 408 when fetch aborts immediately`, async tt => {
+    const abortingFetch = async (): Promise<Response> => {
+      throw new DOMException(`The operation was aborted.`, `AbortError`);
+    };
+
+    const abortBlnk = new Blnk(
+      apiKey,
+      options,
+      mockServices,
+      FormatResponse,
+      abortingFetch,
+    );
+
+    const result = await abortBlnk[`request`](`/slow`, {foo: `bar`}, `POST`);
+
+    tt.equal(result.status, 408);
+    tt.match(result.message, /timed out/);
     tt.end();
   });
 
