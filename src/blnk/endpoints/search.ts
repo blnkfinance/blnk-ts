@@ -5,14 +5,10 @@ import {
   FormatResponseType,
 } from "../../types/general";
 import {
-  SearchBalanceDocument,
   SearchCollection,
   SearchDocumentByCollection,
-  SearchIdentityDocument,
-  SearchLedgerDocument,
   SearchParams,
   SearchResponse,
-  SearchTransactionDocument,
 } from "../../types/search";
 import {HandleError} from "../utils/logger";
 import {
@@ -39,23 +35,12 @@ export class Search {
     this.formatResponse = formatResponse;
   }
 
-  async search(
+  async search<C extends SearchCollection>(
     data: SearchParams,
-    service: `ledgers`,
-  ): Promise<ApiResponse<SearchResponse<SearchLedgerDocument> | null>>;
-  async search(
-    data: SearchParams,
-    service: `transactions`,
-  ): Promise<ApiResponse<SearchResponse<SearchTransactionDocument> | null>>;
-  async search(
-    data: SearchParams,
-    service: `balances`,
-  ): Promise<ApiResponse<SearchResponse<SearchBalanceDocument> | null>>;
-  async search(
-    data: SearchParams,
-    service: `identities`,
-  ): Promise<ApiResponse<SearchResponse<SearchIdentityDocument> | null>>;
-  async search(data: SearchParams, service: SearchCollection) {
+    service: C,
+  ): Promise<
+    ApiResponse<SearchResponse<SearchDocumentByCollection[C]> | null>
+  > {
     try {
       const collectionError = ValidateSearchCollection(service);
       if (collectionError) {

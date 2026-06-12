@@ -1,12 +1,21 @@
 /* eslint-disable n/no-unpublished-import */
 import tap from "tap";
+import {Search} from "../../../src/blnk/endpoints/search";
+import {FormatResponse} from "../../../src/blnk/utils/httpClient";
+import {BlnkRequest} from "../../../src/types/general";
+import {
+  createMockBlnkRequest,
+  createMockLogger,
+} from "../../mocks/blnkClientMocks";
 import {
   SearchBalanceDocument,
+  SearchCollection,
   SearchIdentityDocument,
   SearchLedgerDocument,
   SearchResponse,
   SearchTransactionDocument,
 } from "../../../src/types/search";
+import {assertSearchSearchTypes} from "../../helpers/searchSearchInference";
 
 tap.test(`Issue #52 — SearchResponse per collection`, t => {
   t.test(`ledger document uses indexed fields`, tt => {
@@ -108,6 +117,66 @@ tap.test(`Issue #52 — SearchResponse per collection`, t => {
     };
 
     tt.equal(response.hits[0].document.identity_id.startsWith(`idt_`), true);
+    tt.end();
+  });
+
+  t.test(`Search.search infers transaction document fields`, async tt => {
+    const transactionSearchResponse: SearchResponse<SearchTransactionDocument> =
+      {
+        found: 1,
+        out_of: 11,
+        page: 1,
+        request_params: {collection_name: `transactions`, q: `payment`},
+        search_time_ms: 2,
+        hits: [
+          {
+            document: {
+              id: `txn_8bb67c99-70b1-46c2-aa49-1ea3fc2f2233`,
+              transaction_id: `txn_8bb67c99-70b1-46c2-aa49-1ea3fc2f2233`,
+              status: `APPLIED`,
+              precise_amount: `250000`,
+              created_at: 1781028226,
+            },
+          },
+        ],
+      };
+
+    const mockRequest: BlnkRequest = async () => ({
+      status: 201,
+      message: `Success`,
+      data: transactionSearchResponse,
+    });
+
+    const search = new Search(mockRequest, createMockLogger(), FormatResponse);
+    const response = await search.search({q: `payment`}, `transactions`);
+
+    tt.equal(response.status, 201);
+    tt.equal(response.data?.hits[0]?.document.status, `APPLIED`);
+    tt.equal(
+      response.data?.hits[0]?.document.transaction_id,
+      `txn_8bb67c99-70b1-46c2-aa49-1ea3fc2f2233`,
+    );
+    tt.end();
+  });
+
+  t.test(
+    `Search.search accepts dynamic SearchCollection variable`,
+    async tt => {
+      const mockLogger = createMockLogger();
+      const thirdPartyRequest = createMockBlnkRequest(true, undefined, 201);
+      const search = new Search(thirdPartyRequest, mockLogger, FormatResponse);
+      const service: SearchCollection = `ledgers`;
+
+      const response = await search.search({q: `General`}, service);
+
+      tt.equal(response.status, 201);
+      tt.end();
+    },
+  );
+
+  t.test(`compile-time Search.search inference checks`, tt => {
+    void assertSearchSearchTypes;
+    tt.pass(`searchSearchInference.ts type checks compile`);
     tt.end();
   });
 
