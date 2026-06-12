@@ -863,6 +863,7 @@ See the [Update metadata reference](https://docs.blnkfinance.com/reference/updat
 | Method | Endpoint | Use case |
 |--------|----------|----------|
 | `Hooks.create(data)` | `POST /hooks` | Register a pre- or post-transaction webhook |
+| `Hooks.list(options?)` | `GET /hooks` | List hooks, optionally by `type` query |
 | `Hooks.get(id)` | `GET /hooks/{id}` | View hook details |
 | `Hooks.update(id, data)` | `PUT /hooks/{id}` | Update an existing webhook |
 
@@ -885,6 +886,15 @@ const hook = await Hooks.create({
 ```
 
 See the [Register hooks reference](https://docs.blnkfinance.com/reference/create-hooks).
+
+### List hooks
+
+```typescript
+const allHooks = await Hooks.list();
+const preTxnHooks = await Hooks.list({ type: 'PRE_TRANSACTION' });
+```
+
+See the [List hooks by type reference](https://docs.blnkfinance.com/reference/list-hooks-by-type).
 
 ### View a hook
 

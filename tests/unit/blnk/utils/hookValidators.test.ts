@@ -2,6 +2,7 @@
 import tap from "tap";
 import {
   ValidateCreateHookData,
+  ValidateListHooksOptions,
   ValidateUpdateHookData,
 } from "../../../../src/blnk/utils/validators/hookValidators";
 import {CreateHookData} from "../../../../src/types/hooks";
@@ -62,6 +63,33 @@ tap.test(`ValidateCreateHookData`, async t => {
     tt.match(
       ValidateCreateHookData({...validData, retry_count: -1}),
       /retry_count/,
+    );
+    tt.end();
+  });
+});
+
+tap.test(`ValidateListHooksOptions`, async t => {
+  t.test(`accepts undefined options`, tt => {
+    tt.equal(ValidateListHooksOptions(undefined), null);
+    tt.end();
+  });
+
+  t.test(`accepts empty options`, tt => {
+    tt.equal(ValidateListHooksOptions({}), null);
+    tt.end();
+  });
+
+  t.test(`accepts valid type`, tt => {
+    tt.equal(ValidateListHooksOptions({type: `PRE_TRANSACTION`}), null);
+    tt.end();
+  });
+
+  t.test(`rejects invalid type`, tt => {
+    tt.match(
+      ValidateListHooksOptions({
+        type: `INVALID` as CreateHookData[`type`],
+      }),
+      /type/,
     );
     tt.end();
   });
