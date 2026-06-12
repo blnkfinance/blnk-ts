@@ -27,3 +27,7 @@ export interface HookResp {
   last_run: string;
   last_success: boolean;
 }
+
+export interface DeleteHookResp {
+  message: string;
+}

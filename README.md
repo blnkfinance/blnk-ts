@@ -866,6 +866,7 @@ See the [Update metadata reference](https://docs.blnkfinance.com/reference/updat
 | `Hooks.list(options?)` | `GET /hooks` | List hooks, optionally by `type` query |
 | `Hooks.get(id)` | `GET /hooks/{id}` | View hook details |
 | `Hooks.update(id, data)` | `PUT /hooks/{id}` | Update an existing webhook |
+| `Hooks.delete(id)` | `DELETE /hooks/{id}` | Delete a webhook |
 
 > Hook management requires the **master key** (`server.secret_key`) in `X-Blnk-Key`. Regular API keys return `403`.
 
@@ -919,6 +920,15 @@ const updated = await Hooks.update(hook.data!.id, {
 ```
 
 See the [Update hooks reference](https://docs.blnkfinance.com/reference/update-hooks).
+
+### Delete a hook
+
+```typescript
+const deleted = await Hooks.delete(hook.data!.id);
+// deleted.data?.message — "hook deleted successfully"
+```
+
+See the [Delete hooks reference](https://docs.blnkfinance.com/reference/delete-hooks).
 
 ---
 

@@ -5,6 +5,7 @@ import {FormatResponse} from "../../../../src/blnk/utils/httpClient";
 import {createMockLogger} from "../../../mocks/blnkClientMocks";
 import {
   CreateHookData,
+  DeleteHookResp,
   HookResp,
   UpdateHookData,
 } from "../../../../src/types/hooks";
@@ -307,6 +308,69 @@ tap.test(`Issue #29 — Hooks.update`, async t => {
     const response = await hooks.update(`hk_missing`, updateData);
 
     tt.match(capturedRequest.args(), [[`hooks/hk_missing`, updateData, `PUT`]]);
+    tt.equal(response.status, 404);
+    tt.end();
+  });
+});
+
+tap.test(`Issue #32 — Hooks.delete`, async t => {
+  const deleteResponse: DeleteHookResp = {
+    message: `hook deleted successfully`,
+  };
+
+  t.test(`delete DELETEs hooks/{id}`, async tt => {
+    const mockLogger = createMockLogger();
+    const thirdPartyRequest = async <R>() => ({
+      status: 200,
+      message: `Success`,
+      data: deleteResponse as unknown as R,
+    });
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const hooks = new Hooks(capturedRequest, mockLogger, FormatResponse);
+
+    const response = await hooks.delete(`hk_test_123`);
+
+    tt.match(capturedRequest.args(), [
+      [`hooks/hk_test_123`, undefined, `DELETE`],
+    ]);
+    tt.equal(response.status, 200);
+    tt.equal(response.data?.message, `hook deleted successfully`);
+    tt.end();
+  });
+
+  t.test(`delete returns 400 for empty id`, async tt => {
+    const mockLogger = createMockLogger();
+    const thirdPartyRequest = async <R>() => ({
+      status: 200,
+      message: `Success`,
+      data: deleteResponse as unknown as R,
+    });
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const hooks = new Hooks(capturedRequest, mockLogger, FormatResponse);
+
+    const response = await hooks.delete(``);
+
+    tt.equal(capturedRequest.calls.length, 0);
+    tt.equal(response.status, 400);
+    tt.match(response.message, /hook id/);
+    tt.end();
+  });
+
+  t.test(`delete forwards API errors`, async tt => {
+    const mockLogger = createMockLogger();
+    const thirdPartyRequest = async <R>() => ({
+      status: 404,
+      message: `hook not found`,
+      data: null as R | null,
+    });
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const hooks = new Hooks(capturedRequest, mockLogger, FormatResponse);
+
+    const response = await hooks.delete(`hk_missing`);
+
+    tt.match(capturedRequest.args(), [
+      [`hooks/hk_missing`, undefined, `DELETE`],
+    ]);
     tt.equal(response.status, 404);
     tt.end();
   });
