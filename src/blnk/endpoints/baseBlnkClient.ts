@@ -20,7 +20,10 @@ import {
 import {HandleError} from "../utils/logger";
 import {
   isRetryableFetchError,
+  isRetryableHttpMethod,
   isRetryableHttpStatus,
+  normalizeRetryCount,
+  normalizeRetryDelayMs,
   retryDelayForAttempt,
   sleep,
 } from "../utils/requestRetry";
@@ -88,6 +91,8 @@ export class Blnk {
       retryDelayMs: DEFAULT_RETRY_DELAY_MS,
       ...restOptions,
     };
+    this.options.retryCount = normalizeRetryCount(this.options.retryCount);
+    this.options.retryDelayMs = normalizeRetryDelayMs(this.options.retryDelayMs);
 
     if (logger === undefined) {
       this.logger = console;
@@ -114,8 +119,8 @@ export class Blnk {
     headerOptions?: Record<string, string>,
   ): Promise<ApiResponse<R | null>> {
     const timeoutMs = this.options.timeout ?? DEFAULT_TIMEOUT_MS;
-    const maxAttempts = this.options.retryCount ?? DEFAULT_RETRY_COUNT;
-    const retryDelayMs = this.options.retryDelayMs ?? DEFAULT_RETRY_DELAY_MS;
+    const maxAttempts = normalizeRetryCount(this.options.retryCount);
+    const retryDelayMs = normalizeRetryDelayMs(this.options.retryDelayMs);
 
     let body: BodyInit | undefined;
     const formDataHeaders: Record<string, string> = {};
@@ -133,7 +138,8 @@ export class Blnk {
     }
 
     const isMultipart = isNodeFormData(data) || isWebFormData(data);
-    const canRetry = !isMultipart && maxAttempts > 1;
+    const canRetry =
+      !isMultipart && maxAttempts > 1 && isRetryableHttpMethod(method);
     const headers: Record<string, string> = {
       "X-Blnk-Key": this.apiKey,
       ...(!isMultipart ? {"content-type": `application/json`} : {}),
@@ -183,7 +189,7 @@ export class Blnk {
             isRetryableHttpStatus(response.status) &&
             attempt < maxAttempts
           ) {
-            this.logger.error(
+            this.logger.info(
               `Request to ${endpoint} failed with status ${response.status}; retrying.`,
             );
             continue;
@@ -208,6 +214,7 @@ export class Blnk {
         ) as ApiResponse<R>;
       } catch (error: unknown) {
         if (error instanceof Error && error.name === `AbortError`) {
+          // Timeouts are intentionally not retried to avoid duplicate mutating calls.
           this.logger.error(`Request timed out`, {endpoint, timeoutMs});
           return this.formatResponse(
             408,
@@ -217,7 +224,7 @@ export class Blnk {
         }
 
         if (canRetry && isRetryableFetchError(error) && attempt < maxAttempts) {
-          this.logger.error(`Request to ${endpoint} failed; retrying.`, {
+          this.logger.info(`Request to ${endpoint} failed; retrying.`, {
             error,
           });
           continue;

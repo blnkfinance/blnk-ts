@@ -2,7 +2,10 @@ export interface BlnkClientOptions {
   baseUrl: string; // Required
   /** HTTP timeout in ms. Defaults to 10000. */
   timeout?: number;
-  /** Total request attempts including the first. Defaults to 1. */
+  /**
+   * Total request attempts including the first. Defaults to 1.
+   * Retries apply only to idempotent `GET` requests (not POST/PUT/DELETE).
+   */
   retryCount?: number;
   /** Base delay between retries in ms. Defaults to 2000. */
   retryDelayMs?: number;

@@ -4,8 +4,30 @@ export function sleep(ms: number): Promise<void> {
   });
 }
 
+export function isRetryableHttpMethod(
+  method: `POST` | `GET` | `PUT` | `DELETE`,
+): boolean {
+  return method === `GET`;
+}
+
 export function isRetryableHttpStatus(status: number): boolean {
   return status >= 500;
+}
+
+export function normalizeRetryCount(retryCount: number | undefined): number {
+  if (retryCount === undefined || retryCount < 1) {
+    return 1;
+  }
+
+  return retryCount;
+}
+
+export function normalizeRetryDelayMs(retryDelayMs: number | undefined): number {
+  if (retryDelayMs === undefined || retryDelayMs < 0) {
+    return 2000;
+  }
+
+  return retryDelayMs;
 }
 
 export function isRetryableFetchError(error: unknown): boolean {

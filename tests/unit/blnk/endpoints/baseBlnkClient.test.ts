@@ -353,7 +353,7 @@ tap.test(`Blnk SDK tests`, t => {
     tt.end();
   });
 
-  t.test(`request retries retryable 5xx responses`, async tt => {
+  t.test(`request retries retryable 5xx GET responses`, async tt => {
     let calls = 0;
     const retryFetch = async () => {
       calls += 1;
@@ -382,14 +382,129 @@ tap.test(`Blnk SDK tests`, t => {
       retryFetch,
     );
 
-    const result = await retryBlnk[`request`](
-      `/retry-me`,
-      {foo: `bar`},
-      `POST`,
-    );
+    const result = await retryBlnk[`request`](`/retry-me`, {}, `GET`);
 
     tt.equal(calls, 2);
     tt.equal(result.status, 200);
+    tt.end();
+  });
+
+  t.test(`request does not retry mutating POST on 5xx`, async tt => {
+    let calls = 0;
+    const postFetch = async () => {
+      calls += 1;
+      return {
+        ok: false,
+        status: 503,
+        json: async () => ({
+          error: `temporarily unavailable`,
+          error_detail: {
+            code: `GEN_INTERNAL`,
+            message: `temporarily unavailable`,
+          },
+        }),
+        statusText: `Service Unavailable`,
+      } as Response;
+    };
+
+    const postBlnk = new Blnk(
+      apiKey,
+      {...options, retryCount: 3, retryDelayMs: 1},
+      mockServices,
+      FormatResponse,
+      postFetch,
+    );
+
+    const result = await postBlnk[`request`](
+      `transactions`,
+      {amount: 100},
+      `POST`,
+    );
+
+    tt.equal(calls, 1);
+    tt.equal(result.status, 503);
+    tt.same(result.error?.code, `GEN_INTERNAL`);
+    tt.end();
+  });
+
+  t.test(`request does not retry timeouts even when retryCount > 1`, async tt => {
+    let calls = 0;
+    const timeoutFetch = async (
+      _input: RequestInfo | URL,
+      init?: RequestInit,
+    ): Promise<Response> =>
+      new Promise((_resolve, reject) => {
+        calls += 1;
+        init?.signal?.addEventListener(`abort`, () => {
+          reject(new DOMException(`The operation was aborted.`, `AbortError`));
+        });
+      });
+
+    const timeoutBlnk = new Blnk(
+      apiKey,
+      {...options, timeout: 10, retryCount: 3, retryDelayMs: 1},
+      mockServices,
+      FormatResponse,
+      timeoutFetch,
+    );
+
+    const result = await timeoutBlnk[`request`](`/slow`, {}, `GET`);
+
+    tt.equal(calls, 1);
+    tt.equal(result.status, 408);
+    tt.end();
+  });
+
+  t.test(
+    `request returns structured error after GET retries are exhausted`,
+    async tt => {
+      let calls = 0;
+      const failingFetch = async () => {
+        calls += 1;
+        return {
+          ok: false,
+          status: 503,
+          json: async () => ({
+            error: `still unavailable`,
+            error_detail: {
+              code: `GEN_INTERNAL`,
+              message: `still unavailable`,
+            },
+          }),
+          statusText: `Service Unavailable`,
+        } as Response;
+      };
+
+      const exhaustedBlnk = new Blnk(
+        apiKey,
+        {...options, retryCount: 2, retryDelayMs: 1},
+        mockServices,
+        FormatResponse,
+        failingFetch,
+      );
+
+      const result = await exhaustedBlnk[`request`](`/unstable`, {}, `GET`);
+
+      tt.equal(calls, 2);
+      tt.equal(result.status, 503);
+      tt.same(result.error, {
+        code: `GEN_INTERNAL`,
+        message: `still unavailable`,
+      });
+      tt.end();
+    },
+  );
+
+  t.test(`retryCount below 1 is normalized to 1`, async tt => {
+    const normalizedBlnk = new Blnk(
+      apiKey,
+      {baseUrl: `http://mock-api.com`, retryCount: 0},
+      mockServices,
+      FormatResponse,
+      thirdPartyRequest,
+    );
+
+    tt.equal(normalizedBlnk[`options`].retryCount, 1);
     tt.end();
   });
 
