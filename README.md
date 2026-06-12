@@ -170,6 +170,23 @@ const newIdentity = await Identity.create({
 console.log('Identity Created:', newIdentity);
 ```
 
+### Tokenize identity fields
+
+| Method | Endpoint | Use case |
+|--------|----------|----------|
+| `Identity.tokenize(id, data)` | `POST /identities/{identity_id}/tokenize` | Tokenize multiple PII fields on an identity |
+
+```typescript
+const { Identity } = blnk;
+
+const tokenized = await Identity.tokenize(identity.data!.identity_id, {
+  fields: ['firstName', 'lastName', 'emailAddress', 'phoneNumber'],
+});
+// tokenized.data?.message — "Fields tokenized successfully"
+```
+
+See the [Tokenize identity reference](https://docs.blnkfinance.com/reference/tokenize-identity).
+
 ---
 
 ## 6. Creating Balances

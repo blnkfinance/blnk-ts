@@ -33,3 +33,12 @@ export interface IdentityDataResponse<
   /** Date of birth as returned by the API (ISO 8601 string). */
   dob?: string;
 }
+
+export interface TokenizeIdentityData {
+  /** Identity field names to tokenize (e.g. `firstName`, `emailAddress`). */
+  fields: string[];
+}
+
+export interface TokenizeIdentityResp {
+  message: string;
+}

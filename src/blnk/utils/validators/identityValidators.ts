@@ -1,6 +1,7 @@
-import {IdentityData} from "../../../types/identity";
+import {IdentityData, TokenizeIdentityData} from "../../../types/identity";
 import {isValidMetaData} from "./ledgerBalance";
 import {isValidIdentityDateInput} from "../identitySerialization";
+import {IsValidArray, IsValidString} from "../stringUtils";
 
 const IDENTITY_ID_PATTERN =
   /^idt_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -34,6 +35,31 @@ export function ValidateIdentity<T extends Record<string, unknown>>(
 
   if (data.meta_data !== undefined && !isValidMetaData(data.meta_data)) {
     return `meta_data must be a valid object if provided`;
+  }
+
+  return null;
+}
+
+export function ValidateTokenizeIdentityData(
+  id: string,
+  data: TokenizeIdentityData,
+): string | null {
+  if (!IsValidString(id) || id === ``) {
+    return `identity id is required`;
+  }
+
+  if (!data || typeof data !== `object`) {
+    return `Data must be a valid object of type TokenizeIdentityData`;
+  }
+
+  if (!IsValidArray(data.fields) || data.fields.length === 0) {
+    return `at least one field must be specified`;
+  }
+
+  for (const field of data.fields) {
+    if (!IsValidString(field) || field === ``) {
+      return `each field must be a non-empty string`;
+    }
   }
 
   return null;
