@@ -179,11 +179,14 @@ console.log('Identity Created:', newIdentity);
 ```typescript
 const { Identity } = blnk;
 
+// Use PascalCase struct field names — not the snake_case JSON keys on IdentityData.
 const tokenized = await Identity.tokenize(identity.data!.identity_id, {
-  fields: ['firstName', 'lastName', 'emailAddress', 'phoneNumber'],
+  fields: ['FirstName', 'LastName', 'EmailAddress', 'PhoneNumber'],
 });
 // tokenized.data?.message — "Fields tokenized successfully"
 ```
+
+> `fields` must be Core struct names (`FirstName`, `EmailAddress`, …). Passing `first_name` or `email_address` from `IdentityData` will be rejected.
 
 See the [Tokenize identity reference](https://docs.blnkfinance.com/reference/tokenize-identity).
 

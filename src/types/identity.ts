@@ -34,9 +34,23 @@ export interface IdentityDataResponse<
   dob?: string;
 }
 
+/** Core tokenization field names (Go struct fields), not `IdentityData` JSON keys. */
+export type TokenizableIdentityField =
+  | `FirstName`
+  | `LastName`
+  | `OtherNames`
+  | `EmailAddress`
+  | `PhoneNumber`
+  | `Street`
+  | `PostCode`;
+
 export interface TokenizeIdentityData {
-  /** Identity field names to tokenize (e.g. `firstName`, `emailAddress`). */
-  fields: string[];
+  /**
+   * Field names to tokenize. Use PascalCase struct names (`FirstName`,
+   * `EmailAddress`), not the snake_case keys on `IdentityData` (`first_name`,
+   * `email_address`) — Core rejects snake_case with "field is not tokenizable".
+   */
+  fields: TokenizableIdentityField[];
 }
 
 export interface TokenizeIdentityResp {

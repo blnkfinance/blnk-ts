@@ -5,7 +5,7 @@ import {TokenizeIdentityData} from "../../../../src/types/identity";
 
 tap.test(`ValidateTokenizeIdentityData`, async t => {
   const validData: TokenizeIdentityData = {
-    fields: [`firstName`, `emailAddress`],
+    fields: [`FirstName`, `EmailAddress`],
   };
 
   t.equal(ValidateTokenizeIdentityData(`idt_test_123`, validData), null);
@@ -19,7 +19,7 @@ tap.test(`ValidateTokenizeIdentityData`, async t => {
   );
   t.equal(
     ValidateTokenizeIdentityData(`idt_test_123`, {
-      fields: [`firstName`, ``],
+      fields: [`FirstName`, ``],
     }),
     `each field must be a non-empty string`,
   );

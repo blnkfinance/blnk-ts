@@ -9,7 +9,7 @@ import {
 } from "../../../../src/types/identity";
 
 const validData: TokenizeIdentityData = {
-  fields: [`firstName`, `emailAddress`],
+  fields: [`FirstName`, `EmailAddress`],
 };
 
 const mockResponse: TokenizeIdentityResp = {
@@ -17,6 +17,28 @@ const mockResponse: TokenizeIdentityResp = {
 };
 
 tap.test(`Issue #23 — Identity.tokenize`, async t => {
+  t.test(`tokenize uses PascalCase struct field names`, async tt => {
+    const mockLogger = createMockLogger();
+    const pascalCaseData: TokenizeIdentityData = {
+      fields: [`FirstName`, `LastName`, `EmailAddress`, `PhoneNumber`],
+    };
+    const thirdPartyRequest = async <R>() => ({
+      status: 200,
+      message: `Success`,
+      data: mockResponse as unknown as R,
+    });
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const identity = new Identity(capturedRequest, mockLogger, FormatResponse);
+
+    const response = await identity.tokenize(`idt_test_123`, pascalCaseData);
+
+    tt.match(capturedRequest.args(), [
+      [`identities/idt_test_123/tokenize`, pascalCaseData, `POST`],
+    ]);
+    tt.equal(response.status, 200);
+    tt.end();
+  });
+
   t.test(`tokenize POSTs identities/{id}/tokenize`, async tt => {
     const mockLogger = createMockLogger();
     const thirdPartyRequest = async <R>() => ({
