@@ -12,12 +12,15 @@ import {
   SearchDocumentByCollection,
   SearchParams,
   SearchResponse,
+  StartReindexRequest,
+  StartReindexResponse,
 } from "../../types/search";
 import {HandleError} from "../utils/logger";
 import {
   ValidateFilterParams,
   ValidateSearchCollection,
   ValidateSearchParams,
+  ValidateStartReindexRequest,
 } from "../utils/validators/searchValidators";
 
 /**
@@ -99,6 +102,41 @@ export class Search {
         this.logger,
         this.formatResponse,
         this.filter.name,
+      );
+    }
+  }
+
+  /**
+   * Starts a Typesense reindex from the database.
+   *
+   * @see https://docs.blnkfinance.com/reference/start-reindex
+   */
+  async startReindex(options?: StartReindexRequest) {
+    try {
+      if (options !== undefined) {
+        const paramsError = ValidateStartReindexRequest(options);
+        if (paramsError) {
+          return this.formatResponse(400, paramsError, null);
+        }
+      }
+
+      const body: StartReindexRequest =
+        options?.batch_size !== undefined
+          ? {batch_size: options.batch_size}
+          : {};
+
+      const response = await this.request<
+        StartReindexRequest,
+        StartReindexResponse
+      >(`search/reindex`, body, `POST`);
+
+      return response;
+    } catch (error) {
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.startReindex.name,
       );
     }
   }
