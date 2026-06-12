@@ -4,6 +4,7 @@ import {BlnkRequest, FormatResponseType} from "../../types/general";
 import {HandleError} from "../utils/logger";
 import fs from "fs";
 import {
+  DeleteMatchingRuleResp,
   Matcher,
   ReconciliationResp,
   ReconciliationUploadResp,
@@ -184,6 +185,34 @@ export class Reconciliation {
         this.logger,
         this.formatResponse,
         this.updateMatchingRule.name,
+      );
+    }
+  }
+
+  /**
+   * Deletes a matching rule by ID.
+   *
+   * @see https://docs.blnkfinance.com/reference/delete-matching-rule
+   */
+  async deleteMatchingRule(ruleId: string) {
+    try {
+      if (!ruleId) {
+        return this.formatResponse(400, `matching rule id is required`, null);
+      }
+
+      const response = await this.request<undefined, DeleteMatchingRuleResp>(
+        `reconciliation/matching-rules/${ruleId}`,
+        undefined,
+        `DELETE`,
+      );
+
+      return response;
+    } catch (error) {
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.deleteMatchingRule.name,
       );
     }
   }

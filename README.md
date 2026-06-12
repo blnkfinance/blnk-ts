@@ -760,6 +760,7 @@ See the [Get reindex status reference](https://docs.blnkfinance.com/reference/ge
 | `Reconciliation.upload(file, source)` | `POST /reconciliation/upload` | Upload external data file |
 | `Reconciliation.createMatchingRule(data)` | `POST /reconciliation/matching-rules` | Define match criteria |
 | `Reconciliation.updateMatchingRule(id, data)` | `PUT /reconciliation/matching-rules/{rule_id}` | Update an existing matching rule |
+| `Reconciliation.deleteMatchingRule(id)` | `DELETE /reconciliation/matching-rules/{rule_id}` | Remove a matching rule |
 | `Reconciliation.run(data)` | `POST /reconciliation/start` | Start batch reconciliation from upload |
 | `Reconciliation.runInstant(data)` | `POST /reconciliation/start-instant` | Reconcile inline external transactions |
 | `Reconciliation.get(id)` | `GET /reconciliation/{reconciliation_id}` | View reconciliation status and counts |
@@ -781,6 +782,17 @@ const updated = await Reconciliation.updateMatchingRule('rule_abc123', {
 ```
 
 See the [Update matching rule reference](https://docs.blnkfinance.com/reference/update-matching-rule).
+
+### Delete a matching rule
+
+```typescript
+const { Reconciliation } = blnk;
+
+const deleted = await Reconciliation.deleteMatchingRule('rule_abc123');
+// deleted.data?.message — "Matching rule deleted successfully"
+```
+
+See the [Delete matching rule reference](https://docs.blnkfinance.com/reference/delete-matching-rule).
 
 ### Get reconciliation status
 
