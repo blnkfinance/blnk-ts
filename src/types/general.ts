@@ -1,5 +1,6 @@
 import {Blnk} from "../blnk/endpoints/baseBlnkClient";
 import {BlnkClientOptions, BlnkLogger} from "./blnkClient";
+import {BlnkApiErrorDetail} from "./errors";
 
 export type BlnkRequest = <T, R>(
   endpoint: string,
@@ -28,6 +29,8 @@ export interface ApiResponse<T> {
   status: number;
   message: string;
   data: T;
+  /** Structured API error when Core returns a JSON error body. */
+  error?: BlnkApiErrorDetail | null;
 }
 
 export interface ApiResponseError {
@@ -38,6 +41,7 @@ export type FormatResponseType = <T>(
   status: number,
   message: string,
   data: T,
+  error?: BlnkApiErrorDetail | null,
 ) => ApiResponse<T>;
 
 export type Currency = `USD` | `NGN` | `EUR`;

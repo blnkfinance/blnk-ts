@@ -14,7 +14,9 @@ export function isWebFormData(data: unknown): data is FormData {
  * native `fetch` accepts.
  */
 export function isStreamingFetchBody(body: BodyInit | undefined): boolean {
-  return typeof ReadableStream !== `undefined` && body instanceof ReadableStream;
+  return (
+    typeof ReadableStream !== `undefined` && body instanceof ReadableStream
+  );
 }
 
 export function nodeFormDataToFetchBody(formData: FormDataNode): {

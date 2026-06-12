@@ -1,3 +1,8 @@
+import {
+  DEFAULT_RETRY_COUNT,
+  DEFAULT_RETRY_DELAY_MS,
+  DEFAULT_TIMEOUT_MS,
+} from "../constants/clientDefaults";
 import {BlnkClientOptions, BlnkLogger, FetchType} from "../../types/blnkClient";
 import {
   ApiResponse,
@@ -5,6 +10,7 @@ import {
   ServiceInstances,
   ServicesMap,
 } from "../../types/general";
+import {parseBlnkApiErrorBody} from "../../types/errors";
 import {
   isNodeFormData,
   isStreamingFetchBody,
@@ -12,6 +18,15 @@ import {
   nodeFormDataToFetchBody,
 } from "../utils/formDataBody";
 import {HandleError} from "../utils/logger";
+import {
+  isRetryableFetchError,
+  isRetryableHttpMethod,
+  isRetryableHttpStatus,
+  normalizeRetryCount,
+  normalizeRetryDelayMs,
+  retryDelayForAttempt,
+  sleep,
+} from "../utils/requestRetry";
 import {ApiKeys} from "./apiKeys";
 import {BalanceMonitor} from "./balanceMonitors";
 import {Hooks} from "./hooks";
@@ -71,9 +86,13 @@ export class Blnk {
     this.apiKey = apiKey;
     const {logger, ...restOptions} = options;
     this.options = {
-      timeout: 3000, //default timeout value in ms(30 seconds)
-      ...restOptions, //merge the provided options with defaults
+      timeout: DEFAULT_TIMEOUT_MS,
+      retryCount: DEFAULT_RETRY_COUNT,
+      retryDelayMs: DEFAULT_RETRY_DELAY_MS,
+      ...restOptions,
     };
+    this.options.retryCount = normalizeRetryCount(this.options.retryCount);
+    this.options.retryDelayMs = normalizeRetryDelayMs(this.options.retryDelayMs);
 
     if (logger === undefined) {
       this.logger = console;
@@ -99,9 +118,9 @@ export class Blnk {
     method: `POST` | `GET` | `PUT` | `DELETE`,
     headerOptions?: Record<string, string>,
   ): Promise<ApiResponse<R | null>> {
-    const controller = new AbortController();
-    const timeoutMs = this.options.timeout ?? 3000;
-    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    const timeoutMs = this.options.timeout ?? DEFAULT_TIMEOUT_MS;
+    const maxAttempts = normalizeRetryCount(this.options.retryCount);
+    const retryDelayMs = normalizeRetryDelayMs(this.options.retryDelayMs);
 
     let body: BodyInit | undefined;
     const formDataHeaders: Record<string, string> = {};
@@ -119,6 +138,8 @@ export class Blnk {
     }
 
     const isMultipart = isNodeFormData(data) || isWebFormData(data);
+    const canRetry =
+      !isMultipart && maxAttempts > 1 && isRetryableHttpMethod(method);
     const headers: Record<string, string> = {
       "X-Blnk-Key": this.apiKey,
       ...(!isMultipart ? {"content-type": `application/json`} : {}),
@@ -128,62 +149,104 @@ export class Blnk {
 
     type FetchInitWithDuplex = RequestInit & {duplex?: `half`};
 
-    const fetchInit: FetchInitWithDuplex = {
-      method,
-      headers,
-      body,
-      signal: controller.signal,
-    };
+    const url = `${this.options.baseUrl}${endpoint}`;
 
-    if (isStreamingFetchBody(body)) {
-      fetchInit.duplex = `half`;
-    }
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      if (attempt > 1) {
+        const delayMs = retryDelayForAttempt(attempt - 1, retryDelayMs);
+        this.logger.info(`Retrying request to ${endpoint}`, {
+          attempt,
+          maxAttempts,
+          delayMs,
+        });
+        await sleep(delayMs);
+      }
 
-    try {
-      const response = await this.thirdPartyRequest(
-        `${this.options.baseUrl}${endpoint}`,
-        fetchInit,
-      );
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-      if (!response.ok) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const errorResult: any = await response.json();
-        this.logger.error(
-          `Request to ${endpoint} failed with status ${response.status}.`,
-        );
+      const fetchInit: FetchInitWithDuplex = {
+        method,
+        headers,
+        body,
+        signal: controller.signal,
+      };
+
+      if (isStreamingFetchBody(body)) {
+        fetchInit.duplex = `half`;
+      }
+
+      try {
+        const response = await this.thirdPartyRequest(url, fetchInit);
+
+        if (!response.ok) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const errorResult: any = await response.json();
+          const structuredError = parseBlnkApiErrorBody(errorResult);
+
+          if (
+            canRetry &&
+            isRetryableHttpStatus(response.status) &&
+            attempt < maxAttempts
+          ) {
+            this.logger.info(
+              `Request to ${endpoint} failed with status ${response.status}; retrying.`,
+            );
+            continue;
+          }
+
+          this.logger.error(
+            `Request to ${endpoint} failed with status ${response.status}.`,
+          );
+          return this.formatResponse<R>(
+            response.status,
+            structuredError?.message ?? response.statusText,
+            errorResult,
+            structuredError,
+          );
+        }
+
+        const jsonResponse = (await response.json()) as R;
         return this.formatResponse<R>(
           response.status,
-          response.statusText,
-          errorResult,
-        );
-      }
+          `Success`,
+          jsonResponse,
+        ) as ApiResponse<R>;
+      } catch (error: unknown) {
+        if (error instanceof Error && error.name === `AbortError`) {
+          // Timeouts are intentionally not retried to avoid duplicate mutating calls.
+          this.logger.error(`Request timed out`, {endpoint, timeoutMs});
+          return this.formatResponse(
+            408,
+            `Request timed out after ${timeoutMs}ms`,
+            null,
+          );
+        }
 
-      const jsonResponse = (await response.json()) as R;
-      return this.formatResponse<R>(
-        response.status,
-        `Success`,
-        jsonResponse,
-      ) as ApiResponse<R>;
-    } catch (error: unknown) {
-      if (error instanceof Error && error.name === `AbortError`) {
-        this.logger.error(`Request timed out`, {endpoint, timeoutMs});
-        return this.formatResponse(
-          408,
-          `Request timed out after ${timeoutMs}ms`,
-          null,
-        );
-      }
+        if (canRetry && isRetryableFetchError(error) && attempt < maxAttempts) {
+          this.logger.info(`Request to ${endpoint} failed; retrying.`, {
+            error,
+          });
+          continue;
+        }
 
-      this.logger.error(`Request failed`, {endpoint, error});
-      return HandleError(
-        error,
-        this.logger,
-        this.formatResponse,
-        `${this.request.name}`,
-      );
-    } finally {
-      clearTimeout(timeoutId);
+        this.logger.error(`Request failed`, {endpoint, error});
+        return HandleError(
+          error,
+          this.logger,
+          this.formatResponse,
+          `${this.request.name}`,
+        );
+      } finally {
+        clearTimeout(timeoutId);
+      }
     }
+
+    return this.formatResponse(
+      500,
+      `Request failed after ${maxAttempts} attempts`,
+      null,
+    );
   }
 
   /**
