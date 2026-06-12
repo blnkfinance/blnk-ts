@@ -307,6 +307,123 @@ tap.test(`Blnk SDK tests`, t => {
     },
   );
 
+  t.test(`defaults client timeout and retry options`, async tt => {
+    const defaultBlnk = new Blnk(
+      apiKey,
+      {baseUrl: `http://mock-api.com`},
+      mockServices,
+      FormatResponse,
+      thirdPartyRequest,
+    );
+    tt.equal(defaultBlnk[`options`].timeout, 10000);
+    tt.equal(defaultBlnk[`options`].retryCount, 1);
+    tt.equal(defaultBlnk[`options`].retryDelayMs, 2000);
+    tt.end();
+  });
+
+  t.test(`request attaches structured error from error_detail`, async tt => {
+    const errorFetch = async () =>
+      ({
+        ok: false,
+        status: 404,
+        json: async () => ({
+          error: `ledger not found`,
+          error_detail: {
+            code: `LGR_NOT_FOUND`,
+            message: `ledger not found`,
+          },
+        }),
+        statusText: `Not Found`,
+      }) as Response;
+    const errorBlnk = new Blnk(
+      apiKey,
+      options,
+      mockServices,
+      FormatResponse,
+      errorFetch,
+    );
+
+    const result = await errorBlnk[`request`](`ledgers/missing`, {}, `GET`);
+
+    tt.equal(result.status, 404);
+    tt.same(result.error, {
+      code: `LGR_NOT_FOUND`,
+      message: `ledger not found`,
+    });
+    tt.end();
+  });
+
+  t.test(`request retries retryable 5xx responses`, async tt => {
+    let calls = 0;
+    const retryFetch = async () => {
+      calls += 1;
+      if (calls === 1) {
+        return {
+          ok: false,
+          status: 503,
+          json: async () => ({error: `temporarily unavailable`}),
+          statusText: `Service Unavailable`,
+        } as Response;
+      }
+
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({message: `Success`}),
+        statusText: `OK`,
+      } as Response;
+    };
+
+    const retryBlnk = new Blnk(
+      apiKey,
+      {...options, retryCount: 3, retryDelayMs: 1},
+      mockServices,
+      FormatResponse,
+      retryFetch,
+    );
+
+    const result = await retryBlnk[`request`](
+      `/retry-me`,
+      {foo: `bar`},
+      `POST`,
+    );
+
+    tt.equal(calls, 2);
+    tt.equal(result.status, 200);
+    tt.end();
+  });
+
+  t.test(`request does not retry 4xx responses`, async tt => {
+    let calls = 0;
+    const clientErrorFetch = async () => {
+      calls += 1;
+      return {
+        ok: false,
+        status: 400,
+        json: async () => ({
+          error: `bad request`,
+          error_detail: {code: `GEN_BAD_REQUEST`, message: `bad request`},
+        }),
+        statusText: `Bad Request`,
+      } as Response;
+    };
+
+    const noRetryBlnk = new Blnk(
+      apiKey,
+      {...options, retryCount: 3, retryDelayMs: 1},
+      mockServices,
+      FormatResponse,
+      clientErrorFetch,
+    );
+
+    const result = await noRetryBlnk[`request`](`/bad`, {foo: `bar`}, `POST`);
+
+    tt.equal(calls, 1);
+    tt.equal(result.status, 400);
+    tt.same(result.error?.code, `GEN_BAD_REQUEST`);
+    tt.end();
+  });
+
   t.test(`should append "/" to base url if it is not set`, async tt => {
     const optionsWithoutBaseUrl = {
       ...options,

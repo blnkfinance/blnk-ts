@@ -12,7 +12,13 @@ import {System} from "./blnk/endpoints/system";
 import {Transactions} from "./blnk/endpoints/transactions";
 import {FormatResponse} from "./blnk/utils/httpClient";
 import {CustomLogger} from "./blnk/utils/logger";
+import {
+  DEFAULT_RETRY_COUNT,
+  DEFAULT_RETRY_DELAY_MS,
+  DEFAULT_TIMEOUT_MS,
+} from "./blnk/constants/clientDefaults";
 import {BlnkClientOptions} from "./types/blnkClient";
+import {parseBlnkApiErrorBody} from "./types/errors";
 //import {BlnkInitFn} from "./types/general";
 
 // Export a function to initialize the SDK with default logger handling
@@ -41,5 +47,12 @@ export function BlnkInit(apiKey: string, options: BlnkClientOptions) {
   );
 }
 //module.exports = BlnkInit as BlnkInitFn & {default: BlnkInitFn};
+export {
+  DEFAULT_RETRY_COUNT,
+  DEFAULT_RETRY_DELAY_MS,
+  DEFAULT_TIMEOUT_MS,
+  parseBlnkApiErrorBody,
+};
+export type {BlnkApiErrorDetail} from "./types/errors";
 //export default BlnkInit;
 //# sourceMappingURL=index.d.ts.map

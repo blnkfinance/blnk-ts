@@ -1,4 +1,5 @@
 import {ApiResponse} from "../../types/general";
+import {BlnkApiErrorDetail} from "../../types/errors";
 import {ToCamelCase} from "./stringUtils";
 
 /**
@@ -28,6 +29,11 @@ export function FormatResponse<T>(
   status: number,
   message: string,
   data: T,
+  error?: BlnkApiErrorDetail | null,
 ): ApiResponse<T> {
+  if (error) {
+    return {status, message, data, error};
+  }
+
   return {status, message, data};
 }
