@@ -3,6 +3,7 @@ import {Blnk} from "./blnk/endpoints/baseBlnkClient";
 import {Identity} from "./blnk/endpoints/identity";
 import {LedgerBalances} from "./blnk/endpoints/ledgerBalances";
 import {Ledgers} from "./blnk/endpoints/ledgers";
+import {Metadata} from "./blnk/endpoints/metadata";
 import {Reconciliation} from "./blnk/endpoints/reconciliation";
 import {Search} from "./blnk/endpoints/search";
 import {System} from "./blnk/endpoints/system";
@@ -30,6 +31,7 @@ export function BlnkInit(apiKey: string, options: BlnkClientOptions) {
       Search,
       Identity,
       System,
+      Metadata,
     },
     FormatResponse,
     fetch,
