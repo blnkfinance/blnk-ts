@@ -8,6 +8,7 @@ import {
 } from "../../../mocks/blnkClientMocks";
 import {BlnkClientOptions} from "../../../../src/types/blnkClient";
 import {FormatResponse} from "../../../../src/blnk/utils/httpClient";
+import FormDataNode from "form-data";
 
 tap.test(`Blnk SDK tests`, t => {
   const options: BlnkClientOptions = createMockBlnkClientOptions();
@@ -56,6 +57,38 @@ tap.test(`Blnk SDK tests`, t => {
       );
     },
   );
+
+  t.test(`request converts npm FormData for native fetch`, async tt => {
+    const formData = new FormDataNode();
+    formData.append(`source`, `stripe`);
+    formData.append(`file`, Buffer.from(`a,b,c`), {filename: `test.csv`});
+
+    const capturedFetch = tt.captureFn(
+      async (_input: RequestInfo | URL, _init?: RequestInit) =>
+        ({
+          ok: true,
+          status: 201,
+          json: async () => ({upload_id: `upl_test`}),
+          statusText: `Created`,
+        }) as Response,
+    );
+    const formBlnk = new Blnk(
+      apiKey,
+      options,
+      mockServices,
+      FormatResponse,
+      capturedFetch,
+    );
+
+    await formBlnk[`request`](`reconciliation/upload`, formData, `POST`);
+
+    const init = capturedFetch.calls[0]?.args[1] as RequestInit;
+    tt.ok(init.body instanceof Uint8Array);
+    const headers = init.headers as Record<string, string>;
+    tt.match(headers[`content-type`], /multipart\/form-data/);
+    tt.notMatch(headers[`content-type`], /application\/json/);
+    tt.end();
+  });
 
   t.test(`request passes AbortSignal for timeout`, async tt => {
     const signalFetch = async (

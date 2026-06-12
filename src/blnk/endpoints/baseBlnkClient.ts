@@ -5,6 +5,11 @@ import {
   ServiceInstances,
   ServicesMap,
 } from "../../types/general";
+import {
+  isNodeFormData,
+  isWebFormData,
+  nodeFormDataToFetchBody,
+} from "../utils/formDataBody";
 import {HandleError} from "../utils/logger";
 import {ApiKeys} from "./apiKeys";
 import {BalanceMonitor} from "./balanceMonitors";
@@ -17,8 +22,6 @@ import {Reconciliation} from "./reconciliation";
 import {Search} from "./search";
 import {System} from "./system";
 import {Transactions} from "./transactions";
-import FormData from "form-data";
-
 /**
  * Blnk class for interacting with the Blnk API services.
  *
@@ -95,15 +98,32 @@ export class Blnk {
     method: `POST` | `GET` | `PUT` | `DELETE`,
     headerOptions?: Record<string, string>,
   ): Promise<ApiResponse<R | null>> {
-    const headers = {
-      "content-type": `application/json`,
-      "X-Blnk-Key": this.apiKey,
-      ...headerOptions,
-    };
-
     const controller = new AbortController();
     const timeoutMs = this.options.timeout ?? 3000;
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    let body: BodyInit | undefined;
+    const formDataHeaders: Record<string, string> = {};
+
+    if (data) {
+      if (isNodeFormData(data)) {
+        const converted = nodeFormDataToFetchBody(data);
+        body = converted.body as BodyInit;
+        Object.assign(formDataHeaders, converted.headers);
+      } else if (isWebFormData(data)) {
+        body = data;
+      } else {
+        body = JSON.stringify(data);
+      }
+    }
+
+    const isMultipart = isNodeFormData(data) || isWebFormData(data);
+    const headers: Record<string, string> = {
+      "X-Blnk-Key": this.apiKey,
+      ...(!isMultipart ? {"content-type": `application/json`} : {}),
+      ...headerOptions,
+      ...formDataHeaders,
+    };
 
     try {
       const response = await this.thirdPartyRequest(
@@ -111,11 +131,7 @@ export class Blnk {
         {
           method,
           headers,
-          body: data
-            ? data instanceof FormData
-              ? (data as unknown as BodyInit)
-              : JSON.stringify(data)
-            : undefined,
+          body,
           signal: controller.signal,
         },
       );

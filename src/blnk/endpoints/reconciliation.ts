@@ -98,9 +98,6 @@ export class Reconciliation {
         `reconciliation/upload`,
         formData,
         `POST`,
-        {
-          "content-type": `multipart/form-data;boundary=${formData.getBoundary()}`,
-        },
       );
       return response;
     } catch (error) {
