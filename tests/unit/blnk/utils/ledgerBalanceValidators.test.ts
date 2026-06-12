@@ -2,6 +2,7 @@
 import tap from "tap";
 import {
   ValidateCreateBalanceSnapshot,
+  ValidateCreateLedgerBalance,
   ValidateGetBalanceAt,
   ValidateGetByIndicator,
   ValidateUpdateBalanceIdentity,
@@ -77,6 +78,61 @@ tap.test(`Issue #10 — ValidateCreateBalanceSnapshot`, t => {
     tt.equal(
       ValidateCreateBalanceSnapshot({batch_size: -1}),
       `batch_size must be positive`,
+    );
+    tt.end();
+  });
+
+  t.end();
+});
+
+tap.test(`Issue #47 — ValidateCreateLedgerBalance lineage fields`, t => {
+  t.test(`accepts track_fund_lineage and allocation_strategy`, tt => {
+    tt.equal(
+      ValidateCreateLedgerBalance({
+        ledger_id: `ldg_123`,
+        currency: `USD`,
+        identity_id: `idt_123`,
+        track_fund_lineage: true,
+        allocation_strategy: `LIFO`,
+      }),
+      null,
+    );
+    tt.end();
+  });
+
+  t.test(`accepts request without lineage fields`, tt => {
+    tt.equal(
+      ValidateCreateLedgerBalance({
+        ledger_id: `ldg_123`,
+        currency: `USD`,
+      }),
+      null,
+    );
+    tt.end();
+  });
+
+  t.test(`rejects non-boolean track_fund_lineage`, tt => {
+    tt.equal(
+      ValidateCreateLedgerBalance({
+        ledger_id: `ldg_123`,
+        currency: `USD`,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        track_fund_lineage: `true` as any,
+      }),
+      `track_fund_lineage must be a boolean if provided`,
+    );
+    tt.end();
+  });
+
+  t.test(`rejects invalid allocation_strategy`, tt => {
+    tt.equal(
+      ValidateCreateLedgerBalance({
+        ledger_id: `ldg_123`,
+        currency: `USD`,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        allocation_strategy: `INVALID` as any,
+      }),
+      `allocation_strategy must be one of FIFO, LIFO, or PROPORTIONAL`,
     );
     tt.end();
   });

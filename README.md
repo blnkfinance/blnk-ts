@@ -154,6 +154,18 @@ const newBalance = await LedgerBalances.create({
 console.log("Balance Created:", newBalance);
 ```
 
+With fund lineage tracking enabled (requires `identity_id`):
+
+```typescript
+const lineageBalance = await LedgerBalances.create({
+  ledger_id: "ldg_073f7ffe-9dfd-42ce-aa50-d1dca1788adc",
+  identity_id: "idt_3b63c8da-af29-4cc3-ad38-df17d87456e6",
+  currency: "USD",
+  track_fund_lineage: true,
+  allocation_strategy: "FIFO", // FIFO | LIFO | PROPORTIONAL
+});
+```
+
 ### Get balance by indicator
 
 `LedgerBalances.getByIndicator` retrieves a balance by its indicator and currency (`GET /balances/indicator/{indicator}/currency/{currency}`):

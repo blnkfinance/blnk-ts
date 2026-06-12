@@ -1,10 +1,17 @@
 import {
+  AllocationStrategy,
   CreateBalanceSnapshotRequest,
   CreateLedgerBalance,
   GetBalanceAtRequest,
   UpdateBalanceIdentity,
 } from "../../../types/ledgerBalances";
 import {IsValidString} from "../stringUtils";
+
+const ALLOCATION_STRATEGIES: AllocationStrategy[] = [
+  `FIFO`,
+  `LIFO`,
+  `PROPORTIONAL`,
+];
 
 export function ValidateCreateLedgerBalance<T extends Record<string, unknown>>(
   data: CreateLedgerBalance<T>,
@@ -32,6 +39,20 @@ export function ValidateCreateLedgerBalance<T extends Record<string, unknown>>(
   // Validate meta_data if provided
   if (data.meta_data !== undefined && !isValidMetaData(data.meta_data)) {
     return `meta_data must be a valid object if provided`;
+  }
+
+  if (
+    data.track_fund_lineage !== undefined &&
+    typeof data.track_fund_lineage !== `boolean`
+  ) {
+    return `track_fund_lineage must be a boolean if provided`;
+  }
+
+  if (
+    data.allocation_strategy !== undefined &&
+    !ALLOCATION_STRATEGIES.includes(data.allocation_strategy)
+  ) {
+    return `allocation_strategy must be one of FIFO, LIFO, or PROPORTIONAL`;
   }
 
   // If all validations pass, return null
