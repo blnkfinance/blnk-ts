@@ -57,6 +57,61 @@ tap.test(`Blnk SDK tests`, t => {
     },
   );
 
+  t.test(`request passes AbortSignal for timeout`, async tt => {
+    const signalFetch = async (
+      _input: RequestInfo | URL,
+      _init?: RequestInit,
+    ) =>
+      ({
+        ok: true,
+        status: 200,
+        json: async () => ({message: `Success`}),
+        statusText: `OK`,
+      }) as Response;
+    const capturedFetch = tt.captureFn(signalFetch);
+    const signalBlnk = new Blnk(
+      apiKey,
+      options,
+      mockServices,
+      FormatResponse,
+      capturedFetch,
+    );
+
+    await signalBlnk[`request`](`/test`, {foo: `bar`}, `POST`);
+
+    const capturedInit = capturedFetch.calls[0]?.args[1] as
+      | RequestInit
+      | undefined;
+    tt.ok(capturedInit?.signal instanceof AbortSignal);
+    tt.end();
+  });
+
+  t.test(`request returns 408 when fetch aborts (timeout)`, async tt => {
+    const abortingFetch = async (
+      _input: RequestInfo | URL,
+      init?: RequestInit,
+    ): Promise<Response> =>
+      new Promise((_resolve, reject) => {
+        init?.signal?.addEventListener(`abort`, () => {
+          reject(new DOMException(`The operation was aborted.`, `AbortError`));
+        });
+      });
+
+    const timeoutBlnk = new Blnk(
+      apiKey,
+      {...options, timeout: 10},
+      mockServices,
+      FormatResponse,
+      abortingFetch,
+    );
+
+    const result = await timeoutBlnk[`request`](`/slow`, {foo: `bar`}, `POST`);
+
+    tt.equal(result.status, 408);
+    tt.match(result.message, /timed out/);
+    tt.end();
+  });
+
   t.test(
     `request method should make successful POST request and return formatted response`,
     async tt => {

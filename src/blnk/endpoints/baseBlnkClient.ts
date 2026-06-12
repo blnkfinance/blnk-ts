@@ -1,4 +1,4 @@
-import {BlnkClientOptions, BlnkLogger, fetchType} from "../../types/blnkClient";
+import {BlnkClientOptions, BlnkLogger, FetchType} from "../../types/blnkClient";
 import {
   ApiResponse,
   FormatResponseType,
@@ -46,14 +46,14 @@ export class Blnk {
   private services: ServicesMap;
   private serviceInstances: ServiceInstances = {}; // Cache initialized services
   private formatResponse: FormatResponseType;
-  private thirdPartyRequest: fetchType;
+  private thirdPartyRequest: FetchType;
 
   constructor(
     apiKey: string,
     options: BlnkClientOptions,
     services: ServicesMap,
     formatResponse: FormatResponseType,
-    thirdPartyRequest: fetchType,
+    thirdPartyRequest: FetchType,
   ) {
     if (!options.baseUrl) {
       throw new Error(`baseUrl is required for self-hosted Blnk SDK.`);
@@ -101,6 +101,10 @@ export class Blnk {
       ...headerOptions,
     };
 
+    const controller = new AbortController();
+    const timeoutMs = this.options.timeout ?? 3000;
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
     try {
       const response = await this.thirdPartyRequest(
         `${this.options.baseUrl}${endpoint}`,
@@ -109,10 +113,10 @@ export class Blnk {
           headers,
           body: data
             ? data instanceof FormData
-              ? data
+              ? (data as unknown as BodyInit)
               : JSON.stringify(data)
             : undefined,
-          timeout: this.options.timeout,
+          signal: controller.signal,
         },
       );
 
@@ -136,6 +140,15 @@ export class Blnk {
         jsonResponse,
       ) as ApiResponse<R>;
     } catch (error: unknown) {
+      if (error instanceof Error && error.name === `AbortError`) {
+        this.logger.error(`Request timed out`, {endpoint, timeoutMs});
+        return this.formatResponse(
+          408,
+          `Request timed out after ${timeoutMs}ms`,
+          null,
+        );
+      }
+
       this.logger.error(`Request failed`, {endpoint, error});
       return HandleError(
         error,
@@ -143,6 +156,8 @@ export class Blnk {
         this.formatResponse,
         `${this.request.name}`,
       );
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
 

@@ -13,7 +13,6 @@ import {Transactions} from "./blnk/endpoints/transactions";
 import {FormatResponse} from "./blnk/utils/httpClient";
 import {CustomLogger} from "./blnk/utils/logger";
 import {BlnkClientOptions} from "./types/blnkClient";
-import fetch from "node-fetch";
 //import {BlnkInitFn} from "./types/general";
 
 // Export a function to initialize the SDK with default logger handling
@@ -38,7 +37,7 @@ export function BlnkInit(apiKey: string, options: BlnkClientOptions) {
       ApiKeys,
     },
     FormatResponse,
-    fetch,
+    globalThis.fetch,
   );
 }
 //module.exports = BlnkInit as BlnkInitFn & {default: BlnkInitFn};

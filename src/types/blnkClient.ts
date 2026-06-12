@@ -1,7 +1,6 @@
-import {RequestInfo, Response, RequestInit} from "node-fetch";
 export interface BlnkClientOptions {
   baseUrl: string; // Required
-  timeout?: number; // Optional, default to a reasonable value like 30 seconds
+  timeout?: number; // Optional HTTP timeout in ms (default 3000)
   logger?: BlnkLogger;
 }
 
@@ -11,7 +10,5 @@ export interface BlnkLogger {
   debug?(message: string, ...meta: unknown[]): void; // Optional for more detailed logs
 }
 
-export type fetchType = (
-  input: RequestInfo,
-  init?: RequestInit,
-) => Promise<Response>;
+/** Platform fetch (Node 18+ global `fetch`). */
+export type FetchType = typeof fetch;
