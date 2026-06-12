@@ -1,5 +1,6 @@
 import {BlnkLogger} from "../../types/blnkClient";
 import {ApiResponse, FormatResponseType} from "../../types/general";
+import {safeLogMeta} from "./safeLogMeta";
 
 export const CustomLogger: BlnkLogger = {
   info: (message: string, ...meta: unknown[]) => {
@@ -19,7 +20,7 @@ export function HandleError(
   formatResponse: FormatResponseType,
   fnName: string,
 ): ApiResponse<null> {
-  logger.error(fnName, error);
+  logger.error(fnName, ...safeLogMeta(error));
   if (error instanceof Error) {
     return formatResponse(500, error.message, null);
   } else {
