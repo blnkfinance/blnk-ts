@@ -10,6 +10,7 @@ import {BalanceMonitor} from "./balanceMonitors";
 import {Identity} from "./identity";
 import {LedgerBalances} from "./ledgerBalances";
 import {Ledgers} from "./ledgers";
+import {Metadata} from "./metadata";
 import {Reconciliation} from "./reconciliation";
 import {Search} from "./search";
 import {System} from "./system";
@@ -204,6 +205,10 @@ export class Blnk {
 
   get System(): System {
     return this.getService<System>(`System`);
+  }
+
+  get Metadata(): Metadata {
+    return this.getService<Metadata>(`Metadata`);
   }
 
   get getApiKey() {

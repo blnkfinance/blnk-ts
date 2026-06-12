@@ -834,6 +834,30 @@ See the [Instant reconciliation reference](https://docs.blnkfinance.com/referenc
 
 ---
 
+## Metadata
+
+| Method | Endpoint | Use case |
+|--------|----------|----------|
+| `Metadata.update(id, data)` | `POST /{id}/metadata` | Add or update metadata on a ledger, transaction, balance, or identity |
+
+### Update metadata
+
+```typescript
+const { Metadata } = blnk;
+
+const updated = await Metadata.update('ldg_073f7ffe-9dfd-42ce-aa50-d1dca1788adc', {
+  meta_data: {
+    project_owner: 'Acme LLC',
+    update_status: 'Approved',
+  },
+});
+// updated.data?.meta_data — merged metadata from Core
+```
+
+See the [Update metadata reference](https://docs.blnkfinance.com/reference/update-metadata).
+
+---
+
 ## Additional Resources
 
 For more examples and advanced use cases, please refer to the [Examples Code](https://github.com/blnkfinance/blnk-ts/tree/main/examples).
