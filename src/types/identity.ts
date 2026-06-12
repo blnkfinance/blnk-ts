@@ -12,16 +12,16 @@ export interface IdentityData<T extends Record<string, unknown>> {
   gender?: `male` | `female` | `other`;
   /** ISO 8601 string (RFC3339) or `Date` (serialized before the API call). */
   dob?: IdentityDateInput;
-  email_address: string;
-  phone_number: string;
+  email_address?: string;
+  phone_number?: string;
   nationality?: string;
   organization_name?: string;
-  category: string;
-  street: string;
-  country: string;
-  state: string;
-  post_code: string;
-  city: string;
+  category?: string;
+  street?: string;
+  country?: string;
+  state?: string;
+  post_code?: string;
+  city?: string;
   meta_data?: T;
 }
 

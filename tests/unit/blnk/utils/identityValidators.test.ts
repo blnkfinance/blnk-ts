@@ -71,3 +71,48 @@ tap.test(`Issue #49 — ValidateIdentity identity_id and dob`, t => {
 
   t.end();
 });
+
+tap.test(`Issue #50 — ValidateIdentity optional fields`, t => {
+  t.test(`accepts minimal individual payload`, tt => {
+    tt.equal(
+      ValidateIdentity({
+        identity_type: `individual`,
+      }),
+      null,
+    );
+    tt.end();
+  });
+
+  t.test(`accepts minimal organization payload`, tt => {
+    tt.equal(
+      ValidateIdentity({
+        identity_type: `organization`,
+      }),
+      null,
+    );
+    tt.end();
+  });
+
+  t.test(`rejects invalid identity_type`, tt => {
+    tt.equal(
+      ValidateIdentity({
+        identity_type: `business` as `individual`,
+      }),
+      `identity_type must be individual or organization`,
+    );
+    tt.end();
+  });
+
+  t.test(`rejects invalid gender when provided`, tt => {
+    tt.equal(
+      ValidateIdentity({
+        ...baseIndividual,
+        gender: `unknown` as `female`,
+      }),
+      `gender must be male, female, or other if provided`,
+    );
+    tt.end();
+  });
+
+  t.end();
+});
