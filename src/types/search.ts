@@ -214,3 +214,25 @@ export type FilterRecordByCollection = {
 export type FilterResponseByCollection = {
   [K in SearchCollection]: FilterResponse<FilterRecordByCollection[K]>;
 };
+
+/** Optional body for `POST /search/reindex`. */
+export interface StartReindexRequest {
+  batch_size?: number;
+}
+
+/** Progress snapshot returned by reindex endpoints. */
+export interface ReindexProgress {
+  status: string;
+  phase: string;
+  total_records: number;
+  processed_records: number;
+  started_at: string;
+  completed_at?: string;
+  errors?: string[];
+}
+
+/** Response from `POST /search/reindex`. */
+export interface StartReindexResponse {
+  message: string;
+  progress: ReindexProgress;
+}

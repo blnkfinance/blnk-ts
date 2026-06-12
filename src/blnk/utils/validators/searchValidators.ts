@@ -6,6 +6,7 @@ import {
   FilterSortOrder,
   SearchCollection,
   SearchParams,
+  StartReindexRequest,
 } from "../../../types/search";
 
 const SEARCH_COLLECTIONS: SearchCollection[] = [
@@ -187,6 +188,23 @@ export function ValidateFilterParams(data: FilterParams): string | null {
     (!Number.isInteger(data.offset) || data.offset < 0)
   ) {
     return `offset must be a non-negative integer if provided`;
+  }
+
+  return null;
+}
+
+export function ValidateStartReindexRequest(
+  data: StartReindexRequest,
+): string | null {
+  if (!data || typeof data !== `object`) {
+    return `Reindex options must be a valid object`;
+  }
+
+  if (
+    data.batch_size !== undefined &&
+    (!Number.isInteger(data.batch_size) || data.batch_size < 1)
+  ) {
+    return `batch_size must be a positive integer if provided`;
   }
 
   return null;
