@@ -195,3 +195,128 @@ tap.test(`Issue #37 — ApiKeys.list`, async t => {
     tt.end();
   });
 });
+
+tap.test(`Issue #38 — ApiKeys.delete`, async t => {
+  t.test(`delete DELETEs api-keys/{id}`, async tt => {
+    const mockLogger = createMockLogger();
+    const thirdPartyRequest = async <R>() => ({
+      status: 204,
+      message: `Success`,
+      data: null as R | null,
+    });
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const apiKeys = new ApiKeys(capturedRequest, mockLogger, FormatResponse);
+
+    const response = await apiKeys.delete(`api_key_test_123`);
+
+    tt.match(capturedRequest.args(), [
+      [`api-keys/api_key_test_123`, undefined, `DELETE`],
+    ]);
+    tt.equal(response.status, 204);
+    tt.equal(response.data, null);
+    tt.end();
+  });
+
+  t.test(`delete DELETEs api-keys/{id}?owner= when owner provided`, async tt => {
+    const mockLogger = createMockLogger();
+    const thirdPartyRequest = async <R>() => ({
+      status: 204,
+      message: `Success`,
+      data: null as R | null,
+    });
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const apiKeys = new ApiKeys(capturedRequest, mockLogger, FormatResponse);
+
+    const response = await apiKeys.delete(`api_key_test_123`, {
+      owner: `merchant_a`,
+    });
+
+    tt.match(capturedRequest.args(), [
+      [`api-keys/api_key_test_123?owner=merchant_a`, undefined, `DELETE`],
+    ]);
+    tt.equal(response.status, 204);
+    tt.end();
+  });
+
+  t.test(`delete URL-encodes id and owner`, async tt => {
+    const mockLogger = createMockLogger();
+    const thirdPartyRequest = async <R>() => ({
+      status: 204,
+      message: `Success`,
+      data: null as R | null,
+    });
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const apiKeys = new ApiKeys(capturedRequest, mockLogger, FormatResponse);
+
+    const response = await apiKeys.delete(`api/key?id=1`, {
+      owner: `merchant a&role=admin`,
+    });
+
+    tt.match(capturedRequest.args(), [
+      [
+        `api-keys/${encodeURIComponent(`api/key?id=1`)}?owner=${encodeURIComponent(`merchant a&role=admin`)}`,
+        undefined,
+        `DELETE`,
+      ],
+    ]);
+    tt.equal(response.status, 204);
+    tt.end();
+  });
+
+  t.test(`delete returns 400 for empty id`, async tt => {
+    const mockLogger = createMockLogger();
+    const thirdPartyRequest = async <R>() => ({
+      status: 204,
+      message: `Success`,
+      data: null as R | null,
+    });
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const apiKeys = new ApiKeys(capturedRequest, mockLogger, FormatResponse);
+
+    const response = await apiKeys.delete(``);
+
+    tt.equal(capturedRequest.calls.length, 0);
+    tt.equal(response.status, 400);
+    tt.equal(response.message, `api key id is required`);
+    tt.end();
+  });
+
+  t.test(`delete returns 400 for empty owner`, async tt => {
+    const mockLogger = createMockLogger();
+    const thirdPartyRequest = async <R>() => ({
+      status: 204,
+      message: `Success`,
+      data: null as R | null,
+    });
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const apiKeys = new ApiKeys(capturedRequest, mockLogger, FormatResponse);
+
+    const response = await apiKeys.delete(`api_key_test_123`, {owner: ``});
+
+    tt.equal(capturedRequest.calls.length, 0);
+    tt.equal(response.status, 400);
+    tt.match(response.message, /owner/);
+    tt.end();
+  });
+
+  t.test(`delete forwards API errors`, async tt => {
+    const mockLogger = createMockLogger();
+    const thirdPartyRequest = async <R>() => ({
+      status: 404,
+      message: `API key not found`,
+      data: null as R | null,
+    });
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const apiKeys = new ApiKeys(capturedRequest, mockLogger, FormatResponse);
+
+    const response = await apiKeys.delete(`api_key_missing`, {
+      owner: `merchant_a`,
+    });
+
+    tt.match(capturedRequest.args(), [
+      [`api-keys/api_key_missing?owner=merchant_a`, undefined, `DELETE`],
+    ]);
+    tt.equal(response.status, 404);
+    tt.end();
+  });
+});

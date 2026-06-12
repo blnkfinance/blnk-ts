@@ -2,6 +2,7 @@
 import tap from "tap";
 import {
   ValidateCreateApiKeyData,
+  ValidateDeleteApiKeyOptions,
   ValidateListApiKeysOptions,
 } from "../../../../src/blnk/utils/validators/apiKeyValidators";
 import {CreateApiKeyData} from "../../../../src/types/apiKeys";
@@ -43,5 +44,12 @@ tap.test(`ValidateListApiKeysOptions`, async t => {
   t.equal(ValidateListApiKeysOptions({}), null);
   t.equal(ValidateListApiKeysOptions({owner: `merchant_a`}), null);
   t.match(ValidateListApiKeysOptions({owner: ``}), /owner/);
+  t.end();
+});
+
+tap.test(`ValidateDeleteApiKeyOptions`, async t => {
+  t.equal(ValidateDeleteApiKeyOptions(undefined), null);
+  t.equal(ValidateDeleteApiKeyOptions({owner: `merchant_a`}), null);
+  t.match(ValidateDeleteApiKeyOptions({owner: ``}), /owner/);
   t.end();
 });
