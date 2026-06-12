@@ -6,10 +6,15 @@ import fs from "fs";
 import {
   Matcher,
   ReconciliationUploadResp,
+  RunInstantReconData,
+  RunInstantReconResp,
   RunReconData,
   RunReconResp,
 } from "../../types/reconciliation";
-import {ValidateMatcher} from "../utils/validators/reconciliationValidator";
+import {
+  ValidateMatcher,
+  ValidateRunInstantReconData,
+} from "../utils/validators/reconciliationValidator";
 import FormData1 from "form-data";
 
 /**
@@ -181,6 +186,34 @@ export class Reconciliation {
         this.logger,
         this.formatResponse,
         this.run.name,
+      );
+    }
+  }
+
+  /**
+   * Starts instant reconciliation with inline external transactions (no file upload).
+   *
+   * @see https://docs.blnkfinance.com/reference/instant-reconciliation
+   */
+  async runInstant(data: RunInstantReconData) {
+    try {
+      const validatorResponse = await ValidateRunInstantReconData(data);
+      if (validatorResponse) {
+        return this.formatResponse(400, validatorResponse, null);
+      }
+
+      const response = await this.request<
+        RunInstantReconData,
+        RunInstantReconResp
+      >(`reconciliation/start-instant`, data, `POST`);
+
+      return response;
+    } catch (error) {
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.runInstant.name,
       );
     }
   }

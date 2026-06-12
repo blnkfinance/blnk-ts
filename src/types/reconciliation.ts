@@ -25,7 +25,7 @@ export interface Matcher {
   criteria: Criteria[];
 }
 
-type Strategy = `one_to_one` | `one_to_many` | `many_to_one`;
+export type Strategy = `one_to_one` | `one_to_many` | `many_to_one`;
 
 export interface RunReconData {
   upload_id: string;
@@ -39,4 +39,26 @@ export interface RunReconResp extends Matcher {
   rule_id: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface ExternalTransaction {
+  id: string;
+  amount: number;
+  reference: string;
+  currency: string;
+  description: string;
+  date: string;
+  source: string;
+}
+
+export interface RunInstantReconData {
+  external_transactions: ExternalTransaction[];
+  strategy: Strategy;
+  dry_run?: boolean;
+  grouping_criteria?: string;
+  matching_rule_ids: string[];
+}
+
+export interface RunInstantReconResp {
+  reconciliation_id: string;
 }
