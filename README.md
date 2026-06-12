@@ -682,6 +682,53 @@ The Blnk CLI allows you to list all ledgers, balances, and transactions quickly:
 
 ---
 
+## Search
+
+Blnk supports two search modes on the `Search` service:
+
+| Method | Endpoint | Use case |
+|--------|----------|----------|
+| `Search.search(params, collection)` | `POST /search/{collection}` | Full-text search via Typesense |
+| `Search.filter(params, collection)` | `POST /{collection}/filter` | Structured DB filters (Core 0.13.2+) |
+
+Collections: `ledgers`, `balances`, `transactions`, `identities`.
+
+### Typesense search
+
+```typescript
+const { Search } = blnk;
+
+const results = await Search.search(
+  { q: 'payment', per_page: 10 },
+  'transactions',
+);
+```
+
+### DB filter
+
+```typescript
+const { Search } = blnk;
+
+const filtered = await Search.filter(
+  {
+    filters: [{ field: 'status', operator: 'eq', value: 'APPLIED' }],
+    logical_operator: 'and',
+    sort_by: 'created_at',
+    sort_order: 'desc',
+    include_count: true,
+    limit: 20,
+    offset: 0,
+  },
+  'transactions',
+);
+// filtered.data?.data — matching transaction records
+// filtered.data?.total_count — present when include_count is true
+```
+
+See the [Search via DB reference](https://docs.blnkfinance.com/reference/search-db) for supported operators and fields.
+
+---
+
 ## Additional Resources
 
 For more examples and advanced use cases, please refer to the [Examples Code](https://github.com/blnkfinance/blnk-ts/tree/main/examples).
