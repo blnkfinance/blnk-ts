@@ -63,6 +63,10 @@ export interface RunInstantReconResp {
   reconciliation_id: string;
 }
 
+export interface DeleteMatchingRuleResp {
+  message: string;
+}
+
 export interface ReconciliationResp {
   reconciliation_id: string;
   upload_id: string;
