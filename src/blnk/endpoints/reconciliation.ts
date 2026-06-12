@@ -156,6 +156,39 @@ export class Reconciliation {
   }
 
   /**
+   * Updates an existing matching rule.
+   *
+   * @see https://docs.blnkfinance.com/reference/update-matching-rule
+   */
+  async updateMatchingRule(ruleId: string, data: Matcher) {
+    try {
+      if (!ruleId) {
+        return this.formatResponse(400, `matching rule id is required`, null);
+      }
+
+      const validatorResponse = ValidateMatcher(data);
+      if (validatorResponse) {
+        return this.formatResponse(400, validatorResponse, null);
+      }
+
+      const response = await this.request<Matcher, RunReconResp>(
+        `reconciliation/matching-rules/${ruleId}`,
+        data,
+        `PUT`,
+      );
+
+      return response;
+    } catch (error) {
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.updateMatchingRule.name,
+      );
+    }
+  }
+
+  /**
    * Asynchronously runs a reconciliation process with the provided data.
    * see @link https://docs.blnkfinance.com/reconciliations/strategies for more details.
    *
