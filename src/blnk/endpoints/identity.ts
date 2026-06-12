@@ -2,6 +2,7 @@ import {BlnkLogger} from "../../types/blnkClient";
 import {BlnkRequest, FormatResponseType} from "../../types/general";
 import {IdentityData, IdentityDataResponse} from "../../types/identity";
 import {HandleError} from "../utils/logger";
+import {serializeIdentityData} from "../utils/identitySerialization";
 import {ValidateIdentity} from "../utils/validators/identityValidators";
 
 /**
@@ -59,10 +60,11 @@ export class Identity {
       if (validatorResponse) {
         return this.formatResponse(400, validatorResponse, null);
       }
+      const payload = serializeIdentityData(data);
       const response = await this.request<
         IdentityData<T>,
         IdentityDataResponse<T>
-      >(`identities`, data, `POST`);
+      >(`identities`, payload, `POST`);
       return response;
     } catch (error: unknown) {
       return HandleError(
@@ -165,10 +167,11 @@ export class Identity {
       if (validatorResponse) {
         return this.formatResponse(400, validatorResponse, null);
       }
+      const payload = serializeIdentityData(data);
       const response = await this.request<
         IdentityData<T>,
         IdentityDataResponse<T>
-      >(`identities/${id}`, data, `PUT`);
+      >(`identities/${id}`, payload, `PUT`);
       return response;
     } catch (error: unknown) {
       return HandleError(
