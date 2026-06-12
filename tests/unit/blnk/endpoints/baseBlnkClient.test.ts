@@ -48,6 +48,17 @@ tap.test(`Blnk SDK tests`, t => {
     });
   });
 
+  t.test(`Issue #55 — does not expose public getApiKey getter`, async tt => {
+    tt.equal(
+      Object.getOwnPropertyDescriptor(
+        Object.getPrototypeOf(blnk),
+        `getApiKey`,
+      ),
+      undefined,
+    );
+    tt.end();
+  });
+
   t.test(
     `Constructor should set apiKey, options, logger, services, and formatResponse correctly`,
     async tt => {
