@@ -55,6 +55,34 @@ export class Hooks {
   }
 
   /**
+   * Retrieves a webhook by ID.
+   *
+   * @see https://docs.blnkfinance.com/reference/view-hooks
+   */
+  async get(id: string) {
+    try {
+      if (!id) {
+        return this.formatResponse(400, `hook id is required`, null);
+      }
+
+      const response = await this.request<undefined, HookResp>(
+        `hooks/${id}`,
+        undefined,
+        `GET`,
+      );
+
+      return response;
+    } catch (error: unknown) {
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.get.name,
+      );
+    }
+  }
+
+  /**
    * Updates an existing webhook.
    *
    * @see https://docs.blnkfinance.com/reference/update-hooks

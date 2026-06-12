@@ -863,6 +863,7 @@ See the [Update metadata reference](https://docs.blnkfinance.com/reference/updat
 | Method | Endpoint | Use case |
 |--------|----------|----------|
 | `Hooks.create(data)` | `POST /hooks` | Register a pre- or post-transaction webhook |
+| `Hooks.get(id)` | `GET /hooks/{id}` | View hook details |
 | `Hooks.update(id, data)` | `PUT /hooks/{id}` | Update an existing webhook |
 
 > Hook management requires the **master key** (`server.secret_key`) in `X-Blnk-Key`. Regular API keys return `403`.
@@ -884,6 +885,15 @@ const hook = await Hooks.create({
 ```
 
 See the [Register hooks reference](https://docs.blnkfinance.com/reference/create-hooks).
+
+### View a hook
+
+```typescript
+const hookDetails = await Hooks.get(hook.data!.id);
+// hookDetails.data?.name, hookDetails.data?.active, etc.
+```
+
+See the [View hooks reference](https://docs.blnkfinance.com/reference/view-hooks).
 
 ### Update a hook
 
