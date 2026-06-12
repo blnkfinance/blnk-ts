@@ -858,6 +858,34 @@ See the [Update metadata reference](https://docs.blnkfinance.com/reference/updat
 
 ---
 
+## Hooks
+
+| Method | Endpoint | Use case |
+|--------|----------|----------|
+| `Hooks.create(data)` | `POST /hooks` | Register a pre- or post-transaction webhook |
+
+> Hook management requires the **master key** (`server.secret_key`) in `X-Blnk-Key`. Regular API keys return `403`.
+
+### Register a hook
+
+```typescript
+const { Hooks } = blnk;
+
+const hook = await Hooks.create({
+  name: 'Pre-transaction validation',
+  url: 'https://api.example.com/validate',
+  type: 'PRE_TRANSACTION',
+  active: true,
+  timeout: 30,
+  retry_count: 3,
+});
+// hook.data?.id — registered hook ID
+```
+
+See the [Register hooks reference](https://docs.blnkfinance.com/reference/create-hooks).
+
+---
+
 ## Additional Resources
 
 For more examples and advanced use cases, please refer to the [Examples Code](https://github.com/blnkfinance/blnk-ts/tree/main/examples).

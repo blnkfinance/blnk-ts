@@ -7,6 +7,7 @@ import {
 } from "../../types/general";
 import {HandleError} from "../utils/logger";
 import {BalanceMonitor} from "./balanceMonitors";
+import {Hooks} from "./hooks";
 import {Identity} from "./identity";
 import {LedgerBalances} from "./ledgerBalances";
 import {Ledgers} from "./ledgers";
@@ -209,6 +210,10 @@ export class Blnk {
 
   get Metadata(): Metadata {
     return this.getService<Metadata>(`Metadata`);
+  }
+
+  get Hooks(): Hooks {
+    return this.getService<Hooks>(`Hooks`);
   }
 
   get getApiKey() {

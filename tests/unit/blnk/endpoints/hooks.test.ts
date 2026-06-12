@@ -1,0 +1,87 @@
+/* eslint-disable n/no-unpublished-import */
+import tap from "tap";
+import {Hooks} from "../../../../src/blnk/endpoints/hooks";
+import {FormatResponse} from "../../../../src/blnk/utils/httpClient";
+import {createMockLogger} from "../../../mocks/blnkClientMocks";
+import {CreateHookData, HookResp} from "../../../../src/types/hooks";
+
+const validData: CreateHookData = {
+  name: `Pre-transaction validation`,
+  url: `https://api.example.com/validate`,
+  type: `PRE_TRANSACTION`,
+  active: true,
+  timeout: 30,
+  retry_count: 3,
+};
+
+const mockResponse: HookResp = {
+  id: `hk_test_123`,
+  name: validData.name,
+  url: validData.url,
+  type: validData.type,
+  active: validData.active,
+  timeout: validData.timeout,
+  retry_count: validData.retry_count,
+  created_at: `2026-06-12T04:50:00.000Z`,
+  last_run: `0001-01-01T00:00:00Z`,
+  last_success: false,
+};
+
+tap.test(`Issue #28 — Hooks.create`, async t => {
+  t.test(`create POSTs hooks`, async tt => {
+    const mockLogger = createMockLogger();
+    const thirdPartyRequest = async <R>() => ({
+      status: 201,
+      message: `Success`,
+      data: mockResponse as unknown as R,
+    });
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const hooks = new Hooks(capturedRequest, mockLogger, FormatResponse);
+
+    const response = await hooks.create(validData);
+
+    tt.match(capturedRequest.args(), [[`hooks`, validData, `POST`]]);
+    tt.equal(response.status, 201);
+    tt.equal(response.data?.id, `hk_test_123`);
+    tt.equal(response.data?.type, `PRE_TRANSACTION`);
+    tt.end();
+  });
+
+  t.test(`create returns 400 for invalid payload`, async tt => {
+    const mockLogger = createMockLogger();
+    const thirdPartyRequest = async <R>() => ({
+      status: 201,
+      message: `Success`,
+      data: mockResponse as unknown as R,
+    });
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const hooks = new Hooks(capturedRequest, mockLogger, FormatResponse);
+
+    const response = await hooks.create({
+      ...validData,
+      type: `INVALID` as CreateHookData[`type`],
+    });
+
+    tt.equal(capturedRequest.calls.length, 0);
+    tt.equal(response.status, 400);
+    tt.match(response.message, /type/);
+    tt.end();
+  });
+
+  t.test(`create forwards API errors`, async tt => {
+    const mockLogger = createMockLogger();
+    const thirdPartyRequest = async <R>() => ({
+      status: 403,
+      message: `hook management requires master key`,
+      data: null as R | null,
+    });
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const hooks = new Hooks(capturedRequest, mockLogger, FormatResponse);
+
+    const response = await hooks.create(validData);
+
+    tt.match(capturedRequest.args(), [[`hooks`, validData, `POST`]]);
+    tt.equal(response.status, 403);
+    tt.end();
+  });
+});
