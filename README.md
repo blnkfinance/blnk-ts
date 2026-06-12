@@ -131,7 +131,36 @@ console.log('Ledger Updated:', updatedLedger);
 
 ---
 
-## 5. Creating Balances
+## 5. Creating Identities
+
+Register customers or organizations before linking them to balances. Pass an optional caller-supplied `identity_id` (`idt_` + UUID) and an ISO 8601 `dob` string:
+
+```typescript
+const { Identity } = blnk;
+
+const newIdentity = await Identity.create({
+  identity_id: 'idt_11111111-1111-4111-8111-111111111111',
+  identity_type: 'individual',
+  first_name: 'Jane',
+  last_name: 'Doe',
+  gender: 'female',
+  dob: '1990-01-15T00:00:00Z',
+  email_address: 'jane@example.com',
+  phone_number: '+1234567890',
+  nationality: 'US',
+  category: 'customer',
+  street: '123 Main St',
+  country: 'USA',
+  state: 'NY',
+  post_code: '10001',
+  city: 'New York',
+});
+console.log('Identity Created:', newIdentity);
+```
+
+---
+
+## 6. Creating Balances
 
 Balances represent the store of value within a ledger, like a wallet or account. Each balance belongs to a ledger.
 
