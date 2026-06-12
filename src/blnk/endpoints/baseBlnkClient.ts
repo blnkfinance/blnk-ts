@@ -18,6 +18,7 @@ import {
   nodeFormDataToFetchBody,
 } from "../utils/formDataBody";
 import {HandleError} from "../utils/logger";
+import {redactSensitiveLogMeta, safeLogMeta} from "../utils/safeLogMeta";
 import {
   isRetryableFetchError,
   isRetryableHttpMethod,
@@ -215,7 +216,10 @@ export class Blnk {
       } catch (error: unknown) {
         if (error instanceof Error && error.name === `AbortError`) {
           // Timeouts are intentionally not retried to avoid duplicate mutating calls.
-          this.logger.error(`Request timed out`, {endpoint, timeoutMs});
+          this.logger.error(
+            `Request timed out`,
+            redactSensitiveLogMeta({endpoint, timeoutMs}),
+          );
           return this.formatResponse(
             408,
             `Request timed out after ${timeoutMs}ms`,
@@ -224,13 +228,17 @@ export class Blnk {
         }
 
         if (canRetry && isRetryableFetchError(error) && attempt < maxAttempts) {
-          this.logger.info(`Request to ${endpoint} failed; retrying.`, {
-            error,
-          });
+          this.logger.info(
+            `Request to ${endpoint} failed; retrying.`,
+            ...safeLogMeta(error),
+          );
           continue;
         }
 
-        this.logger.error(`Request failed`, {endpoint, error});
+        this.logger.error(
+          `Request failed`,
+          redactSensitiveLogMeta({endpoint, error}),
+        );
         return HandleError(
           error,
           this.logger,

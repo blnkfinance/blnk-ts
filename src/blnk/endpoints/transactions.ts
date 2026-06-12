@@ -97,8 +97,6 @@ export class Transactions {
       >(`transactions`, payload, `POST`);
 
       if (response.data === null) {
-        // Handle the error case
-        this.logger.error(`error heree`);
         return response;
       }
 
@@ -485,8 +483,6 @@ export class Transactions {
       >(`transactions/bulk`, payload, `POST`);
 
       if (response.data === null) {
-        // Handle the error case
-        this.logger.error(`Error processing bulk transactions`);
         return response;
       }
 
