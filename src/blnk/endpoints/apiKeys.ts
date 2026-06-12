@@ -1,6 +1,5 @@
 import {BlnkLogger} from "../../types/blnkClient";
 import {
-  ApiKeyListItem,
   ApiKeyResp,
   CreateApiKeyData,
   ListApiKeysOptions,
@@ -73,10 +72,10 @@ export class ApiKeys {
 
       const endpoint =
         options?.owner !== undefined
-          ? `api-keys?owner=${options.owner}`
+          ? `api-keys?owner=${encodeURIComponent(options.owner)}`
           : `api-keys`;
 
-      const response = await this.request<undefined, ApiKeyListItem[]>(
+      const response = await this.request<undefined, ApiKeyResp[]>(
         endpoint,
         undefined,
         `GET`,

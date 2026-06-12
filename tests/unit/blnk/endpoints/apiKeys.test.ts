@@ -3,11 +3,7 @@ import tap from "tap";
 import {ApiKeys} from "../../../../src/blnk/endpoints/apiKeys";
 import {FormatResponse} from "../../../../src/blnk/utils/httpClient";
 import {createMockLogger} from "../../../mocks/blnkClientMocks";
-import {
-  ApiKeyListItem,
-  ApiKeyResp,
-  CreateApiKeyData,
-} from "../../../../src/types/apiKeys";
+import {ApiKeyResp, CreateApiKeyData} from "../../../../src/types/apiKeys";
 
 const validData: CreateApiKeyData = {
   name: `Service Account`,
@@ -89,8 +85,9 @@ tap.test(`Issue #36 — ApiKeys.create`, async t => {
 });
 
 tap.test(`Issue #37 — ApiKeys.list`, async t => {
-  const listItem: ApiKeyListItem = {
+  const listItem: ApiKeyResp = {
     api_key_id: `api_key_test_123`,
+    key: `$2a$10$hashedkeyvalue`,
     name: `Service Account`,
     owner_id: `merchant_a`,
     scopes: [`ledgers:read`],
@@ -133,6 +130,29 @@ tap.test(`Issue #37 — ApiKeys.list`, async t => {
 
     tt.match(capturedRequest.args(), [
       [`api-keys?owner=merchant_a`, undefined, `GET`],
+    ]);
+    tt.equal(response.status, 200);
+    tt.end();
+  });
+
+  t.test(`list URL-encodes owner query param`, async tt => {
+    const mockLogger = createMockLogger();
+    const thirdPartyRequest = async <R>() => ({
+      status: 200,
+      message: `Success`,
+      data: [] as unknown as R,
+    });
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const apiKeys = new ApiKeys(capturedRequest, mockLogger, FormatResponse);
+
+    const response = await apiKeys.list({owner: `merchant a&role=admin`});
+
+    tt.match(capturedRequest.args(), [
+      [
+        `api-keys?owner=${encodeURIComponent(`merchant a&role=admin`)}`,
+        undefined,
+        `GET`,
+      ],
     ]);
     tt.equal(response.status, 200);
     tt.end();

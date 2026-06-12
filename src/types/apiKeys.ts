@@ -22,6 +22,3 @@ export interface ApiKeyResp {
   is_revoked: boolean;
   revoked_at?: string;
 }
-
-/** Listed API key (raw `key` value is not returned by Core). */
-export type ApiKeyListItem = Omit<ApiKeyResp, `key`> & {key?: string};
