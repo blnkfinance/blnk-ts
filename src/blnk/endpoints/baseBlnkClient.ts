@@ -1,10 +1,16 @@
-import {BlnkClientOptions, BlnkLogger, fetchType} from "../../types/blnkClient";
+import {BlnkClientOptions, BlnkLogger, FetchType} from "../../types/blnkClient";
 import {
   ApiResponse,
   FormatResponseType,
   ServiceInstances,
   ServicesMap,
 } from "../../types/general";
+import {
+  isNodeFormData,
+  isStreamingFetchBody,
+  isWebFormData,
+  nodeFormDataToFetchBody,
+} from "../utils/formDataBody";
 import {HandleError} from "../utils/logger";
 import {ApiKeys} from "./apiKeys";
 import {BalanceMonitor} from "./balanceMonitors";
@@ -17,8 +23,6 @@ import {Reconciliation} from "./reconciliation";
 import {Search} from "./search";
 import {System} from "./system";
 import {Transactions} from "./transactions";
-import FormData from "form-data";
-
 /**
  * Blnk class for interacting with the Blnk API services.
  *
@@ -46,14 +50,14 @@ export class Blnk {
   private services: ServicesMap;
   private serviceInstances: ServiceInstances = {}; // Cache initialized services
   private formatResponse: FormatResponseType;
-  private thirdPartyRequest: fetchType;
+  private thirdPartyRequest: FetchType;
 
   constructor(
     apiKey: string,
     options: BlnkClientOptions,
     services: ServicesMap,
     formatResponse: FormatResponseType,
-    thirdPartyRequest: fetchType,
+    thirdPartyRequest: FetchType,
   ) {
     if (!options.baseUrl) {
       throw new Error(`baseUrl is required for self-hosted Blnk SDK.`);
@@ -95,25 +99,50 @@ export class Blnk {
     method: `POST` | `GET` | `PUT` | `DELETE`,
     headerOptions?: Record<string, string>,
   ): Promise<ApiResponse<R | null>> {
-    const headers = {
-      "content-type": `application/json`,
+    const controller = new AbortController();
+    const timeoutMs = this.options.timeout ?? 3000;
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    let body: BodyInit | undefined;
+    const formDataHeaders: Record<string, string> = {};
+
+    if (data) {
+      if (isNodeFormData(data)) {
+        const converted = nodeFormDataToFetchBody(data);
+        body = converted.body as BodyInit;
+        Object.assign(formDataHeaders, converted.headers);
+      } else if (isWebFormData(data)) {
+        body = data;
+      } else {
+        body = JSON.stringify(data);
+      }
+    }
+
+    const isMultipart = isNodeFormData(data) || isWebFormData(data);
+    const headers: Record<string, string> = {
       "X-Blnk-Key": this.apiKey,
+      ...(!isMultipart ? {"content-type": `application/json`} : {}),
       ...headerOptions,
+      ...formDataHeaders,
     };
+
+    type FetchInitWithDuplex = RequestInit & {duplex?: `half`};
+
+    const fetchInit: FetchInitWithDuplex = {
+      method,
+      headers,
+      body,
+      signal: controller.signal,
+    };
+
+    if (isStreamingFetchBody(body)) {
+      fetchInit.duplex = `half`;
+    }
 
     try {
       const response = await this.thirdPartyRequest(
         `${this.options.baseUrl}${endpoint}`,
-        {
-          method,
-          headers,
-          body: data
-            ? data instanceof FormData
-              ? data
-              : JSON.stringify(data)
-            : undefined,
-          timeout: this.options.timeout,
-        },
+        fetchInit,
       );
 
       if (!response.ok) {
@@ -136,6 +165,15 @@ export class Blnk {
         jsonResponse,
       ) as ApiResponse<R>;
     } catch (error: unknown) {
+      if (error instanceof Error && error.name === `AbortError`) {
+        this.logger.error(`Request timed out`, {endpoint, timeoutMs});
+        return this.formatResponse(
+          408,
+          `Request timed out after ${timeoutMs}ms`,
+          null,
+        );
+      }
+
       this.logger.error(`Request failed`, {endpoint, error});
       return HandleError(
         error,
@@ -143,6 +181,8 @@ export class Blnk {
         this.formatResponse,
         `${this.request.name}`,
       );
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
 

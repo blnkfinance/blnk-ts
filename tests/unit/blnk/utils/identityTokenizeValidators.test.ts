@@ -19,7 +19,7 @@ tap.test(`ValidateTokenizeIdentityData`, async t => {
   );
   t.equal(
     ValidateTokenizeIdentityData(`idt_test_123`, {
-      fields: [`FirstName`, ``],
+      fields: [`FirstName`, `` as `FirstName`],
     }),
     `each field must be a non-empty string`,
   );

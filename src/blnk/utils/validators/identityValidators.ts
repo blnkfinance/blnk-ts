@@ -57,7 +57,7 @@ export function ValidateTokenizeIdentityData(
   }
 
   for (const field of data.fields) {
-    if (!IsValidString(field) || field === ``) {
+    if (!IsValidString(field) || String(field).length === 0) {
       return `each field must be a non-empty string`;
     }
   }
