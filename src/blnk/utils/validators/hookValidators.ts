@@ -1,4 +1,9 @@
-import {CreateHookData, HookType, UpdateHookData} from "../../../types/hooks";
+import {
+  CreateHookData,
+  HookType,
+  ListHooksOptions,
+  UpdateHookData,
+} from "../../../types/hooks";
 import {IsValidNumber, IsValidString} from "../stringUtils";
 
 const isValidHookType = (type: HookType) =>
@@ -38,4 +43,25 @@ export function ValidateCreateHookData(data: CreateHookData): string | null {
 
 export function ValidateUpdateHookData(data: UpdateHookData): string | null {
   return ValidateCreateHookData(data);
+}
+
+export function ValidateListHooksOptions(
+  options?: ListHooksOptions,
+): string | null {
+  if (options === undefined) {
+    return null;
+  }
+
+  if (!options || typeof options !== `object`) {
+    return `options must be a valid object`;
+  }
+
+  if (
+    options.type !== undefined &&
+    (!IsValidString(options.type) || !isValidHookType(options.type))
+  ) {
+    return `type must be PRE_TRANSACTION or POST_TRANSACTION`;
+  }
+
+  return null;
 }

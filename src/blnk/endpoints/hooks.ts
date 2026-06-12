@@ -1,9 +1,15 @@
 import {BlnkLogger} from "../../types/blnkClient";
 import {BlnkRequest, FormatResponseType} from "../../types/general";
-import {CreateHookData, HookResp, UpdateHookData} from "../../types/hooks";
+import {
+  CreateHookData,
+  HookResp,
+  ListHooksOptions,
+  UpdateHookData,
+} from "../../types/hooks";
 import {HandleError} from "../utils/logger";
 import {
   ValidateCreateHookData,
+  ValidateListHooksOptions,
   ValidateUpdateHookData,
 } from "../utils/validators/hookValidators";
 
@@ -50,6 +56,38 @@ export class Hooks {
         this.logger,
         this.formatResponse,
         this.create.name,
+      );
+    }
+  }
+
+  /**
+   * Lists webhooks, optionally filtered by type.
+   *
+   * @see https://docs.blnkfinance.com/reference/list-hooks-by-type
+   */
+  async list(options?: ListHooksOptions) {
+    try {
+      const validatorResponse = ValidateListHooksOptions(options);
+      if (validatorResponse) {
+        return this.formatResponse(400, validatorResponse, null);
+      }
+
+      const endpoint =
+        options?.type !== undefined ? `hooks?type=${options.type}` : `hooks`;
+
+      const response = await this.request<undefined, HookResp[]>(
+        endpoint,
+        undefined,
+        `GET`,
+      );
+
+      return response;
+    } catch (error: unknown) {
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.list.name,
       );
     }
   }

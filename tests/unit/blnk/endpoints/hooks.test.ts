@@ -90,6 +90,84 @@ tap.test(`Issue #28 — Hooks.create`, async t => {
   });
 });
 
+tap.test(`Issue #31 — Hooks.list`, async t => {
+  t.test(`list GETs hooks without type filter`, async tt => {
+    const mockLogger = createMockLogger();
+    const listResponse = [mockResponse];
+    const thirdPartyRequest = async <R>() => ({
+      status: 200,
+      message: `Success`,
+      data: listResponse as unknown as R,
+    });
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const hooks = new Hooks(capturedRequest, mockLogger, FormatResponse);
+
+    const response = await hooks.list();
+
+    tt.match(capturedRequest.args(), [[`hooks`, undefined, `GET`]]);
+    tt.equal(response.status, 200);
+    tt.equal(response.data?.length, 1);
+    tt.equal(response.data?.[0]?.id, `hk_test_123`);
+    tt.end();
+  });
+
+  t.test(`list GETs hooks?type= when type provided`, async tt => {
+    const mockLogger = createMockLogger();
+    const thirdPartyRequest = async <R>() => ({
+      status: 200,
+      message: `Success`,
+      data: [] as unknown as R,
+    });
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const hooks = new Hooks(capturedRequest, mockLogger, FormatResponse);
+
+    const response = await hooks.list({type: `POST_TRANSACTION`});
+
+    tt.match(capturedRequest.args(), [
+      [`hooks?type=POST_TRANSACTION`, undefined, `GET`],
+    ]);
+    tt.equal(response.status, 200);
+    tt.end();
+  });
+
+  t.test(`list returns 400 for invalid type`, async tt => {
+    const mockLogger = createMockLogger();
+    const thirdPartyRequest = async <R>() => ({
+      status: 200,
+      message: `Success`,
+      data: [] as unknown as R,
+    });
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const hooks = new Hooks(capturedRequest, mockLogger, FormatResponse);
+
+    const response = await hooks.list({
+      type: `INVALID` as CreateHookData[`type`],
+    });
+
+    tt.equal(capturedRequest.calls.length, 0);
+    tt.equal(response.status, 400);
+    tt.match(response.message, /type/);
+    tt.end();
+  });
+
+  t.test(`list forwards API errors`, async tt => {
+    const mockLogger = createMockLogger();
+    const thirdPartyRequest = async <R>() => ({
+      status: 403,
+      message: `hook management requires master key`,
+      data: null as R | null,
+    });
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const hooks = new Hooks(capturedRequest, mockLogger, FormatResponse);
+
+    const response = await hooks.list();
+
+    tt.match(capturedRequest.args(), [[`hooks`, undefined, `GET`]]);
+    tt.equal(response.status, 403);
+    tt.end();
+  });
+});
+
 tap.test(`Issue #30 — Hooks.get`, async t => {
   t.test(`get GETs hooks/{id}`, async tt => {
     const mockLogger = createMockLogger();

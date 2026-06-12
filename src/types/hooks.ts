@@ -11,6 +11,10 @@ export interface CreateHookData {
 
 export type UpdateHookData = CreateHookData;
 
+export interface ListHooksOptions {
+  type?: HookType;
+}
+
 export interface HookResp {
   id: string;
   name: string;
