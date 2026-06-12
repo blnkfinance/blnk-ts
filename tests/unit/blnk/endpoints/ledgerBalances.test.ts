@@ -143,6 +143,72 @@ tap.test(`Ledger Balance Tests`, t => {
     tt.equal(response.message, `Network Error`);
     tt.end();
   });
+  t.test(
+    `create forwards track_fund_lineage and allocation_strategy (issue #47)`,
+    async tt => {
+      const thirdPartyRequest = createMockBlnkRequest(true, undefined, 201);
+      const capturedRequest = tt.captureFn(thirdPartyRequest);
+      const ledgerBalance = new LedgerBalances(
+        capturedRequest,
+        mockLogger,
+        FormatResponse,
+      );
+
+      const data: CreateLedgerBalance<Record<string, unknown>> = {
+        ledger_id: ledgerId,
+        identity_id: `idt_3b63c8da-af29-4cc3-ad38-df17d87456e6`,
+        currency: `USD`,
+        track_fund_lineage: true,
+        allocation_strategy: `PROPORTIONAL`,
+      };
+
+      const response = await ledgerBalance.create(data);
+
+      tt.match(capturedRequest.args(), [
+        [
+          `balances`,
+          {
+            ledger_id: ledgerId,
+            identity_id: `idt_3b63c8da-af29-4cc3-ad38-df17d87456e6`,
+            currency: `USD`,
+            track_fund_lineage: true,
+            allocation_strategy: `PROPORTIONAL`,
+          },
+          `POST`,
+        ],
+      ]);
+      tt.equal(response.status, 201);
+      tt.end();
+    },
+  );
+
+  t.test(`create rejects invalid allocation_strategy (issue #47)`, async tt => {
+    const thirdPartyRequest = createMockBlnkRequest(true);
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const ledgerBalance = new LedgerBalances(
+      capturedRequest,
+      mockLogger,
+      FormatResponse,
+    );
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data: any = {
+      ledger_id: ledgerId,
+      currency: `USD`,
+      allocation_strategy: `INVALID`,
+    };
+
+    const response = await ledgerBalance.create(data);
+
+    tt.match(capturedRequest.args(), []);
+    tt.equal(response.status, 400);
+    tt.equal(
+      response.message,
+      `allocation_strategy must be one of FIFO, LIFO, or PROPORTIONAL`,
+    );
+    tt.end();
+  });
+
   t.test(`it should handle meta_data if it is not an object`, async tt => {
     const thirdPartyRequest = createMockBlnkRequest(true);
     const capturedRequest = tt.captureFn(thirdPartyRequest);

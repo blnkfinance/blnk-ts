@@ -1,7 +1,14 @@
+/** Fund allocation strategy when `track_fund_lineage` is enabled. */
+export type AllocationStrategy = `FIFO` | `LIFO` | `PROPORTIONAL`;
+
 export interface CreateLedgerBalance<T extends Record<string, unknown>> {
   ledger_id: string;
   identity_id?: string;
   currency: string;
+  /** Enables fund lineage tracking. Requires `identity_id`. */
+  track_fund_lineage?: boolean;
+  /** How tagged provider funds are allocated when spending. Defaults to `FIFO`. */
+  allocation_strategy?: AllocationStrategy;
   meta_data?: T;
 }
 
@@ -22,6 +29,8 @@ export interface CreateLedgerBalanceResp<T extends Record<string, unknown>> {
   created_at: string;
   queued_credit_balance?: number;
   queued_debit_balance?: number;
+  track_fund_lineage?: boolean;
+  allocation_strategy?: AllocationStrategy;
   meta_data?: T;
 }
 
