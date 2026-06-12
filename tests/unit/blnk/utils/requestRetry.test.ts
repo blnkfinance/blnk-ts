@@ -41,13 +41,20 @@ tap.test(`requestRetry`, t => {
     tt.equal(normalizeRetryCount(undefined), 1);
     tt.equal(normalizeRetryCount(0), 1);
     tt.equal(normalizeRetryCount(-1), 1);
+    tt.equal(normalizeRetryCount(Number.NaN), 1);
+    tt.equal(normalizeRetryCount(Number.POSITIVE_INFINITY), 1);
+    tt.equal(normalizeRetryCount(Number.NEGATIVE_INFINITY), 1);
+    tt.equal(normalizeRetryCount(2.9), 2);
     tt.equal(normalizeRetryCount(3), 3);
     tt.end();
   });
 
-  t.test(`normalizeRetryDelayMs clamps negative values`, tt => {
+  t.test(`normalizeRetryDelayMs clamps invalid values to default`, tt => {
     tt.equal(normalizeRetryDelayMs(undefined), 2000);
     tt.equal(normalizeRetryDelayMs(-1), 2000);
+    tt.equal(normalizeRetryDelayMs(Number.NaN), 2000);
+    tt.equal(normalizeRetryDelayMs(Number.POSITIVE_INFINITY), 2000);
+    tt.equal(normalizeRetryDelayMs(Number.NEGATIVE_INFINITY), 2000);
     tt.equal(normalizeRetryDelayMs(500), 500);
     tt.end();
   });

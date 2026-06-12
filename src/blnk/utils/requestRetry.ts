@@ -14,17 +14,30 @@ export function isRetryableHttpStatus(status: number): boolean {
   return status >= 500;
 }
 
+import {
+  DEFAULT_RETRY_COUNT,
+  DEFAULT_RETRY_DELAY_MS,
+} from "../constants/clientDefaults";
+
 export function normalizeRetryCount(retryCount: number | undefined): number {
-  if (retryCount === undefined || retryCount < 1) {
-    return 1;
+  if (
+    retryCount === undefined ||
+    !Number.isFinite(retryCount) ||
+    retryCount < 1
+  ) {
+    return DEFAULT_RETRY_COUNT;
   }
 
-  return retryCount;
+  return Math.floor(retryCount);
 }
 
 export function normalizeRetryDelayMs(retryDelayMs: number | undefined): number {
-  if (retryDelayMs === undefined || retryDelayMs < 0) {
-    return 2000;
+  if (
+    retryDelayMs === undefined ||
+    !Number.isFinite(retryDelayMs) ||
+    retryDelayMs < 0
+  ) {
+    return DEFAULT_RETRY_DELAY_MS;
   }
 
   return retryDelayMs;

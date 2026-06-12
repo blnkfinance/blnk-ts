@@ -508,6 +508,24 @@ tap.test(`Blnk SDK tests`, t => {
     tt.end();
   });
 
+  t.test(`non-finite retry options are normalized on the client`, async tt => {
+    const normalizedBlnk = new Blnk(
+      apiKey,
+      {
+        baseUrl: `http://mock-api.com`,
+        retryCount: Number.NaN,
+        retryDelayMs: Number.POSITIVE_INFINITY,
+      },
+      mockServices,
+      FormatResponse,
+      thirdPartyRequest,
+    );
+
+    tt.equal(normalizedBlnk[`options`].retryCount, 1);
+    tt.equal(normalizedBlnk[`options`].retryDelayMs, 2000);
+    tt.end();
+  });
+
   t.test(`request does not retry 4xx responses`, async tt => {
     let calls = 0;
     const clientErrorFetch = async () => {
