@@ -2,6 +2,7 @@
 import tap from "tap";
 import {
   ValidateCreateBalanceSnapshot,
+  ValidateGetBalanceAt,
   ValidateGetByIndicator,
   ValidateUpdateBalanceIdentity,
 } from "../../../../src/blnk/utils/validators/ledgerBalance";
@@ -77,6 +78,31 @@ tap.test(`Issue #10 — ValidateCreateBalanceSnapshot`, t => {
       ValidateCreateBalanceSnapshot({batch_size: -1}),
       `batch_size must be positive`,
     );
+    tt.end();
+  });
+
+  t.end();
+});
+
+tap.test(`Issue #11 — ValidateGetBalanceAt`, t => {
+  t.test(`accepts valid timestamp`, tt => {
+    tt.equal(ValidateGetBalanceAt({timestamp: `2025-02-24T08:55:26Z`}), null);
+    tt.end();
+  });
+
+  t.test(`accepts from_source flag`, tt => {
+    tt.equal(
+      ValidateGetBalanceAt({
+        timestamp: `2025-02-24T08:55:26Z`,
+        from_source: true,
+      }),
+      null,
+    );
+    tt.end();
+  });
+
+  t.test(`rejects empty timestamp`, tt => {
+    tt.equal(ValidateGetBalanceAt({timestamp: ``}), `timestamp is required`);
     tt.end();
   });
 

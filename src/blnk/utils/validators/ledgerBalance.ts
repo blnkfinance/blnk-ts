@@ -1,6 +1,7 @@
 import {
-  CreateLedgerBalance,
   CreateBalanceSnapshotRequest,
+  CreateLedgerBalance,
+  GetBalanceAtRequest,
   UpdateBalanceIdentity,
 } from "../../../types/ledgerBalances";
 import {IsValidString} from "../stringUtils";
@@ -82,6 +83,18 @@ export function ValidateCreateBalanceSnapshot(
 
   if (data.batch_size !== undefined && data.batch_size < 0) {
     return `batch_size must be positive`;
+  }
+
+  return null;
+}
+
+export function ValidateGetBalanceAt(data: GetBalanceAtRequest): null | string {
+  if (!data || typeof data !== `object`) {
+    return `Data must be a valid object of type GetBalanceAtRequest`;
+  }
+
+  if (!IsValidString(data.timestamp) || data.timestamp === ``) {
+    return `timestamp is required`;
   }
 
   return null;
