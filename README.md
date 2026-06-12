@@ -952,6 +952,32 @@ See the [Delete hooks reference](https://docs.blnkfinance.com/reference/delete-h
 
 ---
 
+## API Keys
+
+| Method | Endpoint | Use case |
+|--------|----------|----------|
+| `ApiKeys.create(data)` | `POST /api-keys` | Create a scoped API key |
+
+> Requires the **master key** or an API key with `api-keys:write` scope. The raw `key` value is only returned once at creation.
+
+### Create an API key
+
+```typescript
+const { ApiKeys } = blnk;
+
+const apiKey = await ApiKeys.create({
+  name: 'Service Account',
+  owner: 'merchant_a',
+  scopes: ['ledgers:read', 'balances:write'],
+  expires_at: '2026-03-11T00:00:00Z',
+});
+// apiKey.data?.key — store securely; shown only once
+```
+
+See the [Create API key reference](https://docs.blnkfinance.com/reference/create-api-key).
+
+---
+
 ## Additional Resources
 
 For more examples and advanced use cases, please refer to the [Examples Code](https://github.com/blnkfinance/blnk-ts/tree/main/examples).

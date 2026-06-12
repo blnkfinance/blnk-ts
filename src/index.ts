@@ -1,3 +1,4 @@
+import {ApiKeys} from "./blnk/endpoints/apiKeys";
 import {BalanceMonitor} from "./blnk/endpoints/balanceMonitors";
 import {Blnk} from "./blnk/endpoints/baseBlnkClient";
 import {Hooks} from "./blnk/endpoints/hooks";
@@ -34,6 +35,7 @@ export function BlnkInit(apiKey: string, options: BlnkClientOptions) {
       System,
       Metadata,
       Hooks,
+      ApiKeys,
     },
     FormatResponse,
     fetch,
