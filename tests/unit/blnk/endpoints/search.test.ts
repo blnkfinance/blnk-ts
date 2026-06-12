@@ -64,6 +64,41 @@ tap.test(`Issue #51 — Search.search identities collection`, async t => {
     childTest.end();
   });
 
+  t.test(`search forwards ledgers collection (issue #52)`, async childTest => {
+    const mockLogger = createMockLogger();
+    const thirdPartyRequest = createMockBlnkRequest(true, undefined, 201);
+    const capturedRequest = childTest.captureFn(thirdPartyRequest);
+    const search = new Search(capturedRequest, mockLogger, FormatResponse);
+
+    const params: SearchParams = {q: `General`, per_page: 5};
+    const response = await search.search(params, `ledgers`);
+
+    childTest.match(capturedRequest.args(), [
+      [`search/ledgers`, params, `POST`],
+    ]);
+    childTest.equal(response.status, 201);
+    childTest.end();
+  });
+
+  t.test(
+    `search forwards transactions collection (issue #52)`,
+    async childTest => {
+      const mockLogger = createMockLogger();
+      const thirdPartyRequest = createMockBlnkRequest(true, undefined, 201);
+      const capturedRequest = childTest.captureFn(thirdPartyRequest);
+      const search = new Search(capturedRequest, mockLogger, FormatResponse);
+
+      const params: SearchParams = {q: `payment`, per_page: 5};
+      const response = await search.search(params, `transactions`);
+
+      childTest.match(capturedRequest.args(), [
+        [`search/transactions`, params, `POST`],
+      ]);
+      childTest.equal(response.status, 201);
+      childTest.end();
+    },
+  );
+
   t.test(`search rejects invalid per_page`, async childTest => {
     const mockLogger = createMockLogger();
     const thirdPartyRequest = createMockBlnkRequest(true);
