@@ -761,6 +761,19 @@ See the [Get reindex status reference](https://docs.blnkfinance.com/reference/ge
 | `Reconciliation.createMatchingRule(data)` | `POST /reconciliation/matching-rules` | Define match criteria |
 | `Reconciliation.run(data)` | `POST /reconciliation/start` | Start batch reconciliation from upload |
 | `Reconciliation.runInstant(data)` | `POST /reconciliation/start-instant` | Reconcile inline external transactions |
+| `Reconciliation.get(id)` | `GET /reconciliation/{reconciliation_id}` | View reconciliation status and counts |
+
+### Get reconciliation status
+
+```typescript
+const { Reconciliation } = blnk;
+
+const status = await Reconciliation.get('recon_3803ea0d-28b4-4c73-a36b-5a9eb7a3edfd');
+// status.data?.status — e.g. started, in_progress, completed, failed
+// status.data?.matched_transactions, unmatched_transactions
+```
+
+See the [View reconciliation details reference](https://docs.blnkfinance.com/reference/get-reconciliations).
 
 ### Instant reconciliation
 
