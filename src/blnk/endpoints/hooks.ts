@@ -2,6 +2,7 @@ import {BlnkLogger} from "../../types/blnkClient";
 import {BlnkRequest, FormatResponseType} from "../../types/general";
 import {
   CreateHookData,
+  DeleteHookResp,
   HookResp,
   ListHooksOptions,
   UpdateHookData,
@@ -149,6 +150,34 @@ export class Hooks {
         this.logger,
         this.formatResponse,
         this.update.name,
+      );
+    }
+  }
+
+  /**
+   * Deletes a webhook by ID.
+   *
+   * @see https://docs.blnkfinance.com/reference/delete-hooks
+   */
+  async delete(id: string) {
+    try {
+      if (!id) {
+        return this.formatResponse(400, `hook id is required`, null);
+      }
+
+      const response = await this.request<undefined, DeleteHookResp>(
+        `hooks/${id}`,
+        undefined,
+        `DELETE`,
+      );
+
+      return response;
+    } catch (error: unknown) {
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.delete.name,
       );
     }
   }
