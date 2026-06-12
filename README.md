@@ -691,6 +691,7 @@ Blnk supports two search modes on the `Search` service:
 | `Search.search(params, collection)` | `POST /search/{collection}` | Full-text search via Typesense |
 | `Search.filter(params, collection)` | `POST /{collection}/filter` | Structured DB filters (Core 0.13.2+) |
 | `Search.startReindex(options?)` | `POST /search/reindex` | Rebuild Typesense index from DB |
+| `Search.getReindexStatus()` | `GET /search/reindex` | Poll reindex progress |
 
 Collections: `ledgers`, `balances`, `transactions`, `identities`.
 
@@ -739,6 +740,16 @@ const reindex = await Search.startReindex({ batch_size: 1000 });
 ```
 
 See the [Start reindex reference](https://docs.blnkfinance.com/reference/start-reindex).
+
+Poll progress after starting a reindex:
+
+```typescript
+const status = await Search.getReindexStatus();
+// status.data?.status — "in_progress" | "completed" | "failed"
+// status.data?.phase — e.g. "indexing_transactions" or "done"
+```
+
+See the [Get reindex status reference](https://docs.blnkfinance.com/reference/get-reindex).
 
 ---
 
