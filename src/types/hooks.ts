@@ -9,6 +9,8 @@ export interface CreateHookData {
   retry_count: number;
 }
 
+export type UpdateHookData = CreateHookData;
+
 export interface HookResp {
   id: string;
   name: string;
