@@ -5,6 +5,7 @@ import {HandleError} from "../utils/logger";
 import fs from "fs";
 import {
   Matcher,
+  ReconciliationResp,
   ReconciliationUploadResp,
   RunInstantReconData,
   RunInstantReconResp,
@@ -214,6 +215,34 @@ export class Reconciliation {
         this.logger,
         this.formatResponse,
         this.runInstant.name,
+      );
+    }
+  }
+
+  /**
+   * Retrieves a reconciliation by ID.
+   *
+   * @see https://docs.blnkfinance.com/reference/get-reconciliations
+   */
+  async get(reconciliationId: string) {
+    try {
+      if (!reconciliationId) {
+        return this.formatResponse(400, `reconciliation id is required`, null);
+      }
+
+      const response = await this.request<undefined, ReconciliationResp>(
+        `reconciliation/${reconciliationId}`,
+        undefined,
+        `GET`,
+      );
+
+      return response;
+    } catch (error) {
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.get.name,
       );
     }
   }

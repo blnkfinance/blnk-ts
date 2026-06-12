@@ -62,3 +62,14 @@ export interface RunInstantReconData {
 export interface RunInstantReconResp {
   reconciliation_id: string;
 }
+
+export interface ReconciliationResp {
+  reconciliation_id: string;
+  upload_id: string;
+  status: string;
+  matched_transactions: number;
+  unmatched_transactions: number;
+  is_dry_run: boolean;
+  started_at: string;
+  completed_at: string | null;
+}
