@@ -19,19 +19,23 @@ export interface SearchRequestParams extends SearchParams {
   collection_name?: string;
 }
 
-export interface SearchHit<TDocument> {
+export interface SearchHit<TDocument = SearchBalanceDocument> {
   document: TDocument;
   highlights?: unknown[];
   highlight?: Record<string, unknown>;
   text_match?: number;
 }
 
-export interface SearchGroupedHit<TDocument> {
+export interface SearchGroupedHit<TDocument = SearchBalanceDocument> {
   group_key?: string[];
   hits: SearchHit<TDocument>[];
 }
 
-export interface SearchResponse<TDocument> {
+/**
+ * Generic Typesense search response. Defaults to `SearchBalanceDocument` so
+ * existing `SearchResponse` imports remain valid without a type argument.
+ */
+export interface SearchResponse<TDocument = SearchBalanceDocument> {
   found: number;
   out_of: number;
   page: number;

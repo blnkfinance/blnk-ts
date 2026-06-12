@@ -15,7 +15,10 @@ import {
   SearchResponse,
   SearchTransactionDocument,
 } from "../../../src/types/search";
-import {assertSearchSearchTypes} from "../../helpers/searchSearchInference";
+import {
+  assertLegacySearchResponseUsage,
+  assertSearchSearchTypes,
+} from "../../helpers/searchSearchInference";
 
 tap.test(`Issue #52 — SearchResponse per collection`, t => {
   t.test(`ledger document uses indexed fields`, tt => {
@@ -141,10 +144,14 @@ tap.test(`Issue #52 — SearchResponse per collection`, t => {
         ],
       };
 
-    const mockRequest: BlnkRequest = async () => ({
+    const mockRequest: BlnkRequest = async <T, R>(
+      _endpoint: string,
+      _data: T,
+      _method: `POST` | `GET` | `PUT` | `DELETE`,
+    ) => ({
       status: 201,
       message: `Success`,
-      data: transactionSearchResponse,
+      data: transactionSearchResponse as unknown as R,
     });
 
     const search = new Search(mockRequest, createMockLogger(), FormatResponse);
@@ -174,8 +181,33 @@ tap.test(`Issue #52 — SearchResponse per collection`, t => {
     },
   );
 
+  t.test(`unparameterized SearchResponse remains valid`, tt => {
+    const response: SearchResponse = {
+      found: 1,
+      out_of: 45,
+      page: 1,
+      request_params: {collection_name: `balances`, q: `*`},
+      search_time_ms: 1,
+      hits: [
+        {
+          document: {
+            id: `bln_15168eb4-bdb1-4e46-9331-f58a6a16b254`,
+            balance_id: `bln_15168eb4-bdb1-4e46-9331-f58a6a16b254`,
+            balance: `0`,
+            created_at: 1781222909,
+          },
+        },
+      ],
+    };
+
+    tt.equal(typeof response.hits[0].document.balance, `string`);
+    tt.equal(response.hits[0].document.balance_id.startsWith(`bln_`), true);
+    tt.end();
+  });
+
   t.test(`compile-time Search.search inference checks`, tt => {
     void assertSearchSearchTypes;
+    void assertLegacySearchResponseUsage;
     tt.pass(`searchSearchInference.ts type checks compile`);
     tt.end();
   });
