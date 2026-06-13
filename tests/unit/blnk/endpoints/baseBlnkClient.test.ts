@@ -48,23 +48,26 @@ tap.test(`Blnk SDK tests`, t => {
     });
   });
 
-  t.test(`Issue #56 — omits X-Blnk-Key for local unauthenticated mode`, async tt => {
-    const capturedFetch = tt.captureFn(fetchMock.fetch);
-    const localBlnk = new Blnk(
-      ``,
-      options,
-      mockServices,
-      FormatResponse,
-      capturedFetch,
-    );
+  t.test(
+    `Issue #56 — omits X-Blnk-Key for local unauthenticated mode`,
+    async tt => {
+      const capturedFetch = tt.captureFn(fetchMock.fetch);
+      const localBlnk = new Blnk(
+        ``,
+        options,
+        mockServices,
+        FormatResponse,
+        capturedFetch,
+      );
 
-    await localBlnk[`request`](`health`, {}, `GET`);
+      await localBlnk[`request`](`health`, {}, `GET`);
 
-    const init = capturedFetch.calls[0]?.args[1] as RequestInit;
-    const headers = init.headers as Record<string, string>;
-    tt.notOk(`X-Blnk-Key` in headers);
-    tt.end();
-  });
+      const init = capturedFetch.calls[0]?.args[1] as RequestInit;
+      const headers = init.headers as Record<string, string>;
+      tt.notOk(`X-Blnk-Key` in headers);
+      tt.end();
+    },
+  );
 
   t.test(`Issue #56 — sends X-Blnk-Key when api key is set`, async tt => {
     const capturedFetch = tt.captureFn(fetchMock.fetch);
@@ -86,10 +89,7 @@ tap.test(`Blnk SDK tests`, t => {
 
   t.test(`Issue #55 — does not expose public getApiKey getter`, async tt => {
     tt.equal(
-      Object.getOwnPropertyDescriptor(
-        Object.getPrototypeOf(blnk),
-        `getApiKey`,
-      ),
+      Object.getOwnPropertyDescriptor(Object.getPrototypeOf(blnk), `getApiKey`),
       undefined,
     );
     tt.end();
@@ -229,6 +229,42 @@ tap.test(`Blnk SDK tests`, t => {
       tt.match(payload, /stripe/);
       tt.match(payload, /200,xyz/);
       tt.equal((init as RequestInit & {duplex?: string}).duplex, `half`);
+      tt.end();
+    },
+  );
+
+  t.test(
+    `Issue #110 — returns success for 204 No Content without parsing JSON`,
+    async tt => {
+      const noContentFetch = async () =>
+        ({
+          ok: true,
+          status: 204,
+          statusText: `No Content`,
+          json: async () => {
+            throw new SyntaxError(`Unexpected end of JSON input`);
+          },
+          text: async () => ``,
+          headers: new Headers(),
+        }) as unknown as Response;
+
+      const noContentBlnk = new Blnk(
+        apiKey,
+        options,
+        mockServices,
+        FormatResponse,
+        noContentFetch,
+      );
+
+      const response = await noContentBlnk[`request`](
+        `api-keys/api_key_test_123`,
+        undefined,
+        `DELETE`,
+      );
+
+      tt.equal(response.status, 204);
+      tt.equal(response.message, `Success`);
+      tt.equal(response.data, null);
       tt.end();
     },
   );
@@ -474,33 +510,38 @@ tap.test(`Blnk SDK tests`, t => {
     tt.end();
   });
 
-  t.test(`request does not retry timeouts even when retryCount > 1`, async tt => {
-    let calls = 0;
-    const timeoutFetch = async (
-      _input: RequestInfo | URL,
-      init?: RequestInit,
-    ): Promise<Response> =>
-      new Promise((_resolve, reject) => {
-        calls += 1;
-        init?.signal?.addEventListener(`abort`, () => {
-          reject(new DOMException(`The operation was aborted.`, `AbortError`));
+  t.test(
+    `request does not retry timeouts even when retryCount > 1`,
+    async tt => {
+      let calls = 0;
+      const timeoutFetch = async (
+        _input: RequestInfo | URL,
+        init?: RequestInit,
+      ): Promise<Response> =>
+        new Promise((_resolve, reject) => {
+          calls += 1;
+          init?.signal?.addEventListener(`abort`, () => {
+            reject(
+              new DOMException(`The operation was aborted.`, `AbortError`),
+            );
+          });
         });
-      });
 
-    const timeoutBlnk = new Blnk(
-      apiKey,
-      {...options, timeout: 10, retryCount: 3, retryDelayMs: 1},
-      mockServices,
-      FormatResponse,
-      timeoutFetch,
-    );
+      const timeoutBlnk = new Blnk(
+        apiKey,
+        {...options, timeout: 10, retryCount: 3, retryDelayMs: 1},
+        mockServices,
+        FormatResponse,
+        timeoutFetch,
+      );
 
-    const result = await timeoutBlnk[`request`](`/slow`, {}, `GET`);
+      const result = await timeoutBlnk[`request`](`/slow`, {}, `GET`);
 
-    tt.equal(calls, 1);
-    tt.equal(result.status, 408);
-    tt.end();
-  });
+      tt.equal(calls, 1);
+      tt.equal(result.status, 408);
+      tt.end();
+    },
+  );
 
   t.test(
     `request returns structured error after GET retries are exhausted`,

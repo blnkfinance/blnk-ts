@@ -1,8 +1,12 @@
 /* eslint-disable n/no-unpublished-import */
 import tap from "tap";
 import {ApiKeys} from "../../../../src/blnk/endpoints/apiKeys";
+import {Blnk} from "../../../../src/blnk/endpoints/baseBlnkClient";
 import {FormatResponse} from "../../../../src/blnk/utils/httpClient";
-import {createMockLogger} from "../../../mocks/blnkClientMocks";
+import {
+  createMockBlnkClientOptions,
+  createMockLogger,
+} from "../../../mocks/blnkClientMocks";
 import {ApiKeyResp, CreateApiKeyData} from "../../../../src/types/apiKeys";
 
 const validData: CreateApiKeyData = {
@@ -217,26 +221,29 @@ tap.test(`Issue #38 — ApiKeys.delete`, async t => {
     tt.end();
   });
 
-  t.test(`delete DELETEs api-keys/{id}?owner= when owner provided`, async tt => {
-    const mockLogger = createMockLogger();
-    const thirdPartyRequest = async <R>() => ({
-      status: 204,
-      message: `Success`,
-      data: null as R | null,
-    });
-    const capturedRequest = tt.captureFn(thirdPartyRequest);
-    const apiKeys = new ApiKeys(capturedRequest, mockLogger, FormatResponse);
+  t.test(
+    `delete DELETEs api-keys/{id}?owner= when owner provided`,
+    async tt => {
+      const mockLogger = createMockLogger();
+      const thirdPartyRequest = async <R>() => ({
+        status: 204,
+        message: `Success`,
+        data: null as R | null,
+      });
+      const capturedRequest = tt.captureFn(thirdPartyRequest);
+      const apiKeys = new ApiKeys(capturedRequest, mockLogger, FormatResponse);
 
-    const response = await apiKeys.delete(`api_key_test_123`, {
-      owner: `merchant_a`,
-    });
+      const response = await apiKeys.delete(`api_key_test_123`, {
+        owner: `merchant_a`,
+      });
 
-    tt.match(capturedRequest.args(), [
-      [`api-keys/api_key_test_123?owner=merchant_a`, undefined, `DELETE`],
-    ]);
-    tt.equal(response.status, 204);
-    tt.end();
-  });
+      tt.match(capturedRequest.args(), [
+        [`api-keys/api_key_test_123?owner=merchant_a`, undefined, `DELETE`],
+      ]);
+      tt.equal(response.status, 204);
+      tt.end();
+    },
+  );
 
   t.test(`delete URL-encodes id and owner`, async tt => {
     const mockLogger = createMockLogger();
@@ -319,4 +326,36 @@ tap.test(`Issue #38 — ApiKeys.delete`, async t => {
     tt.equal(response.status, 404);
     tt.end();
   });
+
+  t.test(
+    `Issue #110 — delete succeeds through request layer on 204 No Content`,
+    async tt => {
+      const noContentFetch = async () =>
+        ({
+          ok: true,
+          status: 204,
+          statusText: `No Content`,
+          json: async () => {
+            throw new SyntaxError(`Unexpected end of JSON input`);
+          },
+          text: async () => ``,
+          headers: new Headers(),
+        }) as unknown as Response;
+
+      const blnk = new Blnk(
+        `test-key`,
+        createMockBlnkClientOptions(),
+        {ApiKeys},
+        FormatResponse,
+        noContentFetch,
+      );
+
+      const response = await blnk.ApiKeys.delete(`api_key_test_123`);
+
+      tt.equal(response.status, 204);
+      tt.equal(response.message, `Success`);
+      tt.equal(response.data, null);
+      tt.end();
+    },
+  );
 });

@@ -93,7 +93,9 @@ export class Blnk {
       ...restOptions,
     };
     this.options.retryCount = normalizeRetryCount(this.options.retryCount);
-    this.options.retryDelayMs = normalizeRetryDelayMs(this.options.retryDelayMs);
+    this.options.retryDelayMs = normalizeRetryDelayMs(
+      this.options.retryDelayMs,
+    );
 
     if (logger === undefined) {
       this.logger = console;
@@ -205,6 +207,14 @@ export class Blnk {
             errorResult,
             structuredError,
           );
+        }
+
+        if (response.status === 204 || response.status === 205) {
+          return this.formatResponse<R>(
+            response.status,
+            `Success`,
+            null as R,
+          ) as ApiResponse<R>;
         }
 
         const jsonResponse = (await response.json()) as R;
