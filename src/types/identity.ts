@@ -57,6 +57,10 @@ export interface TokenizeIdentityResp {
   message: string;
 }
 
+export interface TokenizeIdentityFieldResp {
+  message: string;
+}
+
 export interface GetTokenizedFieldsResp {
   tokenized_fields: TokenizableIdentityField[];
 }
