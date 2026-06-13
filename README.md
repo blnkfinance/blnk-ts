@@ -178,6 +178,7 @@ console.log('Identity Created:', newIdentity);
 | `Identity.tokenizeField(id, field)` | `POST /identities/{identity_id}/tokenize/{field}` | Tokenize one PII field on an identity |
 | `Identity.tokenize(id, data)` | `POST /identities/{identity_id}/tokenize` | Tokenize multiple PII fields on an identity |
 | `Identity.detokenize(id, data)` | `POST /identities/{identity_id}/detokenize` | Detokenize fields and return original values |
+| `Identity.detokenizeField(id, field)` | `GET /identities/{identity_id}/detokenize/{field}` | Detokenize one field and return its original value |
 
 ```typescript
 const { Identity } = blnk;
@@ -200,11 +201,15 @@ const restored = await Identity.detokenize(identity.data!.identity_id, {
   fields: ['FirstName', 'EmailAddress'],
 });
 // restored.data?.fields — e.g. { FirstName: "Jane", EmailAddress: "jane@example.com" }
+
+// Detokenize a single field and read the original value.
+const email = await Identity.detokenizeField(identity.data!.identity_id, 'EmailAddress');
+// email.data?.value — e.g. "jane@example.com"
 ```
 
 > Field names must be Core struct names (`FirstName`, `EmailAddress`, …). Passing `first_name` or `email_address` from `IdentityData` will be rejected.
 
-See the [Get tokenized fields reference](https://docs.blnkfinance.com/reference/get-tokenized-fields), [Tokenize field reference](https://docs.blnkfinance.com/reference/tokenize-field), [Tokenize identity reference](https://docs.blnkfinance.com/reference/tokenize-identity), and [Detokenize identity reference](https://docs.blnkfinance.com/reference/detokenize-identity).
+See the [Get tokenized fields reference](https://docs.blnkfinance.com/reference/get-tokenized-fields), [Tokenize field reference](https://docs.blnkfinance.com/reference/tokenize-field), [Tokenize identity reference](https://docs.blnkfinance.com/reference/tokenize-identity), [Detokenize field reference](https://docs.blnkfinance.com/reference/detokenize-field), and [Detokenize identity reference](https://docs.blnkfinance.com/reference/detokenize-identity).
 
 ---
 
