@@ -40,12 +40,21 @@ export function ValidateIdentity<T extends Record<string, unknown>>(
   return null;
 }
 
+export function ValidateIdentityId(id: string): string | null {
+  if (!IsValidString(id) || id === ``) {
+    return `identity id is required`;
+  }
+
+  return null;
+}
+
 export function ValidateTokenizeIdentityData(
   id: string,
   data: TokenizeIdentityData,
 ): string | null {
-  if (!IsValidString(id) || id === ``) {
-    return `identity id is required`;
+  const idError = ValidateIdentityId(id);
+  if (idError) {
+    return idError;
   }
 
   if (!data || typeof data !== `object`) {
