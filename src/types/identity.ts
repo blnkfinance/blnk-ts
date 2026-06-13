@@ -78,3 +78,9 @@ export interface DetokenizeIdentityResp {
   /** Original field values keyed by field name as returned by Core. */
   fields: Record<string, string>;
 }
+
+export interface DetokenizeIdentityFieldResp {
+  /** Field name as returned by Core (echoes the path parameter). */
+  field: string;
+  value: string;
+}
