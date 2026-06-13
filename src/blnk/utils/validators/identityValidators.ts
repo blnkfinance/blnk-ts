@@ -1,4 +1,8 @@
-import {IdentityData, TokenizeIdentityData} from "../../../types/identity";
+import {
+  IdentityData,
+  TokenizableIdentityField,
+  TokenizeIdentityData,
+} from "../../../types/identity";
 import {isValidMetaData} from "./ledgerBalance";
 import {isValidIdentityDateInput} from "../identitySerialization";
 import {IsValidArray, IsValidString} from "../stringUtils";
@@ -43,6 +47,22 @@ export function ValidateIdentity<T extends Record<string, unknown>>(
 export function ValidateIdentityId(id: string): string | null {
   if (!IsValidString(id) || id === ``) {
     return `identity id is required`;
+  }
+
+  return null;
+}
+
+export function ValidateTokenizeIdentityField(
+  id: string,
+  field: TokenizableIdentityField,
+): string | null {
+  const idError = ValidateIdentityId(id);
+  if (idError) {
+    return idError;
+  }
+
+  if (!IsValidString(field) || String(field).length === 0) {
+    return `field name is required`;
   }
 
   return null;

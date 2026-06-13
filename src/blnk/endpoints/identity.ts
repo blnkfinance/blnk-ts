@@ -4,7 +4,9 @@ import {
   IdentityData,
   IdentityDataResponse,
   GetTokenizedFieldsResp,
+  TokenizableIdentityField,
   TokenizeIdentityData,
+  TokenizeIdentityFieldResp,
   TokenizeIdentityResp,
 } from "../../types/identity";
 import {HandleError} from "../utils/logger";
@@ -13,6 +15,7 @@ import {
   ValidateIdentity,
   ValidateIdentityId,
   ValidateTokenizeIdentityData,
+  ValidateTokenizeIdentityField,
 } from "../utils/validators/identityValidators";
 
 /**
@@ -218,6 +221,35 @@ export class Identity {
         this.logger,
         this.formatResponse,
         this.getTokenizedFields.name,
+      );
+    }
+  }
+
+  /**
+   * Tokenizes a single PII field on an identity.
+   *
+   * @see https://docs.blnkfinance.com/reference/tokenize-field
+   */
+  async tokenizeField(id: string, field: TokenizableIdentityField) {
+    try {
+      const validatorResponse = ValidateTokenizeIdentityField(id, field);
+      if (validatorResponse) {
+        return this.formatResponse(400, validatorResponse, null);
+      }
+
+      const response = await this.request<null, TokenizeIdentityFieldResp>(
+        `identities/${id}/tokenize/${field}`,
+        null,
+        `POST`,
+      );
+
+      return response;
+    } catch (error: unknown) {
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.tokenizeField.name,
       );
     }
   }
