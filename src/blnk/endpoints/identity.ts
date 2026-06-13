@@ -3,6 +3,7 @@ import {BlnkRequest, FormatResponseType} from "../../types/general";
 import {
   IdentityData,
   IdentityDataResponse,
+  GetTokenizedFieldsResp,
   TokenizeIdentityData,
   TokenizeIdentityResp,
 } from "../../types/identity";
@@ -10,6 +11,7 @@ import {HandleError} from "../utils/logger";
 import {serializeIdentityData} from "../utils/identitySerialization";
 import {
   ValidateIdentity,
+  ValidateIdentityId,
   ValidateTokenizeIdentityData,
 } from "../utils/validators/identityValidators";
 
@@ -187,6 +189,35 @@ export class Identity {
         this.logger,
         this.formatResponse,
         this.update.name,
+      );
+    }
+  }
+
+  /**
+   * Returns the list of fields currently tokenized on an identity.
+   *
+   * @see https://docs.blnkfinance.com/reference/get-tokenized-fields
+   */
+  async getTokenizedFields(id: string) {
+    try {
+      const validatorResponse = ValidateIdentityId(id);
+      if (validatorResponse) {
+        return this.formatResponse(400, validatorResponse, null);
+      }
+
+      const response = await this.request<null, GetTokenizedFieldsResp>(
+        `identities/${id}/tokenized-fields`,
+        null,
+        `GET`,
+      );
+
+      return response;
+    } catch (error: unknown) {
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.getTokenizedFields.name,
       );
     }
   }

@@ -56,3 +56,7 @@ export interface TokenizeIdentityData {
 export interface TokenizeIdentityResp {
   message: string;
 }
+
+export interface GetTokenizedFieldsResp {
+  tokenized_fields: TokenizableIdentityField[];
+}

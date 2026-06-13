@@ -174,10 +174,14 @@ console.log('Identity Created:', newIdentity);
 
 | Method | Endpoint | Use case |
 |--------|----------|----------|
+| `Identity.getTokenizedFields(id)` | `GET /identities/{identity_id}/tokenized-fields` | List fields currently tokenized on an identity |
 | `Identity.tokenize(id, data)` | `POST /identities/{identity_id}/tokenize` | Tokenize multiple PII fields on an identity |
 
 ```typescript
 const { Identity } = blnk;
+
+const tokenizedFields = await Identity.getTokenizedFields(identity.data!.identity_id);
+// tokenizedFields.data?.tokenized_fields — e.g. ["FirstName", "EmailAddress"]
 
 // Use PascalCase struct field names — not the snake_case JSON keys on IdentityData.
 const tokenized = await Identity.tokenize(identity.data!.identity_id, {
@@ -188,7 +192,7 @@ const tokenized = await Identity.tokenize(identity.data!.identity_id, {
 
 > `fields` must be Core struct names (`FirstName`, `EmailAddress`, …). Passing `first_name` or `email_address` from `IdentityData` will be rejected.
 
-See the [Tokenize identity reference](https://docs.blnkfinance.com/reference/tokenize-identity).
+See the [Get tokenized fields reference](https://docs.blnkfinance.com/reference/get-tokenized-fields) and [Tokenize identity reference](https://docs.blnkfinance.com/reference/tokenize-identity).
 
 ---
 
