@@ -1,4 +1,5 @@
 import {
+  DetokenizeIdentityData,
   IdentityData,
   TokenizableIdentityField,
   TokenizeIdentityData,
@@ -63,6 +64,32 @@ export function ValidateTokenizeIdentityField(
 
   if (!IsValidString(field) || String(field).length === 0) {
     return `field name is required`;
+  }
+
+  return null;
+}
+
+export function ValidateDetokenizeIdentityData(
+  id: string,
+  data: DetokenizeIdentityData,
+): string | null {
+  const idError = ValidateIdentityId(id);
+  if (idError) {
+    return idError;
+  }
+
+  if (!data || typeof data !== `object`) {
+    return `Data must be a valid object of type DetokenizeIdentityData`;
+  }
+
+  if (!IsValidArray(data.fields)) {
+    return `fields must be an array`;
+  }
+
+  for (const field of data.fields) {
+    if (!IsValidString(field) || String(field).length === 0) {
+      return `each field must be a non-empty string`;
+    }
   }
 
   return null;
