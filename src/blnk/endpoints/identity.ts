@@ -4,6 +4,8 @@ import {
   IdentityData,
   IdentityDataResponse,
   GetTokenizedFieldsResp,
+  DetokenizeIdentityData,
+  DetokenizeIdentityResp,
   TokenizableIdentityField,
   TokenizeIdentityData,
   TokenizeIdentityFieldResp,
@@ -12,6 +14,7 @@ import {
 import {HandleError} from "../utils/logger";
 import {serializeIdentityData} from "../utils/identitySerialization";
 import {
+  ValidateDetokenizeIdentityData,
   ValidateIdentity,
   ValidateIdentityId,
   ValidateTokenizeIdentityData,
@@ -278,6 +281,36 @@ export class Identity {
         this.logger,
         this.formatResponse,
         this.tokenize.name,
+      );
+    }
+  }
+
+  /**
+   * Detokenizes multiple PII fields on an identity and returns the original values.
+   *
+   * Pass an empty `fields` array to detokenize all currently tokenized fields.
+   *
+   * @see https://docs.blnkfinance.com/reference/detokenize-identity
+   */
+  async detokenize(id: string, data: DetokenizeIdentityData) {
+    try {
+      const validatorResponse = ValidateDetokenizeIdentityData(id, data);
+      if (validatorResponse) {
+        return this.formatResponse(400, validatorResponse, null);
+      }
+
+      const response = await this.request<
+        DetokenizeIdentityData,
+        DetokenizeIdentityResp
+      >(`identities/${id}/detokenize`, data, `POST`);
+
+      return response;
+    } catch (error: unknown) {
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.detokenize.name,
       );
     }
   }

@@ -177,6 +177,7 @@ console.log('Identity Created:', newIdentity);
 | `Identity.getTokenizedFields(id)` | `GET /identities/{identity_id}/tokenized-fields` | List fields currently tokenized on an identity |
 | `Identity.tokenizeField(id, field)` | `POST /identities/{identity_id}/tokenize/{field}` | Tokenize one PII field on an identity |
 | `Identity.tokenize(id, data)` | `POST /identities/{identity_id}/tokenize` | Tokenize multiple PII fields on an identity |
+| `Identity.detokenize(id, data)` | `POST /identities/{identity_id}/detokenize` | Detokenize fields and return original values |
 
 ```typescript
 const { Identity } = blnk;
@@ -193,11 +194,17 @@ const tokenized = await Identity.tokenize(identity.data!.identity_id, {
   fields: ['FirstName', 'LastName', 'EmailAddress', 'PhoneNumber'],
 });
 // tokenized.data?.message — "Fields tokenized successfully"
+
+// Detokenize specific fields, or pass { fields: [] } to detokenize all tokenized fields.
+const restored = await Identity.detokenize(identity.data!.identity_id, {
+  fields: ['FirstName', 'EmailAddress'],
+});
+// restored.data?.fields — e.g. { FirstName: "Jane", EmailAddress: "jane@example.com" }
 ```
 
 > Field names must be Core struct names (`FirstName`, `EmailAddress`, …). Passing `first_name` or `email_address` from `IdentityData` will be rejected.
 
-See the [Get tokenized fields reference](https://docs.blnkfinance.com/reference/get-tokenized-fields), [Tokenize field reference](https://docs.blnkfinance.com/reference/tokenize-field), and [Tokenize identity reference](https://docs.blnkfinance.com/reference/tokenize-identity).
+See the [Get tokenized fields reference](https://docs.blnkfinance.com/reference/get-tokenized-fields), [Tokenize field reference](https://docs.blnkfinance.com/reference/tokenize-field), [Tokenize identity reference](https://docs.blnkfinance.com/reference/tokenize-identity), and [Detokenize identity reference](https://docs.blnkfinance.com/reference/detokenize-identity).
 
 ---
 

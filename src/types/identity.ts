@@ -64,3 +64,17 @@ export interface TokenizeIdentityFieldResp {
 export interface GetTokenizedFieldsResp {
   tokenized_fields: TokenizableIdentityField[];
 }
+
+export interface DetokenizeIdentityData {
+  /**
+   * Field names to detokenize. Use PascalCase struct names (`FirstName`,
+   * `EmailAddress`), not the snake_case keys on `IdentityData`. Pass an empty
+   * array to detokenize all currently tokenized fields.
+   */
+  fields: TokenizableIdentityField[];
+}
+
+export interface DetokenizeIdentityResp {
+  /** Original field values keyed by field name as returned by Core. */
+  fields: Record<string, string>;
+}
