@@ -84,3 +84,8 @@ export interface DetokenizeIdentityFieldResp {
   field: string;
   value: string;
 }
+
+/** Response from `DELETE /identities/{identity_id}`. */
+export interface DeleteIdentityResp {
+  message: string;
+}

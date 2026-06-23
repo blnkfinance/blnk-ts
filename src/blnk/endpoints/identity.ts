@@ -5,6 +5,7 @@ import {
   IdentityDataResponse,
   GetTokenizedFieldsResp,
   DetokenizeIdentityData,
+  DeleteIdentityResp,
   DetokenizeIdentityFieldResp,
   DetokenizeIdentityResp,
   TokenizableIdentityField,
@@ -34,6 +35,7 @@ import {
  * @method get - Retrieves an identity record by ID.
  * @method list - Retrieves a list of identity records.
  * @method update - Updates an existing identity record.
+ * @method delete - Deletes an identity record by ID.
  * @returns {Promise<ApiResponse>} - The response from the API call.
  * @example
  * const identity = new Identity(requestFunction, loggerInstance, formatResponseFunction);
@@ -196,6 +198,35 @@ export class Identity {
         this.logger,
         this.formatResponse,
         this.update.name,
+      );
+    }
+  }
+
+  /**
+   * Deletes an identity by ID.
+   *
+   * @see https://docs.blnkfinance.com/reference/delete-identity
+   */
+  async delete(id: string) {
+    try {
+      const validatorResponse = ValidateIdentityId(id);
+      if (validatorResponse) {
+        return this.formatResponse(400, validatorResponse, null);
+      }
+
+      const response = await this.request<undefined, DeleteIdentityResp>(
+        `identities/${encodeURIComponent(id)}`,
+        undefined,
+        `DELETE`,
+      );
+
+      return response;
+    } catch (error: unknown) {
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.delete.name,
       );
     }
   }

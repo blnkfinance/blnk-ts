@@ -211,6 +211,21 @@ const email = await Identity.detokenizeField(identity.data!.identity_id, 'EmailA
 
 See the [Get tokenized fields reference](https://docs.blnkfinance.com/reference/get-tokenized-fields), [Tokenize field reference](https://docs.blnkfinance.com/reference/tokenize-field), [Tokenize identity reference](https://docs.blnkfinance.com/reference/tokenize-identity), [Detokenize field reference](https://docs.blnkfinance.com/reference/detokenize-field), and [Detokenize identity reference](https://docs.blnkfinance.com/reference/detokenize-identity).
 
+### Delete identity
+
+| Method | Endpoint | Use case |
+|--------|----------|----------|
+| `Identity.delete(id)` | `DELETE /identities/{identity_id}` | Remove an identity record (Core 0.15.0+) |
+
+```typescript
+const { Identity } = blnk;
+
+const deleted = await Identity.delete(identity.data!.identity_id);
+// deleted.data?.message — "Identity deleted successfully"
+```
+
+See the [Delete identity reference](https://docs.blnkfinance.com/reference/delete-identity).
+
 ---
 
 ## 6. Creating Balances
