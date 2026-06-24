@@ -1,6 +1,6 @@
 {
   "name": "@blnkfinance/blnk-typescript",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Blnk Finance SDK in TypeScript",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
