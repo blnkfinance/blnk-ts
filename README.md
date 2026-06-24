@@ -517,7 +517,7 @@ interface CreateTransactionResponse<T extends Record<string, unknown>> {
   precise_amount: number | string;
   reference: string;
   description: string;
-  rate: number;
+  rate?: number;
   currency: string;
   status: StatusType;
   hash: string;

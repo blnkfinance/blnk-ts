@@ -80,7 +80,6 @@ export interface SearchBalanceDocument {
   version?: number;
   allocation_strategy?: string;
   track_fund_lineage?: boolean;
-  currency_multiplier?: number;
   inflight_expires_at?: number;
   /** Typesense-indexed creation time (Unix timestamp seconds). */
   created_at: number;
@@ -108,7 +107,6 @@ export interface SearchTransactionDocument {
   allow_overdraft?: boolean;
   overdraft_limit?: number;
   skip_queue?: boolean;
-  rate?: number;
   /** Typesense-indexed creation time (Unix timestamp seconds). */
   created_at: number;
   scheduled_for?: number;

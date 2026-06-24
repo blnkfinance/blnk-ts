@@ -20,7 +20,8 @@ export interface CreateLedgerBalanceResp<T extends Record<string, unknown>> {
   inflight_credit_balance: number;
   debit_balance: number;
   inflight_debit_balance: number;
-  currency_multiplier: number;
+  /** Removed from Core 0.15.0 balance responses. */
+  currency_multiplier?: number;
   ledger_id: string;
   identity_id: string;
   balance_id: string;

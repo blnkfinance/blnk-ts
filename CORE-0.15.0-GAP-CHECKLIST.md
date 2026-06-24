@@ -49,10 +49,10 @@
 
 | # | Area | Current SDK | Core 0.15.0 | Fix |
 |---|------|-------------|-------------|-----|
-| B1 | `Reconciliation.run` | `RunReconResp extends Matcher` | Returns only `{ reconciliation_id }` | 🚧 In progress [#121](https://github.com/blnkfinance/blnk-ts/issues/121) |
-| B2 | Transaction responses | `CreateTransactionResponse.rate` required | `rate` removed from responses | Make `rate?` optional or remove from response type |
-| B3 | Balance responses | `LedgerBalanceResp.currency_multiplier` required | Field removed | Make optional or remove from response type |
-| B4 | Search hit types | `currency_multiplier?`, `rate?` on documents | Fields removed from responses | Remove or mark deprecated optional |
+| B1 | `Reconciliation.run` | `RunReconResp extends Matcher` | Returns only `{ reconciliation_id }` | ✅ [#121](https://github.com/blnkfinance/blnk-ts/issues/121) |
+| B2 | Transaction responses | `CreateTransactionResponse.rate` required | `rate` removed from responses | 🚧 In progress [#122](https://github.com/blnkfinance/blnk-ts/issues/122) |
+| B3 | Balance responses | `LedgerBalanceResp.currency_multiplier` required | Field removed | 🚧 In progress [#122](https://github.com/blnkfinance/blnk-ts/issues/122) |
+| B4 | Search hit types | `currency_multiplier?`, `rate?` on documents | Fields removed from responses | 🚧 In progress [#122](https://github.com/blnkfinance/blnk-ts/issues/122) |
 | B5 | Inflight update response | No `queued` on `CreateTransactionResponse` | Default queued commit/void returns `queued: true` | Add `queued?: boolean` to transaction response type |
 | B6 | Bulk inflight results | `BulkInflightResultStatus = succeeded \| failed` | Results can be `queued` when not using `skip_queue` | Add `queued` to result status union + docs |
 
