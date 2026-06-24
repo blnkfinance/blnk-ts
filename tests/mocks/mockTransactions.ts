@@ -86,7 +86,6 @@ export function createDummyTransactionResponse<
     amount: 1000,
     precision: 2,
     precise_amount: 100000,
-    rate: 0,
     reference: `REF12345`,
     description: `Sample transaction description`,
     currency: `USD` as Currency,

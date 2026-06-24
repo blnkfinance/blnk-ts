@@ -71,7 +71,8 @@ export type CreateTransactionResponse<T extends Record<string, unknown>> = {
   precise_amount: number | string;
   reference: string;
   description: string;
-  rate: number;
+  /** Removed from Core 0.15.0 responses; optional for request bodies and legacy payloads. */
+  rate?: number;
   currency: string;
   status: StatusType;
   /** SHA-256 hash of the transaction details. */

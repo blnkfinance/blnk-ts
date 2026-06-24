@@ -4,6 +4,15 @@ import {coreCreateTransactionReferenceResponse} from "../../fixtures/coreCreateT
 import {CreateTransactionResponse} from "../../../src/types/transactions";
 
 tap.test(`Issue #43 — CreateTransactionResponse API parity`, t => {
+  t.test(`accepts Core 0.15.0 create response without rate`, tt => {
+    const response: CreateTransactionResponse<Record<string, never>> = {
+      ...coreCreateTransactionReferenceResponse,
+    };
+
+    tt.equal(response.rate, undefined);
+    tt.end();
+  });
+
   t.test(`accepts Core API reference create response`, tt => {
     const response: CreateTransactionResponse<Record<string, never>> =
       coreCreateTransactionReferenceResponse;

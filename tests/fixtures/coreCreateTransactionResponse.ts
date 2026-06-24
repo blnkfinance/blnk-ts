@@ -8,7 +8,6 @@ export const coreCreateTransactionReferenceResponse: CreateTransactionResponse<
   Record<string, never>
 > = {
   amount: 1250.34,
-  rate: 0,
   precision: 100,
   precise_amount: 125034,
   transaction_id: `txn_c4e70eb8-e4d6-4e04-a2e2-92a43b969e0c`,
