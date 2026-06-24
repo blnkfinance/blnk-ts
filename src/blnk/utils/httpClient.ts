@@ -37,3 +37,23 @@ export function FormatResponse<T>(
 
   return {status, message, data};
 }
+
+/** Reads a fetch response body as JSON, returning null for empty bodies. */
+export async function readResponseJsonBody(
+  response: Response,
+): Promise<unknown> {
+  if (typeof response.text === `function`) {
+    const text = await response.text();
+    if (text.trim() === ``) {
+      return null;
+    }
+
+    return JSON.parse(text);
+  }
+
+  if (typeof response.json === `function`) {
+    return response.json();
+  }
+
+  return null;
+}
