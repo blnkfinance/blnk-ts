@@ -17,3 +17,7 @@ export interface MonitorDataResp extends MonitorData {
   monitor_id: string;
   created_at: string; // ISO date string
 }
+
+export interface DeleteBalanceMonitorResp {
+  message: string;
+}
