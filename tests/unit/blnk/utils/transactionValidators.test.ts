@@ -14,6 +14,7 @@ import {
   BulkVoidInflightRequest,
   BulkTransactions,
   CreateTransactions,
+  MAX_BULK_CREATE_ITEMS,
   MAX_BULK_INFLIGHT_ITEMS,
   RecoverQueueRequest,
   RefundTransactionRequest,
@@ -812,6 +813,22 @@ tap.test(`Issue #44 — bulk transaction request fields`, t => {
     tt.equal(
       ValidateBulkTransactions(data),
       `skip_queue must be a boolean if provided.`,
+    );
+    tt.end();
+  });
+
+  t.test(`rejects oversized transactions array (issue #123)`, tt => {
+    const transactions = Array.from(
+      {length: MAX_BULK_CREATE_ITEMS + 1},
+      (_, i) => ({
+        ...baseBulkTxn,
+        reference: `bulk_ref_${i}`,
+      }),
+    );
+
+    tt.equal(
+      ValidateBulkTransactions({transactions}),
+      `Too many transactions; max is ${MAX_BULK_CREATE_ITEMS}.`,
     );
     tt.end();
   });

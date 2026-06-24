@@ -4,6 +4,7 @@ import {
   BulkVoidInflightRequest,
   BulkTransactions,
   CreateTransactions,
+  MAX_BULK_CREATE_ITEMS,
   MAX_BULK_INFLIGHT_ITEMS,
   MultipleSourcesT,
   RecoverQueueRequest,
@@ -692,6 +693,10 @@ export function ValidateBulkTransactions<T extends Record<string, unknown>>(
 
   if (data.transactions.length === 0) {
     return `Transactions array cannot be empty.`;
+  }
+
+  if (data.transactions.length > MAX_BULK_CREATE_ITEMS) {
+    return `Too many transactions; max is ${MAX_BULK_CREATE_ITEMS}.`;
   }
 
   for (let i = 0; i < data.transactions.length; i++) {
