@@ -1,6 +1,14 @@
 import {MonitorCondition, MonitorData} from "../../../types/balanceMonitor";
 import {IsValidNumber, IsValidOperator, IsValidString} from "../stringUtils";
 
+export function ValidateMonitorId(id: string): string | null {
+  if (!IsValidString(id) || id === ``) {
+    return `monitor id is required`;
+  }
+
+  return null;
+}
+
 export function ValidateMonitorData(data: MonitorData): string | null {
   // Validate if data is an object
   if (!data || typeof data !== `object`) {

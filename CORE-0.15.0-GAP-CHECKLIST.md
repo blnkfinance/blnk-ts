@@ -31,7 +31,7 @@
 | # | Core route | SDK method | Status | Suggested issue title |
 |---|------------|------------|--------|------------------------|
 | A1 | `DELETE /identities/{id}` | `Identity.delete(id)` | 🚧 In progress | [#116](https://github.com/blnkfinance/blnk-ts/issues/116) |
-| A2 | `DELETE /balance-monitors/{id}` | `BalanceMonitor.delete(id)` | ❌ Missing | [#120](https://github.com/blnkfinance/blnk-ts/issues/120) |
+| A2 | `DELETE /balance-monitors/{id}` | `BalanceMonitor.delete(id)` | 🚧 In progress | [#120](https://github.com/blnkfinance/blnk-ts/issues/120) |
 
 **Acceptance criteria (both):**
 - Method calls correct endpoint with `DELETE`

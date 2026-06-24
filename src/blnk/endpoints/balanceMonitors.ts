@@ -1,8 +1,15 @@
-import {MonitorData, MonitorDataResp} from "../../types/balanceMonitor";
+import {
+  DeleteBalanceMonitorResp,
+  MonitorData,
+  MonitorDataResp,
+} from "../../types/balanceMonitor";
 import {BlnkLogger} from "../../types/blnkClient";
 import {BlnkRequest, FormatResponseType} from "../../types/general";
 import {HandleError} from "../utils/logger";
-import {ValidateMonitorData} from "../utils/validators/balanceMonitors";
+import {
+  ValidateMonitorData,
+  ValidateMonitorId,
+} from "../utils/validators/balanceMonitors";
 
 /**
  * Represents a Balance Monitor that interacts with the balance monitoring system.
@@ -16,6 +23,7 @@ import {ValidateMonitorData} from "../utils/validators/balanceMonitors";
  * @method get - Retrieves a balance monitor by its ID.
  * @method list - Retrieves a list of all balance monitors.
  * @method update - Updates an existing balance monitor with new data.
+ * @method delete - Deletes a balance monitor by its ID.
  * @example
  * const monitor = new BalanceMonitor(requestFunction, loggerInstance, formatResponseFunction);
  * const newMonitorData = { balance_id: '123', condition: { ... } };
@@ -172,6 +180,35 @@ export class BalanceMonitor {
         this.logger,
         this.formatResponse,
         this.update.name,
+      );
+    }
+  }
+
+  /**
+   * Deletes a balance monitor by ID.
+   *
+   * @see https://docs.blnkfinance.com/reference/delete-balance-monitor
+   */
+  async delete(id: string) {
+    try {
+      const validatorResponse = ValidateMonitorId(id);
+      if (validatorResponse) {
+        return this.formatResponse(400, validatorResponse, null);
+      }
+
+      const response = await this.request<undefined, DeleteBalanceMonitorResp>(
+        `balance-monitors/${encodeURIComponent(id)}`,
+        undefined,
+        `DELETE`,
+      );
+
+      return response;
+    } catch (error: unknown) {
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.delete.name,
       );
     }
   }

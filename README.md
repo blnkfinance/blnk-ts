@@ -341,6 +341,21 @@ const response = await LedgerBalances.getLineage(
 // response.data.providers
 ```
 
+### Delete balance monitor
+
+| Method | Endpoint | Use case |
+|--------|----------|----------|
+| `BalanceMonitor.delete(id)` | `DELETE /balance-monitors/{monitor_id}` | Remove a balance monitor (Core 0.15.0+) |
+
+```typescript
+const { BalanceMonitor } = blnk;
+
+const deleted = await BalanceMonitor.delete(monitor.data!.monitor_id);
+// deleted.data?.message — "BalanceMonitor deleted successfully"
+```
+
+See the [Delete balance monitor reference](https://docs.blnkfinance.com/reference/delete-balance-monitor).
+
 ---
 
 ## 6. Recording Transactions
