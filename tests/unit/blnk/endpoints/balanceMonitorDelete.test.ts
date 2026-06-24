@@ -1,7 +1,11 @@
 /* eslint-disable n/no-unpublished-import */
 import tap from "tap";
 import {BalanceMonitor} from "../../../../src/blnk/endpoints/balanceMonitors";
-import {createMockLogger} from "../../../mocks/blnkClientMocks";
+import {Blnk} from "../../../../src/blnk/endpoints/baseBlnkClient";
+import {
+  createMockBlnkClientOptions,
+  createMockLogger,
+} from "../../../mocks/blnkClientMocks";
 import {FormatResponse} from "../../../../src/blnk/utils/httpClient";
 import {DeleteBalanceMonitorResp} from "../../../../src/types/balanceMonitor";
 
@@ -100,4 +104,36 @@ tap.test(`Issue #120 — BalanceMonitor.delete`, async t => {
     tt.equal(response.status, 404);
     tt.end();
   });
+
+  t.test(
+    `Issue #118 — delete succeeds on 200 OK with empty body`,
+    async tt => {
+      const emptyBodyFetch = async () =>
+        ({
+          ok: true,
+          status: 200,
+          statusText: `OK`,
+          json: async () => {
+            throw new SyntaxError(`Unexpected end of JSON input`);
+          },
+          text: async () => ``,
+          headers: new Headers(),
+        }) as unknown as Response;
+
+      const blnk = new Blnk(
+        `test-key`,
+        createMockBlnkClientOptions(),
+        {BalanceMonitor},
+        FormatResponse,
+        emptyBodyFetch,
+      );
+
+      const response = await blnk.BalanceMonitor.delete(`mon_test_123`);
+
+      tt.equal(response.status, 200);
+      tt.equal(response.message, `Success`);
+      tt.equal(response.data, null);
+      tt.end();
+    },
+  );
 });

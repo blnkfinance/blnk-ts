@@ -15,7 +15,7 @@ export const fetchMock = t.createMock(fetchTarget, {
       json: async () => ({
         message: `Success`,
       }),
-      text: async () => `Mock text response`,
+      text: async () => JSON.stringify({message: `Success`}),
       headers: new Headers(init?.headers),
       statusText: `OK`,
       url: input.toString(),
@@ -38,7 +38,7 @@ export const fetchFailMock = t.createMock(fetchTarget, {
       json: async () => ({
         message: `Failed`,
       }),
-      text: async () => `Failed`,
+      text: async () => JSON.stringify({message: `Failed`}),
       headers: new Headers(init?.headers),
       statusText: `Failed`,
       url: input.toString(),

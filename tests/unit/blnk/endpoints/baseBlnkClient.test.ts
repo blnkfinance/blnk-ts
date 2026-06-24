@@ -269,6 +269,136 @@ tap.test(`Blnk SDK tests`, t => {
     },
   );
 
+  t.test(
+    `Issue #118 — returns success for 200 OK with empty DELETE body`,
+    async tt => {
+      const emptyBodyFetch = async () =>
+        ({
+          ok: true,
+          status: 200,
+          statusText: `OK`,
+          json: async () => {
+            throw new SyntaxError(`Unexpected end of JSON input`);
+          },
+          text: async () => ``,
+          headers: new Headers(),
+        }) as unknown as Response;
+
+      const emptyBodyBlnk = new Blnk(
+        apiKey,
+        options,
+        mockServices,
+        FormatResponse,
+        emptyBodyFetch,
+      );
+
+      const response = await emptyBodyBlnk[`request`](
+        `identities/idt_test_123`,
+        undefined,
+        `DELETE`,
+      );
+
+      tt.equal(response.status, 200);
+      tt.equal(response.message, `Success`);
+      tt.equal(response.data, null);
+      tt.end();
+    },
+  );
+
+  t.test(
+    `Issue #118 — attaches error_detail.code on 409 Conflict`,
+    async tt => {
+      const conflictFetch = async () =>
+        ({
+          ok: false,
+          status: 409,
+          statusText: `Conflict`,
+          json: async () => ({
+            error: `duplicate transaction reference`,
+            error_detail: {
+              code: `TXN_DUPLICATE_REFERENCE`,
+              message: `duplicate transaction reference`,
+            },
+          }),
+          text: async () =>
+            JSON.stringify({
+              error: `duplicate transaction reference`,
+              error_detail: {
+                code: `TXN_DUPLICATE_REFERENCE`,
+                message: `duplicate transaction reference`,
+              },
+            }),
+          headers: new Headers(),
+        }) as Response;
+
+      const conflictBlnk = new Blnk(
+        apiKey,
+        options,
+        mockServices,
+        FormatResponse,
+        conflictFetch,
+      );
+
+      const result = await conflictBlnk[`request`](
+        `transactions`,
+        {reference: `dup_ref`},
+        `POST`,
+      );
+
+      tt.equal(result.status, 409);
+      tt.same(result.error, {
+        code: `TXN_DUPLICATE_REFERENCE`,
+        message: `duplicate transaction reference`,
+      });
+      tt.end();
+    },
+  );
+
+  t.test(
+    `Issue #118 — attaches error_detail.code on 423 Locked`,
+    async tt => {
+      const lockedFetch = async () =>
+        ({
+          ok: false,
+          status: 423,
+          statusText: `Locked`,
+          json: async () => ({
+            error: `resource locked`,
+            error_detail: {
+              code: `GEN_LOCKED`,
+              message: `resource locked`,
+            },
+          }),
+          text: async () =>
+            JSON.stringify({
+              error: `resource locked`,
+              error_detail: {
+                code: `GEN_LOCKED`,
+                message: `resource locked`,
+              },
+            }),
+          headers: new Headers(),
+        }) as Response;
+
+      const lockedBlnk = new Blnk(
+        apiKey,
+        options,
+        mockServices,
+        FormatResponse,
+        lockedFetch,
+      );
+
+      const result = await lockedBlnk[`request`](`balances/bln_test`, {}, `PUT`);
+
+      tt.equal(result.status, 423);
+      tt.same(result.error, {
+        code: `GEN_LOCKED`,
+        message: `resource locked`,
+      });
+      tt.end();
+    },
+  );
+
   t.test(`request passes AbortSignal for timeout`, async tt => {
     const signalFetch = async (
       _input: RequestInfo | URL,

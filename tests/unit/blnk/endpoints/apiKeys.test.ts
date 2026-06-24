@@ -358,4 +358,36 @@ tap.test(`Issue #38 — ApiKeys.delete`, async t => {
       tt.end();
     },
   );
+
+  t.test(
+    `Issue #118 — delete succeeds on 200 OK with empty body`,
+    async tt => {
+      const emptyBodyFetch = async () =>
+        ({
+          ok: true,
+          status: 200,
+          statusText: `OK`,
+          json: async () => {
+            throw new SyntaxError(`Unexpected end of JSON input`);
+          },
+          text: async () => ``,
+          headers: new Headers(),
+        }) as unknown as Response;
+
+      const blnk = new Blnk(
+        `test-key`,
+        createMockBlnkClientOptions(),
+        {ApiKeys},
+        FormatResponse,
+        emptyBodyFetch,
+      );
+
+      const response = await blnk.ApiKeys.delete(`api_key_test_123`);
+
+      tt.equal(response.status, 200);
+      tt.equal(response.message, `Success`);
+      tt.equal(response.data, null);
+      tt.end();
+    },
+  );
 });

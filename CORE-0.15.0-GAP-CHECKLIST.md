@@ -85,8 +85,8 @@
 
 | # | Task | Current | Fix |
 |---|------|---------|-----|
-| E1 | Structured `error_detail` | `parseBlnkApiErrorBody` exists; exposed on `ApiResponse.error` | ✅ Verify all error paths populate `response.error.code`; add tests for 404/409/423 status codes from migration guide |
-| E2 | Empty-body success responses | `response.json()` on all 200 responses | Handle empty body on success (DELETE edge cases — see #110 pattern); add regression test |
+| E1 | Structured `error_detail` | `parseBlnkApiErrorBody` exists; exposed on `ApiResponse.error` | ✅ [#118](https://github.com/blnkfinance/blnk-ts/issues/118) |
+| E2 | Empty-body success responses | `response.json()` on all 200 responses | ✅ [#118](https://github.com/blnkfinance/blnk-ts/issues/118) |
 
 **Do not** branch on `error` string or `NOT_FOUND:` prefix in SDK code or docs examples for 1.3.0.
 

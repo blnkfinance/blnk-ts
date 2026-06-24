@@ -18,6 +18,7 @@ import {
   nodeFormDataToFetchBody,
 } from "../utils/formDataBody";
 import {HandleError} from "../utils/logger";
+import {readResponseJsonBody} from "../utils/httpClient";
 import {redactSensitiveLogMeta, safeLogMeta} from "../utils/safeLogMeta";
 import {
   isRetryableFetchError,
@@ -183,8 +184,12 @@ export class Blnk {
         const response = await this.thirdPartyRequest(url, fetchInit);
 
         if (!response.ok) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const errorResult: any = await response.json();
+          let errorResult: unknown = null;
+          try {
+            errorResult = await readResponseJsonBody(response);
+          } catch {
+            errorResult = null;
+          }
           const structuredError = parseBlnkApiErrorBody(errorResult);
 
           if (
@@ -204,7 +209,7 @@ export class Blnk {
           return this.formatResponse<R>(
             response.status,
             structuredError?.message ?? response.statusText,
-            errorResult,
+            errorResult as R,
             structuredError,
           );
         }
@@ -217,7 +222,9 @@ export class Blnk {
           ) as ApiResponse<R>;
         }
 
-        const jsonResponse = (await response.json()) as R;
+        let jsonResponse: R | null;
+        jsonResponse = (await readResponseJsonBody(response)) as R | null;
+
         return this.formatResponse<R>(
           response.status,
           `Success`,
