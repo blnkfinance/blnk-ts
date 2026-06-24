@@ -387,10 +387,100 @@ tap.test(`SDK integration — each added capability vs Blnk Core`, async t => {
 
     const partialCommitResp = await client.Transactions.updateStatus(
       createResp.data!.transaction_id,
-      {status: `commit`, precise_amount: 50000},
+      {status: `commit`, precise_amount: 50000, skip_queue: true},
     );
     tt.equal(partialCommitResp.status, 200);
     tt.equal(partialCommitResp.data?.status, `APPLIED`);
+    tt.end();
+  });
+
+  // Issue #117 — queued default + skip_queue on inflight commit/void
+  t.test(`#117 updateStatus queued by default`, async tt => {
+    const ledgerId = await createLedger(`Issue117 QueuedCommit`);
+    const destination = await createBalance(ledgerId);
+
+    const createResp = await client.Transactions.create({
+      ...baseTxn,
+      amount: 5000,
+      reference: GenerateRandomNumbersWithPrefix(`issue117-queued`, 6),
+      source: `@FundingPool`,
+      destination,
+      inflight: true,
+      inflight_expiry_date: `2026-12-31T23:59:59Z`,
+    } as CreateTransactions<Record<string, never>>);
+
+    tt.equal(createResp.status, 201);
+    await Sleep(2);
+
+    const commitResp = await client.Transactions.updateStatus(
+      createResp.data!.transaction_id,
+      {status: `commit`},
+    );
+    tt.equal(commitResp.status, 200);
+    tt.equal(commitResp.data?.queued, true);
+    tt.end();
+  });
+
+  t.test(`#117 updateStatus skip_queue synchronous commit`, async tt => {
+    const ledgerId = await createLedger(`Issue117 SyncCommit`);
+    const destination = await createBalance(ledgerId);
+
+    const createResp = await client.Transactions.create({
+      ...baseTxn,
+      amount: 5000,
+      reference: GenerateRandomNumbersWithPrefix(`issue117-sync`, 6),
+      source: `@FundingPool`,
+      destination,
+      inflight: true,
+      inflight_expiry_date: `2026-12-31T23:59:59Z`,
+    } as CreateTransactions<Record<string, never>>);
+
+    tt.equal(createResp.status, 201);
+    await Sleep(2);
+
+    const commitResp = await client.Transactions.updateStatus(
+      createResp.data!.transaction_id,
+      {status: `commit`, skip_queue: true},
+    );
+    tt.equal(commitResp.status, 200);
+    tt.equal(commitResp.data?.status, `APPLIED`);
+    tt.end();
+  });
+
+  t.test(`#117 bulkCommitInflight queued vs skip_queue`, async tt => {
+    const ledgerId = await createLedger(`Issue117 BulkCommit`);
+    const destination = await createBalance(ledgerId);
+
+    async function createInflight(refPrefix: string) {
+      const createResp = await client.Transactions.create({
+        ...baseTxn,
+        amount: 1000,
+        reference: GenerateRandomNumbersWithPrefix(refPrefix, 6),
+        source: `@FundingPool`,
+        destination,
+        inflight: true,
+        inflight_expiry_date: `2026-12-31T23:59:59Z`,
+      } as CreateTransactions<Record<string, never>>);
+      tt.equal(createResp.status, 201);
+      return createResp.data!.transaction_id;
+    }
+
+    const txnQueued = await createInflight(`issue117-bulk-q`);
+    const txnSync = await createInflight(`issue117-bulk-s`);
+    await Sleep(2);
+
+    const queuedResp = await client.Transactions.bulkCommitInflight({
+      transactions: [{transaction_id: txnQueued}],
+    });
+    tt.equal(queuedResp.status, 200);
+    tt.equal(queuedResp.data?.results?.[0]?.status, `queued`);
+
+    const syncResp = await client.Transactions.bulkCommitInflight({
+      skip_queue: true,
+      transactions: [{transaction_id: txnSync}],
+    });
+    tt.equal(syncResp.status, 200);
+    tt.equal(syncResp.data?.results?.[0]?.status, `succeeded`);
     tt.end();
   });
 
