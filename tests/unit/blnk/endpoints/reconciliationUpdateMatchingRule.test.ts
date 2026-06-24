@@ -3,7 +3,7 @@ import tap from "tap";
 import {Reconciliation} from "../../../../src/blnk/endpoints/reconciliation";
 import {createMockLogger} from "../../../mocks/blnkClientMocks";
 import {FormatResponse} from "../../../../src/blnk/utils/httpClient";
-import {Matcher, RunReconResp} from "../../../../src/types/reconciliation";
+import {Matcher, MatchingRuleResp} from "../../../../src/types/reconciliation";
 
 const validData: Matcher = {
   name: `Updated matcher`,
@@ -14,7 +14,7 @@ const validData: Matcher = {
   ],
 };
 
-const mockResponse: RunReconResp = {
+const mockResponse: MatchingRuleResp = {
   ...validData,
   rule_id: `rule_test_123`,
   created_at: `2026-06-12T04:31:55.613241Z`,

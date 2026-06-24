@@ -112,7 +112,7 @@ tap.test(`Run Reconciliation`, async t => {
     const thirdPartyRequest: BlnkRequest = createMockBlnkRequest(
       true,
       undefined,
-      201,
+      200,
     );
     const capturedRequest = childTest.captureFn(thirdPartyRequest);
     const reconciliation = new Reconciliation(
@@ -131,7 +131,7 @@ tap.test(`Run Reconciliation`, async t => {
     childTest.match(capturedRequest.args(), [
       [`reconciliation/start`, data, `POST`],
     ]);
-    childTest.match(response.status, 201);
+    childTest.match(response.status, 200);
     childTest.end();
   });
 
