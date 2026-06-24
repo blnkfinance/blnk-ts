@@ -188,6 +188,9 @@ export interface BulkTransactionResponse {
 /** Maximum items per bulk commit or bulk void inflight request. */
 export const MAX_BULK_INFLIGHT_ITEMS = 100;
 
+/** Maximum items per `POST /transactions/bulk` request (Core 0.15.0). */
+export const MAX_BULK_CREATE_ITEMS = 10000;
+
 /** One transaction in `POST /transactions/inflight/bulk/commit`. */
 export interface BulkCommitInflightItem {
   transaction_id: string;

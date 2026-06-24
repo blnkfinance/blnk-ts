@@ -14,6 +14,7 @@ import {
   BulkTransactions,
   CreateTransactionResponse,
   CreateTransactions,
+  MAX_BULK_CREATE_ITEMS,
   MAX_BULK_INFLIGHT_ITEMS,
   RefundTransactionRequest,
   UpdateTransactionStatus,
@@ -1181,6 +1182,42 @@ tap.test(`Creates bulk transactions`, async t => {
         [`transactions/bulk`, data, `POST`],
       ]);
       childTest.equal(bulkResponse.status, 201);
+      childTest.end();
+    },
+  );
+
+  t.test(
+    `createBulk rejects oversized transactions array (issue #123)`,
+    async childTest => {
+      const capturedRequest = childTest.captureFn(thirdPartyRequest);
+      const transactions = new Transactions(
+        capturedRequest,
+        mockLogger,
+        FormatResponse,
+      );
+
+      const data: BulkTransactions<meta_dataT> = {
+        transactions: Array.from({length: MAX_BULK_CREATE_ITEMS + 1}, (_, i) => ({
+          amount: 1000,
+          currency: `USD`,
+          description: `Bulk txn ${i}`,
+          precision: 100,
+          reference: `bulk_max_ref_${i}`,
+          source: `@source_account`,
+          destination: `@destination_account`,
+        })),
+      };
+
+      const response = await transactions.createBulk<meta_dataT>(data);
+      childTest.match(capturedRequest.args(), []);
+      childTest.equal(response.data, null);
+      childTest.equal(response.status, 400);
+      childTest.match(
+        response.message,
+        new RegExp(
+          `Too many transactions; max is ${MAX_BULK_CREATE_ITEMS}\\.`,
+        ),
+      );
       childTest.end();
     },
   );

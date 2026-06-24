@@ -702,10 +702,11 @@ The bulk API returns batch metadata (not nested transaction objects). See **Bulk
 The bulk transactions API validates the following:
 
 1. **Required Fields**: `transactions` array must be provided and cannot be empty
-2. **Transaction Validation**: Each transaction in the array must pass standard transaction validation
-3. **Unique References**: All transaction references must be unique within the bulk request
-4. **Boolean Flags**: `atomic`, `inflight`, `run_async`, and `skip_queue` must be booleans if provided
-5. **Standard Transaction Rules**: All existing transaction validation rules apply to each transaction
+2. **Max Size**: `transactions` array cannot exceed **10,000** items
+3. **Transaction Validation**: Each transaction in the array must pass standard transaction validation
+4. **Unique References**: All transaction references must be unique within the bulk request
+5. **Boolean Flags**: `atomic`, `inflight`, `run_async`, and `skip_queue` must be booleans if provided
+6. **Standard Transaction Rules**: All existing transaction validation rules apply to each transaction
 
 ### Error Handling
 
