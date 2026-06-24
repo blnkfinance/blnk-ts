@@ -49,7 +49,7 @@
 
 | # | Area | Current SDK | Core 0.15.0 | Fix |
 |---|------|-------------|-------------|-----|
-| B1 | `Reconciliation.run` | `RunReconResp extends Matcher` | Returns only `{ reconciliation_id }` | [#121](https://github.com/blnkfinance/blnk-ts/issues/121) |
+| B1 | `Reconciliation.run` | `RunReconResp extends Matcher` | Returns only `{ reconciliation_id }` | 🚧 In progress [#121](https://github.com/blnkfinance/blnk-ts/issues/121) |
 | B2 | Transaction responses | `CreateTransactionResponse.rate` required | `rate` removed from responses | Make `rate?` optional or remove from response type |
 | B3 | Balance responses | `LedgerBalanceResp.currency_multiplier` required | Field removed | Make optional or remove from response type |
 | B4 | Search hit types | `currency_multiplier?`, `rate?` on documents | Fields removed from responses | Remove or mark deprecated optional |

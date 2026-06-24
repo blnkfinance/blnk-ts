@@ -877,6 +877,25 @@ const status = await Reconciliation.get('recon_3803ea0d-28b4-4c73-a36b-5a9eb7a3e
 
 See the [View reconciliation details reference](https://docs.blnkfinance.com/reference/get-reconciliations).
 
+### Start batch reconciliation
+
+`Reconciliation.run` starts reconciliation from a prior upload (`POST /reconciliation/start`). Core 0.15.0 returns only a reconciliation ID — poll `Reconciliation.get(id)` or listen for `reconciliation.completed` / `reconciliation.failed` webhooks for results.
+
+```typescript
+const { Reconciliation } = blnk;
+
+const started = await Reconciliation.run({
+  upload_id: upload.data!.upload_id,
+  strategy: 'one_to_one',
+  dry_run: true,
+  grouping_criteria: 'amount',
+  matching_rule_ids: [rule.data!.rule_id],
+});
+// started.data?.reconciliation_id — use with Reconciliation.get() or webhooks
+```
+
+See the [Start reconciliation reference](https://docs.blnkfinance.com/reference/start-reconciliation).
+
 ### Instant reconciliation
 
 ```typescript

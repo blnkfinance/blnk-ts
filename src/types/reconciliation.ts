@@ -35,7 +35,12 @@ export interface RunReconData {
   matching_rule_ids: string[];
 }
 
-export interface RunReconResp extends Matcher {
+/** Response from `POST /reconciliation/start`. */
+export interface RunReconResp {
+  reconciliation_id: string;
+}
+
+export interface MatchingRuleResp extends Matcher {
   rule_id: string;
   created_at: string;
   updated_at: string;

@@ -6,6 +6,7 @@ import fs from "fs";
 import {
   DeleteMatchingRuleResp,
   Matcher,
+  MatchingRuleResp,
   ReconciliationResp,
   ReconciliationUploadResp,
   RunInstantReconData,
@@ -30,7 +31,7 @@ import FormData1 from "form-data";
  * @returns {Promise<ApiResponse<ReconciliationUploadResp | null>>} - The API response after uploading.
  * @method createMatchingRule - Creates a matching rule for reconciliation.
  * @param {Matcher} data - Data containing the matching rule details.
- * @returns {Promise<ApiResponse<RunReconResp | null>>} - The API response after creating the matching rule.
+ * @returns {Promise<ApiResponse<MatchingRuleResp | null>>} - The API response after creating the matching rule.
  * @method run - Initiates a reconciliation run.
  * @param {RunReconData} data - Data required to start the reconciliation run.
  * @returns {Promise<ApiResponse<RunReconResp | null>>} - The API response after starting the reconciliation run.
@@ -137,7 +138,7 @@ export class Reconciliation {
       if (validatorResponse) {
         return this.formatResponse(400, validatorResponse, null);
       }
-      const response = await this.request<Matcher, RunReconResp>(
+      const response = await this.request<Matcher, MatchingRuleResp>(
         `reconciliation/matching-rules`,
         data,
         `POST`,
@@ -169,7 +170,7 @@ export class Reconciliation {
         return this.formatResponse(400, validatorResponse, null);
       }
 
-      const response = await this.request<Matcher, RunReconResp>(
+      const response = await this.request<Matcher, MatchingRuleResp>(
         `reconciliation/matching-rules/${ruleId}`,
         data,
         `PUT`,
