@@ -14,3 +14,7 @@ export function Sleep(seconds: number) {
 }
 
 export const BASE_URL = `http://localhost:5001/`;
+
+/** Local Core dev key; override with BLNK_API_KEY when running integration tests. */
+export const BLNK_API_KEY =
+  process.env.BLNK_API_KEY ?? `blnk-local-dev-secret-change-me`;

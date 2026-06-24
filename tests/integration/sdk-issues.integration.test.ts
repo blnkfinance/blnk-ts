@@ -15,10 +15,10 @@ import {
   BulkTransactions,
   CreateTransactions,
 } from "../../src/types/transactions";
-import {BASE_URL, GenerateRandomNumbersWithPrefix, Sleep} from "../utils.test";
+import {BASE_URL, BLNK_API_KEY, GenerateRandomNumbersWithPrefix, Sleep} from "../utils.test";
 
 const clientOptions: BlnkClientOptions = {baseUrl: BASE_URL};
-const client = BlnkInit(``, clientOptions);
+const client = BlnkInit(BLNK_API_KEY, clientOptions);
 
 const baseTxn = {
   precision: 100,
@@ -478,6 +478,43 @@ tap.test(`SDK integration — each added capability vs Blnk Core`, async t => {
     const syncResp = await client.Transactions.bulkCommitInflight({
       skip_queue: true,
       transactions: [{transaction_id: txnSync}],
+    });
+    tt.equal(syncResp.status, 200);
+    tt.equal(syncResp.data?.results?.[0]?.status, `succeeded`);
+    tt.end();
+  });
+
+  t.test(`#117 bulkVoidInflight queued vs skip_queue`, async tt => {
+    const ledgerId = await createLedger(`Issue117 BulkVoid`);
+    const destination = await createBalance(ledgerId);
+
+    async function createInflight(refPrefix: string) {
+      const createResp = await client.Transactions.create({
+        ...baseTxn,
+        amount: 1000,
+        reference: GenerateRandomNumbersWithPrefix(refPrefix, 6),
+        source: `@FundingPool`,
+        destination,
+        inflight: true,
+        inflight_expiry_date: `2026-12-31T23:59:59Z`,
+      } as CreateTransactions<Record<string, never>>);
+      tt.equal(createResp.status, 201);
+      return createResp.data!.transaction_id;
+    }
+
+    const txnQueued = await createInflight(`issue117-bulk-void-q`);
+    const txnSync = await createInflight(`issue117-bulk-void-s`);
+    await Sleep(2);
+
+    const queuedResp = await client.Transactions.bulkVoidInflight({
+      transaction_ids: [txnQueued],
+    });
+    tt.equal(queuedResp.status, 200);
+    tt.equal(queuedResp.data?.results?.[0]?.status, `queued`);
+
+    const syncResp = await client.Transactions.bulkVoidInflight({
+      skip_queue: true,
+      transaction_ids: [txnSync],
     });
     tt.equal(syncResp.status, 200);
     tt.equal(syncResp.data?.results?.[0]?.status, `succeeded`);
