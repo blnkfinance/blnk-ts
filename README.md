@@ -446,25 +446,36 @@ const response = await Transactions.getLineage('txn_8d2ce2f0-0d75-4a91-9d43-2ad2
 
 ### Update inflight transaction status
 
+Core **0.15.0** queues inflight commit and void by default. The response includes `queued: true` (status is typically `QUEUED` until the worker processes the action). Send `skip_queue: true` for immediate `APPLIED` or `VOID` responses (previous synchronous behavior).
+
 `Transactions.updateStatus` accepts `precise_amount` for partial commits on inflight transactions (in addition to `amount`). Omit both fields to commit the full remaining inflight amount:
 
 ```typescript
+// Queued commit (default in Core 0.15.0)
+const queued = await Transactions.updateStatus(transactionId, { status: 'commit' });
+// queued.data?.queued === true
+
+// Synchronous commit
+await Transactions.updateStatus(transactionId, {
+  status: 'commit',
+  skip_queue: true,
+});
+
 // Partial commit in minor units
 await Transactions.updateStatus(transactionId, {
   status: 'commit',
   precise_amount: 50000,
+  skip_queue: true,
 });
-
-// Full commit
-await Transactions.updateStatus(transactionId, { status: 'commit' });
 ```
 
 ### Bulk commit inflight transactions
 
-`Transactions.bulkCommitInflight` commits multiple independently-created inflight transactions in one request (`POST /transactions/inflight/bulk/commit`). Omit `amount` and `precise_amount` on an item to commit the full remaining inflight amount:
+`Transactions.bulkCommitInflight` commits multiple independently-created inflight transactions in one request (`POST /transactions/inflight/bulk/commit`). By default, each item is queued (`status: 'queued'` in results). Pass `skip_queue: true` for synchronous processing. Omit `amount` and `precise_amount` on an item to commit the full remaining inflight amount:
 
 ```typescript
 const response = await Transactions.bulkCommitInflight({
+  skip_queue: true,
   transactions: [
     { transaction_id: 'txn_11111111-1111-4111-8111-111111111111' },
     { transaction_id: 'txn_22222222-2222-4222-8222-222222222222', amount: 40 },
@@ -480,10 +491,11 @@ const response = await Transactions.bulkCommitInflight({
 
 ### Bulk void inflight transactions
 
-`Transactions.bulkVoidInflight` voids multiple independently-created inflight transactions in one request (`POST /transactions/inflight/bulk/void`):
+`Transactions.bulkVoidInflight` voids multiple independently-created inflight transactions in one request (`POST /transactions/inflight/bulk/void`). By default, each item is queued. Pass `skip_queue: true` for synchronous void:
 
 ```typescript
 const response = await Transactions.bulkVoidInflight({
+  skip_queue: true,
   transaction_ids: [
     'txn_11111111-1111-4111-8111-111111111111',
     'txn_22222222-2222-4222-8222-222222222222',

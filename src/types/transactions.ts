@@ -86,6 +86,8 @@ export type CreateTransactionResponse<T extends Record<string, unknown>> = {
   allow_overdraft: boolean;
   skip_queue?: boolean;
   inflight: boolean;
+  /** When true, commit/void was queued for async processing (Core 0.15.0 default). */
+  queued?: boolean;
   /** When true, all split legs succeed or fail together. */
   atomic?: boolean;
   overdraft_limit?: number;
@@ -150,6 +152,8 @@ export type UpdateTransactionStatus<T extends Record<string, unknown>> = {
    */
   precise_amount?: number | string;
   meta_data?: T;
+  /** Process synchronously without queuing. Default: `false` (Core 0.15.0 queues commit/void). */
+  skip_queue?: boolean;
 };
 
 /** Optional body for `POST /refund-transaction/{transaction_id}`. */
@@ -208,10 +212,12 @@ export interface BulkCommitInflightItem {
 
 /** Request body for `POST /transactions/inflight/bulk/commit`. */
 export interface BulkCommitInflightRequest {
+  /** Process synchronously without queuing. Default: `false` (Core 0.15.0 queues commit/void). */
+  skip_queue?: boolean;
   transactions: BulkCommitInflightItem[];
 }
 
-export type BulkInflightResultStatus = `succeeded` | `failed`;
+export type BulkInflightResultStatus = `succeeded` | `failed` | `queued`;
 
 /** Per-item outcome in `BulkCommitInflightResponse`. */
 export interface BulkCommitInflightResult {
@@ -234,6 +240,8 @@ export interface BulkCommitInflightResponse {
 
 /** Request body for `POST /transactions/inflight/bulk/void`. */
 export interface BulkVoidInflightRequest {
+  /** Process synchronously without queuing. Default: `false` (Core 0.15.0 queues commit/void). */
+  skip_queue?: boolean;
   transaction_ids: string[];
 }
 

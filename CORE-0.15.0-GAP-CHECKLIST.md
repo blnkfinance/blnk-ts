@@ -53,8 +53,8 @@
 | B2 | Transaction responses | `CreateTransactionResponse.rate` required | `rate` removed from responses | ✅ [#122](https://github.com/blnkfinance/blnk-ts/issues/122) |
 | B3 | Balance responses | `LedgerBalanceResp.currency_multiplier` required | Field removed | ✅ [#122](https://github.com/blnkfinance/blnk-ts/issues/122) |
 | B4 | Search hit types | `currency_multiplier?`, `rate?` on documents | Fields removed from responses | ✅ [#122](https://github.com/blnkfinance/blnk-ts/issues/122) |
-| B5 | Inflight update response | No `queued` on `CreateTransactionResponse` | Default queued commit/void returns `queued: true` | Add `queued?: boolean` to transaction response type |
-| B6 | Bulk inflight results | `BulkInflightResultStatus = succeeded \| failed` | Results can be `queued` when not using `skip_queue` | Add `queued` to result status union + docs |
+| B5 | Inflight update response | No `queued` on `CreateTransactionResponse` | Default queued commit/void returns `queued: true` | ✅ [#117](https://github.com/blnkfinance/blnk-ts/issues/117) |
+| B6 | Bulk inflight results | `BulkInflightResultStatus = succeeded \| failed` | Results can be `queued` when not using `skip_queue` | ✅ [#117](https://github.com/blnkfinance/blnk-ts/issues/117) |
 
 ---
 
@@ -63,8 +63,8 @@
 | # | Validator | Current | Core 0.15.0 | Fix |
 |---|-----------|---------|-------------|-----|
 | C1 | `ValidateBulkTransactions` | No max length | Max **10,000** transactions | ✅ `MAX_BULK_CREATE_ITEMS = 10000` |
-| C2 | `ValidateUpdateTransactions` | Rejects `skip_queue` (not in allowedFields) | `skip_queue` supported on inflight commit/void | Add `skip_queue?: boolean` to `UpdateTransactionStatus` + validator |
-| C3 | Bulk commit/void types | No `skip_queue` on request types | Supported on bulk commit/void | Add to `BulkCommitInflightRequest`, `BulkVoidInflightRequest` + validators |
+| C2 | `ValidateUpdateTransactions` | Rejects `skip_queue` (not in allowedFields) | `skip_queue` supported on inflight commit/void | ✅ [#117](https://github.com/blnkfinance/blnk-ts/issues/117) |
+| C3 | Bulk commit/void types | No `skip_queue` on request types | Supported on bulk commit/void | ✅ [#117](https://github.com/blnkfinance/blnk-ts/issues/117) |
 
 **Note:** Bulk commit/void max **100** items is already enforced (`MAX_BULK_INFLIGHT_ITEMS = 100`). ✅
 
@@ -74,9 +74,9 @@
 
 | # | Task | Notes |
 |---|------|-------|
-| D1 | Document queued default in README | Commit/void/bulk inflight return queued unless `skip_queue: true` |
-| D2 | Integration tests on Core 0.15.0 | Verify default queued response; verify `skip_queue: true` sync path |
-| D3 | Postman folders | Add cases for queued vs sync inflight commit/void |
+| D1 | Document queued default in README | Commit/void/bulk inflight return queued unless `skip_queue: true` | ✅ [#117](https://github.com/blnkfinance/blnk-ts/issues/117) |
+| D2 | Integration tests on Core 0.15.0 | Verify default queued response; verify `skip_queue: true` sync path | ✅ [#117](https://github.com/blnkfinance/blnk-ts/issues/117) |
+| D3 | Postman folders | Add cases for queued vs sync inflight commit/void | ✅ [#117](https://github.com/blnkfinance/blnk-ts/issues/117) |
 | D4 | Reconciliation webhooks note | README/changelog: use `reconciliation.completed` / `reconciliation.failed` webhooks after start |
 
 ---

@@ -901,6 +901,29 @@ tap.test(`Issue #45 — updateStatus precise_amount on partial commit`, t => {
     tt.end();
   });
 
+  t.test(`allows skip_queue on update payloads (issue #117)`, tt => {
+    const data: UpdateTransactionStatus<Record<string, never>> = {
+      status: `commit`,
+      skip_queue: true,
+    };
+
+    tt.equal(ValidateUpdateTransactions(data), null);
+    tt.end();
+  });
+
+  t.test(`rejects invalid skip_queue on update payloads (issue #117)`, tt => {
+    const data = {
+      status: `commit`,
+      skip_queue: `true`,
+    } as unknown as UpdateTransactionStatus<Record<string, never>>;
+
+    tt.equal(
+      ValidateUpdateTransactions(data),
+      `skip_queue must be a boolean if provided.`,
+    );
+    tt.end();
+  });
+
   t.end();
 });
 
@@ -994,6 +1017,29 @@ tap.test(`Issue #15 — bulkCommitInflight validation`, t => {
     tt.end();
   });
 
+  t.test(`allows skip_queue on bulk commit payloads (issue #117)`, tt => {
+    const data: BulkCommitInflightRequest = {
+      skip_queue: true,
+      transactions: [{transaction_id: `txn_11111111-1111-4111-8111-111111111111`}],
+    };
+
+    tt.equal(ValidateBulkCommitInflight(data), null);
+    tt.end();
+  });
+
+  t.test(`rejects invalid skip_queue on bulk commit payloads (issue #117)`, tt => {
+    const data = {
+      skip_queue: `true`,
+      transactions: [{transaction_id: `txn_11111111-1111-4111-8111-111111111111`}],
+    } as unknown as BulkCommitInflightRequest;
+
+    tt.equal(
+      ValidateBulkCommitInflight(data),
+      `skip_queue must be a boolean if provided.`,
+    );
+    tt.end();
+  });
+
   t.end();
 });
 
@@ -1035,6 +1081,29 @@ tap.test(`Issue #16 — bulkVoidInflight validation`, t => {
     tt.equal(
       ValidateBulkVoidInflight({transaction_ids: [``]}),
       `transaction_id is required at index 0.`,
+    );
+    tt.end();
+  });
+
+  t.test(`allows skip_queue on bulk void payloads (issue #117)`, tt => {
+    const data: BulkVoidInflightRequest = {
+      skip_queue: true,
+      transaction_ids: [`txn_11111111-1111-4111-8111-111111111111`],
+    };
+
+    tt.equal(ValidateBulkVoidInflight(data), null);
+    tt.end();
+  });
+
+  t.test(`rejects invalid skip_queue on bulk void payloads (issue #117)`, tt => {
+    const data = {
+      skip_queue: `true`,
+      transaction_ids: [`txn_11111111-1111-4111-8111-111111111111`],
+    } as unknown as BulkVoidInflightRequest;
+
+    tt.equal(
+      ValidateBulkVoidInflight(data),
+      `skip_queue must be a boolean if provided.`,
     );
     tt.end();
   });

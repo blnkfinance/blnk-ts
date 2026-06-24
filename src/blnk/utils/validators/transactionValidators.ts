@@ -570,7 +570,17 @@ export function ValidateUpdateTransactions<T extends Record<string, unknown>>(
     return `meta_data must be a valid object if provided`;
   }
 
-  const allowedFields = [`status`, `amount`, `precise_amount`, `meta_data`];
+  if (data.skip_queue !== undefined && typeof data.skip_queue !== `boolean`) {
+    return `skip_queue must be a boolean if provided.`;
+  }
+
+  const allowedFields = [
+    `status`,
+    `amount`,
+    `precise_amount`,
+    `meta_data`,
+    `skip_queue`,
+  ];
   for (const key in data) {
     if (!allowedFields.includes(key)) {
       return `Invalid field: ${key}`;
@@ -600,6 +610,10 @@ export function ValidateRefundTransaction(
 export function ValidateBulkVoidInflight(
   data: BulkVoidInflightRequest,
 ): string | null {
+  if (data.skip_queue !== undefined && typeof data.skip_queue !== `boolean`) {
+    return `skip_queue must be a boolean if provided.`;
+  }
+
   if (!Array.isArray(data.transaction_ids)) {
     return `transaction_ids must be an array.`;
   }
@@ -620,12 +634,23 @@ export function ValidateBulkVoidInflight(
     }
   }
 
+  const allowedFields = [`skip_queue`, `transaction_ids`];
+  for (const key in data) {
+    if (!allowedFields.includes(key)) {
+      return `Invalid field: ${key}`;
+    }
+  }
+
   return null;
 }
 
 export function ValidateBulkCommitInflight(
   data: BulkCommitInflightRequest,
 ): string | null {
+  if (data.skip_queue !== undefined && typeof data.skip_queue !== `boolean`) {
+    return `skip_queue must be a boolean if provided.`;
+  }
+
   if (!Array.isArray(data.transactions)) {
     return `Transactions must be an array.`;
   }
@@ -662,6 +687,13 @@ export function ValidateBulkCommitInflight(
       if (parsePreciseInteger(item.precise_amount) === null) {
         return `precise_amount must be a non-negative integer string or number at index ${i}.`;
       }
+    }
+  }
+
+  const allowedFields = [`skip_queue`, `transactions`];
+  for (const key in data) {
+    if (!allowedFields.includes(key)) {
+      return `Invalid field: ${key}`;
     }
   }
 

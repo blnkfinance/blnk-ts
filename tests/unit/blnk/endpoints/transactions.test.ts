@@ -487,6 +487,56 @@ tap.test(`Updates a transaction`, async t => {
       childTest.equal(transaction.status, 400);
     },
   );
+
+  t.test(
+    `updateStatus forwards skip_queue on request (issue #117)`,
+    async childTest => {
+      const capturedRequest = childTest.captureFn(thirdPartyRequest);
+      const transactions = new Transactions(
+        capturedRequest,
+        mockLogger,
+        FormatResponse,
+      );
+
+      const data: UpdateTransactionStatus<{}> = {
+        status: `commit`,
+        skip_queue: true,
+      };
+
+      const transaction = await transactions.updateStatus(id, data);
+      childTest.match(capturedRequest.args(), [
+        [`transactions/inflight/${id}`, data, `PUT`],
+      ]);
+      childTest.equal(transaction.status, 200);
+      childTest.end();
+    },
+  );
+
+  t.test(
+    `updateStatus rejects invalid skip_queue (issue #117)`,
+    async childTest => {
+      const capturedRequest = childTest.captureFn(thirdPartyRequest);
+      const transactions = new Transactions(
+        capturedRequest,
+        mockLogger,
+        FormatResponse,
+      );
+
+      const data = {
+        status: `commit`,
+        skip_queue: `true`,
+      } as unknown as UpdateTransactionStatus<{}>;
+
+      const transaction = await transactions.updateStatus(id, data);
+      childTest.match(capturedRequest.args(), []);
+      childTest.equal(transaction.status, 400);
+      childTest.match(
+        transaction.message,
+        /skip_queue must be a boolean if provided/,
+      );
+      childTest.end();
+    },
+  );
 });
 
 tap.test(`GET transaction by id`, async t => {
@@ -1319,6 +1369,32 @@ tap.test(`Issue #15 — bulkCommitInflight`, async t => {
     childTest.equal(response.message, `transaction_id is required at index 0.`);
     childTest.end();
   });
+
+  t.test(
+    `bulkCommitInflight forwards skip_queue on request (issue #117)`,
+    async childTest => {
+      const capturedRequest = childTest.captureFn(thirdPartyRequest);
+      const transactions = new Transactions(
+        capturedRequest,
+        mockLogger,
+        FormatResponse,
+      );
+
+      const data: BulkCommitInflightRequest = {
+        skip_queue: true,
+        transactions: [
+          {transaction_id: `txn_11111111-1111-4111-8111-111111111111`},
+        ],
+      };
+
+      const response = await transactions.bulkCommitInflight(data);
+      childTest.match(capturedRequest.args(), [
+        [`transactions/inflight/bulk/commit`, data, `POST`],
+      ]);
+      childTest.equal(response.status, 200);
+      childTest.end();
+    },
+  );
 });
 
 tap.test(`Issue #16 — bulkVoidInflight`, async t => {
@@ -1409,4 +1485,28 @@ tap.test(`Issue #16 — bulkVoidInflight`, async t => {
     childTest.equal(response.message, `transaction_id is required at index 0.`);
     childTest.end();
   });
+
+  t.test(
+    `bulkVoidInflight forwards skip_queue on request (issue #117)`,
+    async childTest => {
+      const capturedRequest = childTest.captureFn(thirdPartyRequest);
+      const transactions = new Transactions(
+        capturedRequest,
+        mockLogger,
+        FormatResponse,
+      );
+
+      const data: BulkVoidInflightRequest = {
+        skip_queue: true,
+        transaction_ids: [`txn_11111111-1111-4111-8111-111111111111`],
+      };
+
+      const response = await transactions.bulkVoidInflight(data);
+      childTest.match(capturedRequest.args(), [
+        [`transactions/inflight/bulk/void`, data, `POST`],
+      ]);
+      childTest.equal(response.status, 200);
+      childTest.end();
+    },
+  );
 });
