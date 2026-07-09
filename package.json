@@ -4,6 +4,9 @@
   "description": "Blnk Finance SDK in TypeScript",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "lint": "gts lint",
     "clean": "gts clean",
