@@ -15,7 +15,12 @@ import {
   BulkTransactions,
   CreateTransactions,
 } from "../../src/types/transactions";
-import {BASE_URL, BLNK_API_KEY, GenerateRandomNumbersWithPrefix, Sleep} from "../utils.test";
+import {
+  BASE_URL,
+  BLNK_API_KEY,
+  GenerateRandomNumbersWithPrefix,
+  Sleep,
+} from "../utils.test";
 
 const clientOptions: BlnkClientOptions = {baseUrl: BASE_URL};
 const client = BlnkInit(BLNK_API_KEY, clientOptions);

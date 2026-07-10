@@ -32,26 +32,29 @@ tap.test(`Issue #122 — Core 0.15.0 dropped response fields`, t => {
     tt.end();
   });
 
-  t.test(`CreateLedgerBalanceResp accepts response without currency_multiplier`, tt => {
-    const response: CreateLedgerBalanceResp<Record<string, never>> = {
-      balance: 0,
-      version: 0,
-      inflight_balance: 0,
-      credit_balance: 0,
-      inflight_credit_balance: 0,
-      debit_balance: 0,
-      inflight_debit_balance: 0,
-      ledger_id: `ldg_test`,
-      identity_id: ``,
-      balance_id: `bln_test`,
-      indicator: ``,
-      currency: `USD`,
-      created_at: `2026-06-24T00:00:00Z`,
-    };
+  t.test(
+    `CreateLedgerBalanceResp accepts response without currency_multiplier`,
+    tt => {
+      const response: CreateLedgerBalanceResp<Record<string, never>> = {
+        balance: 0,
+        version: 0,
+        inflight_balance: 0,
+        credit_balance: 0,
+        inflight_credit_balance: 0,
+        debit_balance: 0,
+        inflight_debit_balance: 0,
+        ledger_id: `ldg_test`,
+        identity_id: ``,
+        balance_id: `bln_test`,
+        indicator: ``,
+        currency: `USD`,
+        created_at: `2026-06-24T00:00:00Z`,
+      };
 
-    tt.equal(response.currency_multiplier, undefined);
-    tt.end();
-  });
+      tt.equal(response.currency_multiplier, undefined);
+      tt.end();
+    },
+  );
 
   t.test(`SearchTransactionDocument omits rate`, tt => {
     const document: SearchTransactionDocument = {

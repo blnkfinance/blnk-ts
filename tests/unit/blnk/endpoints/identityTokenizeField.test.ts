@@ -30,23 +30,30 @@ tap.test(`Issue #22 — Identity.tokenizeField`, async t => {
     tt.end();
   });
 
-  t.test(`tokenizeField uses PascalCase struct field name in path`, async tt => {
-    const mockLogger = createMockLogger();
-    const thirdPartyRequest = async <R>() => ({
-      status: 200,
-      message: `Success`,
-      data: mockResponse as unknown as R,
-    });
-    const capturedRequest = tt.captureFn(thirdPartyRequest);
-    const identity = new Identity(capturedRequest, mockLogger, FormatResponse);
+  t.test(
+    `tokenizeField uses PascalCase struct field name in path`,
+    async tt => {
+      const mockLogger = createMockLogger();
+      const thirdPartyRequest = async <R>() => ({
+        status: 200,
+        message: `Success`,
+        data: mockResponse as unknown as R,
+      });
+      const capturedRequest = tt.captureFn(thirdPartyRequest);
+      const identity = new Identity(
+        capturedRequest,
+        mockLogger,
+        FormatResponse,
+      );
 
-    await identity.tokenizeField(`idt_test_123`, `EmailAddress`);
+      await identity.tokenizeField(`idt_test_123`, `EmailAddress`);
 
-    tt.match(capturedRequest.args(), [
-      [`identities/idt_test_123/tokenize/EmailAddress`, null, `POST`],
-    ]);
-    tt.end();
-  });
+      tt.match(capturedRequest.args(), [
+        [`identities/idt_test_123/tokenize/EmailAddress`, null, `POST`],
+      ]);
+      tt.end();
+    },
+  );
 
   t.test(`tokenizeField rejects empty identity id`, async tt => {
     const mockLogger = createMockLogger();

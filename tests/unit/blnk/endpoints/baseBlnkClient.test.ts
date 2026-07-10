@@ -354,50 +354,47 @@ tap.test(`Blnk SDK tests`, t => {
     },
   );
 
-  t.test(
-    `Issue #118 — attaches error_detail.code on 423 Locked`,
-    async tt => {
-      const lockedFetch = async () =>
-        ({
-          ok: false,
-          status: 423,
-          statusText: `Locked`,
-          json: async () => ({
+  t.test(`Issue #118 — attaches error_detail.code on 423 Locked`, async tt => {
+    const lockedFetch = async () =>
+      ({
+        ok: false,
+        status: 423,
+        statusText: `Locked`,
+        json: async () => ({
+          error: `resource locked`,
+          error_detail: {
+            code: `GEN_LOCKED`,
+            message: `resource locked`,
+          },
+        }),
+        text: async () =>
+          JSON.stringify({
             error: `resource locked`,
             error_detail: {
               code: `GEN_LOCKED`,
               message: `resource locked`,
             },
           }),
-          text: async () =>
-            JSON.stringify({
-              error: `resource locked`,
-              error_detail: {
-                code: `GEN_LOCKED`,
-                message: `resource locked`,
-              },
-            }),
-          headers: new Headers(),
-        }) as Response;
+        headers: new Headers(),
+      }) as Response;
 
-      const lockedBlnk = new Blnk(
-        apiKey,
-        options,
-        mockServices,
-        FormatResponse,
-        lockedFetch,
-      );
+    const lockedBlnk = new Blnk(
+      apiKey,
+      options,
+      mockServices,
+      FormatResponse,
+      lockedFetch,
+    );
 
-      const result = await lockedBlnk[`request`](`balances/bln_test`, {}, `PUT`);
+    const result = await lockedBlnk[`request`](`balances/bln_test`, {}, `PUT`);
 
-      tt.equal(result.status, 423);
-      tt.same(result.error, {
-        code: `GEN_LOCKED`,
-        message: `resource locked`,
-      });
-      tt.end();
-    },
-  );
+    tt.equal(result.status, 423);
+    tt.same(result.error, {
+      code: `GEN_LOCKED`,
+      message: `resource locked`,
+    });
+    tt.end();
+  });
 
   t.test(`request passes AbortSignal for timeout`, async tt => {
     const signalFetch = async (

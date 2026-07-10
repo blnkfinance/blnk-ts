@@ -222,8 +222,7 @@ export class Blnk {
           ) as ApiResponse<R>;
         }
 
-        let jsonResponse: R | null;
-        jsonResponse = (await readResponseJsonBody(response)) as R | null;
+        const jsonResponse = (await readResponseJsonBody(response)) as R | null;
 
         return this.formatResponse<R>(
           response.status,
