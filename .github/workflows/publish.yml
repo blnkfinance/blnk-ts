@@ -39,7 +39,7 @@ jobs:
         run: npm run compile
 
       - name: Run unit tests
-        run: npm run test:unit
+        run: npx tap tests/unit --disable-coverage
 
       - name: Run linter
         run: npm run lint
