@@ -228,7 +228,7 @@ export class Blnk {
         return this.formatResponse<R>(
           response.status,
           `Success`,
-          jsonResponse,
+          jsonResponse as R,
         ) as ApiResponse<R>;
       } catch (error: unknown) {
         if (error instanceof Error && error.name === `AbortError`) {
