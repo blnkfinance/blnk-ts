@@ -1020,25 +1020,32 @@ tap.test(`Issue #15 — bulkCommitInflight validation`, t => {
   t.test(`allows skip_queue on bulk commit payloads (issue #117)`, tt => {
     const data: BulkCommitInflightRequest = {
       skip_queue: true,
-      transactions: [{transaction_id: `txn_11111111-1111-4111-8111-111111111111`}],
+      transactions: [
+        {transaction_id: `txn_11111111-1111-4111-8111-111111111111`},
+      ],
     };
 
     tt.equal(ValidateBulkCommitInflight(data), null);
     tt.end();
   });
 
-  t.test(`rejects invalid skip_queue on bulk commit payloads (issue #117)`, tt => {
-    const data = {
-      skip_queue: `true`,
-      transactions: [{transaction_id: `txn_11111111-1111-4111-8111-111111111111`}],
-    } as unknown as BulkCommitInflightRequest;
+  t.test(
+    `rejects invalid skip_queue on bulk commit payloads (issue #117)`,
+    tt => {
+      const data = {
+        skip_queue: `true`,
+        transactions: [
+          {transaction_id: `txn_11111111-1111-4111-8111-111111111111`},
+        ],
+      } as unknown as BulkCommitInflightRequest;
 
-    tt.equal(
-      ValidateBulkCommitInflight(data),
-      `skip_queue must be a boolean if provided.`,
-    );
-    tt.end();
-  });
+      tt.equal(
+        ValidateBulkCommitInflight(data),
+        `skip_queue must be a boolean if provided.`,
+      );
+      tt.end();
+    },
+  );
 
   t.end();
 });
@@ -1095,18 +1102,21 @@ tap.test(`Issue #16 — bulkVoidInflight validation`, t => {
     tt.end();
   });
 
-  t.test(`rejects invalid skip_queue on bulk void payloads (issue #117)`, tt => {
-    const data = {
-      skip_queue: `true`,
-      transaction_ids: [`txn_11111111-1111-4111-8111-111111111111`],
-    } as unknown as BulkVoidInflightRequest;
+  t.test(
+    `rejects invalid skip_queue on bulk void payloads (issue #117)`,
+    tt => {
+      const data = {
+        skip_queue: `true`,
+        transaction_ids: [`txn_11111111-1111-4111-8111-111111111111`],
+      } as unknown as BulkVoidInflightRequest;
 
-    tt.equal(
-      ValidateBulkVoidInflight(data),
-      `skip_queue must be a boolean if provided.`,
-    );
-    tt.end();
-  });
+      tt.equal(
+        ValidateBulkVoidInflight(data),
+        `skip_queue must be a boolean if provided.`,
+      );
+      tt.end();
+    },
+  );
 
   t.end();
 });

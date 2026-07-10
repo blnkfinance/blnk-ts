@@ -9,10 +9,7 @@ tap.test(`ValidateDetokenizeIdentityData`, async t => {
   };
 
   t.equal(ValidateDetokenizeIdentityData(`idt_test_123`, validData), null);
-  t.equal(
-    ValidateDetokenizeIdentityData(`idt_test_123`, {fields: []}),
-    null,
-  );
+  t.equal(ValidateDetokenizeIdentityData(`idt_test_123`, {fields: []}), null);
   t.equal(
     ValidateDetokenizeIdentityData(``, validData),
     `identity id is required`,

@@ -31,7 +31,9 @@ export function normalizeRetryCount(retryCount: number | undefined): number {
   return Math.floor(retryCount);
 }
 
-export function normalizeRetryDelayMs(retryDelayMs: number | undefined): number {
+export function normalizeRetryDelayMs(
+  retryDelayMs: number | undefined,
+): number {
   if (
     retryDelayMs === undefined ||
     !Number.isFinite(retryDelayMs) ||

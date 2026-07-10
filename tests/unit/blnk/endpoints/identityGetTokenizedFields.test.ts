@@ -10,46 +10,60 @@ const mockResponse: GetTokenizedFieldsResp = {
 };
 
 tap.test(`Issue #24 — Identity.getTokenizedFields`, async t => {
-  t.test(`getTokenizedFields GETs identities/{id}/tokenized-fields`, async tt => {
-    const mockLogger = createMockLogger();
-    const thirdPartyRequest = async <R>() => ({
-      status: 200,
-      message: `Success`,
-      data: mockResponse as unknown as R,
-    });
-    const capturedRequest = tt.captureFn(thirdPartyRequest);
-    const identity = new Identity(capturedRequest, mockLogger, FormatResponse);
+  t.test(
+    `getTokenizedFields GETs identities/{id}/tokenized-fields`,
+    async tt => {
+      const mockLogger = createMockLogger();
+      const thirdPartyRequest = async <R>() => ({
+        status: 200,
+        message: `Success`,
+        data: mockResponse as unknown as R,
+      });
+      const capturedRequest = tt.captureFn(thirdPartyRequest);
+      const identity = new Identity(
+        capturedRequest,
+        mockLogger,
+        FormatResponse,
+      );
 
-    const response = await identity.getTokenizedFields(`idt_test_123`);
+      const response = await identity.getTokenizedFields(`idt_test_123`);
 
-    tt.match(capturedRequest.args(), [
-      [`identities/idt_test_123/tokenized-fields`, null, `GET`],
-    ]);
-    tt.equal(response.status, 200);
-    tt.same(response.data?.tokenized_fields, mockResponse.tokenized_fields);
-    tt.end();
-  });
+      tt.match(capturedRequest.args(), [
+        [`identities/idt_test_123/tokenized-fields`, null, `GET`],
+      ]);
+      tt.equal(response.status, 200);
+      tt.same(response.data?.tokenized_fields, mockResponse.tokenized_fields);
+      tt.end();
+    },
+  );
 
-  t.test(`getTokenizedFields returns empty list for fresh identity`, async tt => {
-    const mockLogger = createMockLogger();
-    const emptyResponse: GetTokenizedFieldsResp = {tokenized_fields: []};
-    const thirdPartyRequest = async <R>() => ({
-      status: 200,
-      message: `Success`,
-      data: emptyResponse as unknown as R,
-    });
-    const capturedRequest = tt.captureFn(thirdPartyRequest);
-    const identity = new Identity(capturedRequest, mockLogger, FormatResponse);
+  t.test(
+    `getTokenizedFields returns empty list for fresh identity`,
+    async tt => {
+      const mockLogger = createMockLogger();
+      const emptyResponse: GetTokenizedFieldsResp = {tokenized_fields: []};
+      const thirdPartyRequest = async <R>() => ({
+        status: 200,
+        message: `Success`,
+        data: emptyResponse as unknown as R,
+      });
+      const capturedRequest = tt.captureFn(thirdPartyRequest);
+      const identity = new Identity(
+        capturedRequest,
+        mockLogger,
+        FormatResponse,
+      );
 
-    const response = await identity.getTokenizedFields(`idt_test_123`);
+      const response = await identity.getTokenizedFields(`idt_test_123`);
 
-    tt.match(capturedRequest.args(), [
-      [`identities/idt_test_123/tokenized-fields`, null, `GET`],
-    ]);
-    tt.equal(response.status, 200);
-    tt.same(response.data?.tokenized_fields, []);
-    tt.end();
-  });
+      tt.match(capturedRequest.args(), [
+        [`identities/idt_test_123/tokenized-fields`, null, `GET`],
+      ]);
+      tt.equal(response.status, 200);
+      tt.same(response.data?.tokenized_fields, []);
+      tt.end();
+    },
+  );
 
   t.test(`getTokenizedFields rejects empty identity id`, async tt => {
     const mockLogger = createMockLogger();

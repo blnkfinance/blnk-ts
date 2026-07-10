@@ -1247,15 +1247,18 @@ tap.test(`Creates bulk transactions`, async t => {
       );
 
       const data: BulkTransactions<meta_dataT> = {
-        transactions: Array.from({length: MAX_BULK_CREATE_ITEMS + 1}, (_, i) => ({
-          amount: 1000,
-          currency: `USD`,
-          description: `Bulk txn ${i}`,
-          precision: 100,
-          reference: `bulk_max_ref_${i}`,
-          source: `@source_account`,
-          destination: `@destination_account`,
-        })),
+        transactions: Array.from(
+          {length: MAX_BULK_CREATE_ITEMS + 1},
+          (_, i) => ({
+            amount: 1000,
+            currency: `USD`,
+            description: `Bulk txn ${i}`,
+            precision: 100,
+            reference: `bulk_max_ref_${i}`,
+            source: `@source_account`,
+            destination: `@destination_account`,
+          }),
+        ),
       };
 
       const response = await transactions.createBulk<meta_dataT>(data);
@@ -1264,9 +1267,7 @@ tap.test(`Creates bulk transactions`, async t => {
       childTest.equal(response.status, 400);
       childTest.match(
         response.message,
-        new RegExp(
-          `Too many transactions; max is ${MAX_BULK_CREATE_ITEMS}\\.`,
-        ),
+        new RegExp(`Too many transactions; max is ${MAX_BULK_CREATE_ITEMS}\\.`),
       );
       childTest.end();
     },
