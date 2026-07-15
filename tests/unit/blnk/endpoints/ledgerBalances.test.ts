@@ -536,6 +536,63 @@ tap.test(`Ledger Balance Tests`, t => {
     tt.end();
   });
 
+  t.test(`get forwards with_queued query param`, async tt => {
+    const thirdPartyRequest = createMockBlnkRequest(true, undefined, 200);
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const ledgerBalance = new LedgerBalances(
+      capturedRequest,
+      mockLogger,
+      FormatResponse,
+    );
+    const balanceId = `bln_5ce86029-3c2e-4e2a-aae2-7fb931ca4c4f`;
+    await ledgerBalance.get(balanceId, {with_queued: true});
+
+    tt.match(capturedRequest.args(), [
+      [`balances/${balanceId}?with_queued=true`, undefined, `GET`],
+    ]);
+    tt.end();
+  });
+
+  t.test(`get forwards from_source and with_queued query params`, async tt => {
+    const thirdPartyRequest = createMockBlnkRequest(true, undefined, 200);
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const ledgerBalance = new LedgerBalances(
+      capturedRequest,
+      mockLogger,
+      FormatResponse,
+    );
+    const balanceId = `bln_5ce86029-3c2e-4e2a-aae2-7fb931ca4c4f`;
+    await ledgerBalance.get(balanceId, {from_source: true, with_queued: true});
+
+    tt.match(capturedRequest.args(), [
+      [
+        `balances/${balanceId}?from_source=true&with_queued=true`,
+        undefined,
+        `GET`,
+      ],
+    ]);
+    tt.end();
+  });
+
+  t.test(`get rejects invalid with_queued`, async tt => {
+    const thirdPartyRequest = createMockBlnkRequest(true, undefined, 200);
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const ledgerBalance = new LedgerBalances(
+      capturedRequest,
+      mockLogger,
+      FormatResponse,
+    );
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response = await ledgerBalance.get(`bln_123`, {
+      with_queued: `true`,
+    } as any);
+
+    tt.match(capturedRequest.args(), []);
+    tt.equal(response.status, 400);
+    tt.equal(response.message, `with_queued must be a boolean if provided`);
+    tt.end();
+  });
+
   t.test(`getAt calls GET /balances/{id}/at (issue #11)`, async tt => {
     const thirdPartyRequest = createMockBlnkRequest(true, undefined, 200);
     const capturedRequest = tt.captureFn(thirdPartyRequest);

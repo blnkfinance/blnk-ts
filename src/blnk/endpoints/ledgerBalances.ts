@@ -101,6 +101,8 @@ export class LedgerBalances {
    *
    * Pass `{ from_source: true }` to reconstruct the balance from transactions
    * instead of snapshots (`GET /balances/{balance_id}?from_source=true`).
+   * Pass `{ with_queued: true }` to include queued credit and debit balances
+   * (`GET /balances/{balance_id}?with_queued=true`).
    *
    * @see https://docs.blnkfinance.com/reference/balance-from-source
    *
@@ -123,8 +125,15 @@ export class LedgerBalances {
       }
 
       let endpoint = `balances/${id}`;
+      const queryParams: string[] = [];
       if (options?.from_source) {
-        endpoint += `?from_source=true`;
+        queryParams.push(`from_source=true`);
+      }
+      if (options?.with_queued) {
+        queryParams.push(`with_queued=true`);
+      }
+      if (queryParams.length > 0) {
+        endpoint += `?${queryParams.join(`&`)}`;
       }
 
       const response = await this.request<
