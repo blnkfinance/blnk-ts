@@ -147,6 +147,19 @@ tap.test(`Issue #48 — ValidateGetBalance`, t => {
     tt.end();
   });
 
+  t.test(`accepts with_queued flag`, tt => {
+    tt.equal(ValidateGetBalance({with_queued: true}), null);
+    tt.end();
+  });
+
+  t.test(`accepts from_source and with_queued flags`, tt => {
+    tt.equal(
+      ValidateGetBalance({from_source: true, with_queued: true}),
+      null,
+    );
+    tt.end();
+  });
+
   t.test(`accepts empty options object`, tt => {
     tt.equal(ValidateGetBalance({}), null);
     tt.end();
@@ -157,6 +170,15 @@ tap.test(`Issue #48 — ValidateGetBalance`, t => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ValidateGetBalance({from_source: `true` as any}),
       `from_source must be a boolean if provided`,
+    );
+    tt.end();
+  });
+
+  t.test(`rejects non-boolean with_queued`, tt => {
+    tt.equal(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ValidateGetBalance({with_queued: `true` as any}),
+      `with_queued must be a boolean if provided`,
     );
     tt.end();
   });

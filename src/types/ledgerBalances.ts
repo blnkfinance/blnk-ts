@@ -94,6 +94,8 @@ export interface HistoricalBalanceDetails {
 export interface GetBalanceRequest {
   /** Reconstruct balance from transactions instead of snapshots when true. */
   from_source?: boolean;
+  /** Include queued credit and debit balances when true. */
+  with_queued?: boolean;
 }
 
 /** Options for `GET /balances/{balance_id}/at`. */

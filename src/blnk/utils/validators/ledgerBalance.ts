@@ -119,6 +119,10 @@ export function ValidateGetBalance(data: GetBalanceRequest): null | string {
     return `from_source must be a boolean if provided`;
   }
 
+  if (data.with_queued !== undefined && typeof data.with_queued !== `boolean`) {
+    return `with_queued must be a boolean if provided`;
+  }
+
   return null;
 }
 
