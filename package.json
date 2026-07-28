@@ -44,7 +44,8 @@
   },
   "overrides": {
     "whatwg-url": "^16.0.1",
-    "tmp": "^0.2.7"
+    "tmp": "^0.2.7",
+    "sigstore": "^4.1.1"
   },
   "tap": {
     "coverage-map": "tests/map.mjs",
