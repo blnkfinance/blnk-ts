@@ -21,6 +21,26 @@ tap.test(`parseBlnkApiErrorBody`, t => {
     tt.end();
   });
 
+  t.test(
+    `omits details when error_detail has no details field (issue #132)`,
+    tt => {
+      const parsed = parseBlnkApiErrorBody({
+        error: `bad request`,
+        error_detail: {
+          code: `GEN_BAD_REQUEST`,
+          message: `bad request`,
+        },
+      });
+
+      tt.same(parsed, {
+        code: `GEN_BAD_REQUEST`,
+        message: `bad request`,
+      });
+      tt.equal(parsed && `details` in parsed, false);
+      tt.end();
+    },
+  );
+
   t.test(`falls back to legacy error string`, tt => {
     const parsed = parseBlnkApiErrorBody({error: `invalid request`});
     tt.same(parsed, {code: `UNKNOWN`, message: `invalid request`});

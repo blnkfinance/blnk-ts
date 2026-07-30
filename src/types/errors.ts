@@ -21,11 +21,14 @@ export function parseBlnkApiErrorBody(
   if (errorDetail && typeof errorDetail === `object`) {
     const detail = errorDetail as Record<string, unknown>;
     if (typeof detail.code === `string` && typeof detail.message === `string`) {
-      return {
+      const parsed: BlnkApiErrorDetail = {
         code: detail.code,
         message: detail.message,
-        details: detail.details,
       };
+      if (`details` in detail) {
+        parsed.details = detail.details;
+      }
+      return parsed;
     }
   }
 
