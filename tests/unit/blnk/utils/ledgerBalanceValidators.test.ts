@@ -153,10 +153,7 @@ tap.test(`Issue #48 — ValidateGetBalance`, t => {
   });
 
   t.test(`accepts from_source and with_queued flags`, tt => {
-    tt.equal(
-      ValidateGetBalance({from_source: true, with_queued: true}),
-      null,
-    );
+    tt.equal(ValidateGetBalance({from_source: true, with_queued: true}), null);
     tt.end();
   });
 
