@@ -4,6 +4,11 @@ export type AllocationStrategy = `FIFO` | `LIFO` | `PROPORTIONAL`;
 export interface CreateLedgerBalance<T extends Record<string, unknown>> {
   ledger_id: string;
   identity_id?: string;
+  /**
+   * General Ledger indicator (must start with `@`). Required when
+   * `ledger_id` is `general_ledger_id` (Core 0.15.3+).
+   */
+  indicator?: string;
   currency: string;
   /** Enables fund lineage tracking. Requires `identity_id`. */
   track_fund_lineage?: boolean;

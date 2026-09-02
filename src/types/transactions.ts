@@ -7,6 +7,23 @@
  */
 export type TransactionDateInput = Date | string;
 
+/**
+ * Dry-run form of a request body. `dry_run` is narrowed to the literal `true`,
+ * so an endpoint that receives it returns a preview type and can never be
+ * mistaken for a posted transaction.
+ *
+ * @example
+ * const preview: DryRun<CreateTransactions<Meta>> = {...body, dry_run: true};
+ */
+export type DryRun<T> = Omit<T, `dry_run`> & {dry_run: true};
+
+/**
+ * Either form of a request body. Use when `dry_run` is only known at runtime;
+ * the endpoint then returns the posted-or-preview union, forcing a narrow
+ * before posted-only fields such as `transaction_id` are read.
+ */
+export type MaybeDryRun<T> = Omit<T, `dry_run`> & {dry_run?: boolean};
+
 export interface CreateTransactions<T extends Record<string, unknown>> {
   /** Human-readable amount. Provide `amount` or `precise_amount` (at least one). */
   amount?: number;
@@ -44,6 +61,12 @@ export interface CreateTransactions<T extends Record<string, unknown>> {
    */
   atomic?: boolean;
   allow_overdraft?: boolean;
+  /**
+   * Preview the post without writing. Default: `false`.
+   * Pass `dry_run: true` (or use `DryRun<CreateTransactions<T>>`) to get
+   * HTTP 200 and a `TransactionPreview` instead of a posted transaction.
+   */
+  dry_run?: false;
   meta_data?: T;
 }
 
@@ -154,12 +177,30 @@ export type UpdateTransactionStatus<T extends Record<string, unknown>> = {
   meta_data?: T;
   /** Process synchronously without queuing. Default: `false` (Core 0.15.0 queues commit/void). */
   skip_queue?: boolean;
+  /**
+   * Preview commit/void without settling the hold. Default: `false`.
+   * Pass `dry_run: true` (or use `DryRun<UpdateTransactionStatus<T>>`) to get
+   * HTTP 200 and a `TransactionPreview` instead of a posted transaction.
+   */
+  dry_run?: false;
 };
 
 /** Optional body for `POST /refund-transaction/{transaction_id}`. */
-export interface RefundTransactionRequest {
+export interface RefundTransactionRequest<
+  T extends Record<string, unknown> = Record<string, unknown>,
+> {
   /** Process synchronously without queuing. Default: `false`. */
   skip_queue?: boolean;
+  /** Replaces the reversal description. Otherwise inherits the original. */
+  description?: string;
+  /** Merged onto metadata inherited from the original transaction. */
+  meta_data?: T;
+  /**
+   * Preview the refund without writing. Default: `false`.
+   * Pass `dry_run: true` (or use `DryRun<RefundTransactionRequest>`) to get
+   * HTTP 200 and a `TransactionPreview` instead of a posted transaction.
+   */
+  dry_run?: false;
 }
 
 export interface BulkTransactions<T extends Record<string, unknown>> {
@@ -168,6 +209,12 @@ export interface BulkTransactions<T extends Record<string, unknown>> {
   run_async?: boolean;
   /** Process synchronously without queuing. Default: `false`. */
   skip_queue?: boolean;
+  /**
+   * Preview the batch without writing. Default: `false`.
+   * Pass `dry_run: true` (or use `DryRun<BulkTransactions<T>>`) to get
+   * HTTP 200 and a `BulkTransactionPreview` instead of a posted batch.
+   */
+  dry_run?: false;
   transactions: CreateTransactions<T>[];
 }
 
@@ -214,6 +261,12 @@ export interface BulkCommitInflightItem {
 export interface BulkCommitInflightRequest {
   /** Process synchronously without queuing. Default: `false` (Core 0.15.0 queues commit/void). */
   skip_queue?: boolean;
+  /**
+   * Preview the batch without committing. Default: `false`.
+   * Pass `dry_run: true` (or use `DryRun<BulkCommitInflightRequest>`) to get
+   * a `BulkTransactionPreview` (HTTP 200); holds stay INFLIGHT.
+   */
+  dry_run?: false;
   transactions: BulkCommitInflightItem[];
 }
 
@@ -242,6 +295,12 @@ export interface BulkCommitInflightResponse {
 export interface BulkVoidInflightRequest {
   /** Process synchronously without queuing. Default: `false` (Core 0.15.0 queues commit/void). */
   skip_queue?: boolean;
+  /**
+   * Preview the batch without voiding. Default: `false`.
+   * Pass `dry_run: true` (or use `DryRun<BulkVoidInflightRequest>`) to get
+   * a `BulkTransactionPreview` (HTTP 200); holds stay INFLIGHT.
+   */
+  dry_run?: false;
   transaction_ids: string[];
 }
 
@@ -322,4 +381,75 @@ export interface RecoverQueueResponse {
   recovered: number;
   /** Threshold duration Core applied (e.g. `5m0s`). */
   threshold: string;
+}
+
+/** Why a dry-run projection would not apply. */
+export interface PreviewRejection {
+  code: string;
+  reason: string;
+  message: string;
+}
+
+/** One balance's current and projected state in a dry-run. Amounts are minor-unit strings. */
+export interface BalanceProjection {
+  balance_id: string;
+  role: string;
+  currency: string;
+  virtual?: boolean;
+  current_balance: string;
+  current_available?: string;
+  current_credit_balance?: string;
+  current_debit_balance?: string;
+  current_inflight_debit_balance?: string;
+  current_inflight_credit_balance?: string;
+  resulting_balance: string;
+  resulting_available?: string;
+  resulting_credit_balance?: string;
+  resulting_debit_balance?: string;
+  resulting_inflight_debit_balance?: string;
+  resulting_inflight_credit_balance?: string;
+}
+
+/** One split leg in a multi-source or multi-destination dry-run. */
+export interface LegProjection {
+  identifier: string;
+  role: string;
+  precise_amount: string;
+  amount: number;
+}
+
+/**
+ * Response from a dry-run create, refund, or inflight update (HTTP 200).
+ *
+ * @see https://docs.blnkfinance.com/transactions/dry-run
+ */
+export interface TransactionPreview {
+  dry_run: true;
+  would_apply: boolean;
+  rejection?: PreviewRejection;
+  operation?: `commit` | `void` | string;
+  status?: StatusType | string;
+  reference?: string;
+  currency: string;
+  amount: number;
+  precise_amount: string;
+  precision: number;
+  balances: BalanceProjection[];
+  legs?: LegProjection[];
+  notes?: string[];
+}
+
+/**
+ * Response from a dry-run bulk create (HTTP 200).
+ *
+ * @see https://docs.blnkfinance.com/transactions/dry-run
+ */
+export interface BulkTransactionPreview {
+  dry_run: true;
+  would_apply: boolean;
+  cumulative: boolean;
+  atomic?: boolean;
+  results: TransactionPreview[];
+  balances?: BalanceProjection[];
+  notes?: string[];
 }

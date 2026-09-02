@@ -125,6 +125,54 @@ tap.test(`Issue #47 — ValidateCreateLedgerBalance lineage fields`, t => {
     tt.end();
   });
 
+  t.test(`accepts General Ledger indicator`, tt => {
+    tt.equal(
+      ValidateCreateLedgerBalance({
+        ledger_id: `general_ledger_id`,
+        currency: `USD`,
+        indicator: `@WorldUSD`,
+      }),
+      null,
+    );
+    tt.end();
+  });
+
+  t.test(`rejects indicator without @ prefix`, tt => {
+    tt.equal(
+      ValidateCreateLedgerBalance({
+        ledger_id: `general_ledger_id`,
+        currency: `USD`,
+        indicator: `WorldUSD`,
+      }),
+      `indicator must start with @`,
+    );
+    tt.end();
+  });
+
+  t.test(`rejects indicator with spaces`, tt => {
+    tt.equal(
+      ValidateCreateLedgerBalance({
+        ledger_id: `general_ledger_id`,
+        currency: `USD`,
+        indicator: `@cash flow`,
+      }),
+      `indicator must not contain spaces`,
+    );
+    tt.end();
+  });
+
+  t.test(`rejects indicator on a non-General Ledger`, tt => {
+    tt.equal(
+      ValidateCreateLedgerBalance({
+        ledger_id: `ldg_123`,
+        currency: `USD`,
+        indicator: `@WorldUSD`,
+      }),
+      `indicator is only valid when ledger_id is general_ledger_id`,
+    );
+    tt.end();
+  });
+
   t.test(`rejects invalid allocation_strategy`, tt => {
     tt.equal(
       ValidateCreateLedgerBalance({

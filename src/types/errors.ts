@@ -5,6 +5,26 @@ export interface BlnkApiErrorDetail {
 }
 
 /**
+ * Stable Core `error_detail.code` values called out for SDK 1.4.0 / Core 0.15.3.
+ * Compare `response.error?.code` — do not branch on message text.
+ *
+ * @see https://docs.blnkfinance.com/advanced/error-codes
+ */
+export const BlnkErrorCode = {
+  /** Catalog code for invalid amounts (see Core error-code docs). */
+  TXN_INVALID_AMOUNT: `TXN_INVALID_AMOUNT`,
+  /** Duplicate internal-balance indicator + currency (HTTP 409). */
+  GEN_CONFLICT: `GEN_CONFLICT`,
+  /**
+   * Request failed validation before processing. On Core 0.15.3 this includes
+   * negative `amount`/`precision` and source equal to destination.
+   */
+  TXN_VALIDATION_ERROR: `TXN_VALIDATION_ERROR`,
+} as const;
+
+export type BlnkErrorCode = (typeof BlnkErrorCode)[keyof typeof BlnkErrorCode];
+
+/**
  * Extracts structured Blnk API error details from a JSON error body.
  * Supports `error_detail` (current Core API) and legacy `error` string fields.
  */

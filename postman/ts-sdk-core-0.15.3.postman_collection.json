@@ -1,0 +1,485 @@
+{
+  "info": {
+    "_postman_id": "ts-sdk-core-0153-cst422",
+    "name": "Blnk TS SDK — Core 0.15.3",
+    "description": "Manual tests for CST-422 (TypeScript SDK patch vs Core 0.15.3).\n\nRun in order against local Core (`docker compose` in `blnk/`, image `ghcr.io/blnkfinance/blnk:0.15.3`).\n\nCollection vars: `blnk_base_url`, `blnk_api_key` (from `blnk/blnk.json` → `server.secret_key`).\nFolder scripts save `indicator`, `balance_id`, `transaction_id`, `inflight_id` after Send.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "blnk_base_url",
+      "value": "http://localhost:5001"
+    },
+    {
+      "key": "blnk_api_key",
+      "value": "blnk-local-dev-secret-change-me"
+    },
+    {
+      "key": "indicator",
+      "value": ""
+    },
+    {
+      "key": "dest_indicator",
+      "value": ""
+    },
+    {
+      "key": "balance_id",
+      "value": ""
+    },
+    {
+      "key": "transaction_id",
+      "value": ""
+    },
+    {
+      "key": "inflight_id",
+      "value": ""
+    }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "X-Blnk-Key",
+        "type": "string"
+      },
+      {
+        "key": "value",
+        "value": "{{blnk_api_key}}",
+        "type": "string"
+      },
+      {
+        "key": "in",
+        "value": "header",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "TS SDK 1.4.0 / Core 0.15.3",
+      "description": "Run top to bottom. Expect Core 0.15.3. Dry-run requests should be HTTP 200 with `dry_run: true` and no posted `transaction_id`.",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.info.requestName === '0. Health') {",
+              "  const runId = Date.now().toString();",
+              "  pm.collectionVariables.set('run_id', runId);",
+              "  pm.collectionVariables.set('indicator', '@TsSdk' + runId);",
+              "  pm.collectionVariables.set('dest_indicator', '@TsSdkDest' + runId);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "name": "0. Health",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Core is UP', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().status).to.eql('UP');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{blnk_base_url}}/health",
+            "description": "GET /health — Core must be 0.15.3 for the rest of this folder."
+          }
+        },
+        {
+          "name": "1. Create GL balance with indicator",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Created GL balance', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.ledger_id).to.eql('general_ledger_id');",
+                  "  pm.expect(json.indicator).to.eql(pm.collectionVariables.get('indicator'));",
+                  "  pm.collectionVariables.set('balance_id', json.balance_id);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ledger_id\": \"general_ledger_id\",\n  \"currency\": \"USD\",\n  \"indicator\": \"{{indicator}}\"\n}"
+            },
+            "url": "{{blnk_base_url}}/balances",
+            "description": "SDK: `LedgerBalances.create({ ledger_id: 'general_ledger_id', indicator: '@…' })`\n\nExpect 201 and `indicator` echoed."
+          }
+        },
+        {
+          "name": "2. Dry-run create transaction",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Dry-run preview, nothing posted', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.dry_run).to.eql(true);",
+                  "  pm.expect(json).to.have.property('would_apply');",
+                  "  pm.expect(json).to.not.have.property('transaction_id');",
+                  "  pm.expect(json.balances).to.be.an('array').that.is.not.empty;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 25,\n  \"precision\": 100,\n  \"reference\": \"dryrun-create-{{run_id}}\",\n  \"description\": \"SDK dry-run create\",\n  \"currency\": \"USD\",\n  \"source\": \"{{indicator}}\",\n  \"destination\": \"{{dest_indicator}}\",\n  \"allow_overdraft\": true,\n  \"dry_run\": true\n}"
+            },
+            "url": "{{blnk_base_url}}/transactions",
+            "description": "SDK: `Transactions.create({ …, dry_run: true })`\n\nExpect 200, `dry_run: true`, `would_apply`, no `transaction_id`."
+          }
+        },
+        {
+          "name": "3. Create real transaction (for refund)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Posted transaction', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.transaction_id).to.be.a('string').that.is.not.empty;",
+                  "  pm.collectionVariables.set('transaction_id', json.transaction_id);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 40,\n  \"precision\": 100,\n  \"reference\": \"real-create-{{run_id}}\",\n  \"description\": \"Posted for refund tests\",\n  \"currency\": \"USD\",\n  \"source\": \"{{indicator}}\",\n  \"destination\": \"{{dest_indicator}}\",\n  \"allow_overdraft\": true,\n  \"skip_queue\": true\n}"
+            },
+            "url": "{{blnk_base_url}}/transactions",
+            "description": "Saves `transaction_id` for dry-run refund and refund-with-metadata."
+          }
+        },
+        {
+          "name": "4. Dry-run bulk create",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Bulk dry-run preview', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.dry_run).to.eql(true);",
+                  "  pm.expect(json).to.have.property('would_apply');",
+                  "  pm.expect(json).to.have.property('cumulative');",
+                  "  pm.expect(json.results).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dry_run\": true,\n  \"skip_queue\": true,\n  \"transactions\": [\n    {\n      \"amount\": 10,\n      \"precision\": 100,\n      \"reference\": \"dryrun-bulk-a-{{run_id}}\",\n      \"description\": \"bulk preview 1\",\n      \"currency\": \"USD\",\n      \"source\": \"{{indicator}}\",\n      \"destination\": \"{{dest_indicator}}\",\n      \"allow_overdraft\": true\n    },\n    {\n      \"amount\": 15,\n      \"precision\": 100,\n      \"reference\": \"dryrun-bulk-b-{{run_id}}\",\n      \"description\": \"bulk preview 2\",\n      \"currency\": \"USD\",\n      \"source\": \"{{indicator}}\",\n      \"destination\": \"{{dest_indicator}}\",\n      \"allow_overdraft\": true\n    }\n  ]\n}"
+            },
+            "url": "{{blnk_base_url}}/transactions/bulk",
+            "description": "SDK: `Transactions.createBulk({ dry_run: true, … })`\n\nExpect 200, `results[]`, `cumulative`."
+          }
+        },
+        {
+          "name": "5. Dry-run refund",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Refund dry-run preview', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.dry_run).to.eql(true);",
+                  "  pm.expect(json).to.not.have.property('transaction_id');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dry_run\": true\n}"
+            },
+            "url": "{{blnk_base_url}}/refund-transaction/{{transaction_id}}",
+            "description": "SDK: `Transactions.refund(id, { dry_run: true })`\n\nNeeds request 3. Original txn should still be refundable afterwards."
+          }
+        },
+        {
+          "name": "6. Refund with description and meta_data",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Refund posted with description', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.description).to.eql('Card reversal');",
+                  "  pm.expect(json.parent_transaction).to.eql(pm.collectionVariables.get('transaction_id'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"skip_queue\": true,\n  \"description\": \"Card reversal\",\n  \"meta_data\": {\n    \"type\": \"refund\"\n  }\n}"
+            },
+            "url": "{{blnk_base_url}}/refund-transaction/{{transaction_id}}",
+            "description": "SDK: `Transactions.refund(id, { description, meta_data, skip_queue: true })`"
+          }
+        },
+        {
+          "name": "7. Create inflight (for dry-run commit/void)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Inflight posted', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.transaction_id).to.be.a('string').that.is.not.empty;",
+                  "  pm.collectionVariables.set('inflight_id', json.transaction_id);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 30,\n  \"precision\": 100,\n  \"reference\": \"inflight-{{run_id}}\",\n  \"description\": \"Hold for dry-run commit\",\n  \"currency\": \"USD\",\n  \"source\": \"{{indicator}}\",\n  \"destination\": \"{{dest_indicator}}\",\n  \"allow_overdraft\": true,\n  \"inflight\": true,\n  \"skip_queue\": true\n}"
+            },
+            "url": "{{blnk_base_url}}/transactions",
+            "description": "Saves `inflight_id`."
+          }
+        },
+        {
+          "name": "8. Dry-run inflight commit",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Inflight commit preview', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.dry_run).to.eql(true);",
+                  "  pm.expect(json.operation).to.eql('commit');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"commit\",\n  \"dry_run\": true\n}"
+            },
+            "url": "{{blnk_base_url}}/transactions/inflight/{{inflight_id}}",
+            "description": "SDK: `Transactions.updateStatus(id, { status: 'commit', dry_run: true })`\n\nHold should stay in place."
+          }
+        },
+        {
+          "name": "9. Dry-run inflight void",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Inflight void preview', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.dry_run).to.eql(true);",
+                  "  pm.expect(json.operation).to.eql('void');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"void\",\n  \"dry_run\": true\n}"
+            },
+            "url": "{{blnk_base_url}}/transactions/inflight/{{inflight_id}}",
+            "description": "SDK: `Transactions.updateStatus(id, { status: 'void', dry_run: true })`"
+          }
+        },
+        {
+          "name": "10. Dry-run bulk commit inflight",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Bulk commit preview', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.dry_run).to.eql(true);",
+                  "  pm.expect(json.would_apply).to.eql(true);",
+                  "  pm.expect(json.cumulative).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dry_run\": true,\n  \"skip_queue\": true,\n  \"transactions\": [\n    { \"transaction_id\": \"{{inflight_id}}\" }\n  ]\n}"
+            },
+            "url": "{{blnk_base_url}}/transactions/inflight/bulk/commit",
+            "description": "SDK: `Transactions.bulkCommitInflight({ dry_run: true, … })`\n\nHold should stay INFLIGHT."
+          }
+        },
+        {
+          "name": "11. Dry-run bulk void inflight",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Bulk void preview', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.dry_run).to.eql(true);",
+                  "  pm.expect(json.would_apply).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dry_run\": true,\n  \"skip_queue\": true,\n  \"transaction_ids\": [\"{{inflight_id}}\"]\n}"
+            },
+            "url": "{{blnk_base_url}}/transactions/inflight/bulk/void",
+            "description": "SDK: `Transactions.bulkVoidInflight({ dry_run: true, … })`"
+          }
+        }
+      ]
+    }
+  ]
+}

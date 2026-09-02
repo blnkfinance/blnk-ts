@@ -53,6 +53,13 @@ export {
   DEFAULT_TIMEOUT_MS,
   parseBlnkApiErrorBody,
 };
+export {BlnkErrorCode} from "./types/errors";
 export type {BlnkApiErrorDetail} from "./types/errors";
+export type {
+  BulkTransactionPreview,
+  DryRun,
+  MaybeDryRun,
+  TransactionPreview,
+} from "./types/transactions";
 //export default BlnkInit;
 //# sourceMappingURL=index.d.ts.map

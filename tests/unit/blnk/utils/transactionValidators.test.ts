@@ -14,6 +14,7 @@ import {
   BulkVoidInflightRequest,
   BulkTransactions,
   CreateTransactions,
+  DryRun,
   MAX_BULK_CREATE_ITEMS,
   MAX_BULK_INFLIGHT_ITEMS,
   RecoverQueueRequest,
@@ -417,6 +418,35 @@ tap.test(`Issue #40 — create transaction request fields`, t => {
     tt.end();
   });
 
+  t.test(`allows dry_run on create payloads`, tt => {
+    const data: DryRun<CreateTransactions<Record<string, never>>> = {
+      ...baseFields,
+      amount: 1000,
+      source: `@FundingPool`,
+      destination: `@Recipient`,
+      dry_run: true,
+    };
+
+    tt.equal(ValidateCreateTransactions(data), null);
+    tt.end();
+  });
+
+  t.test(`rejects invalid dry_run on create payloads`, tt => {
+    const data = {
+      ...baseFields,
+      amount: 1000,
+      source: `@FundingPool`,
+      destination: `@Recipient`,
+      dry_run: `true`,
+    } as unknown as CreateTransactions<Record<string, never>>;
+
+    tt.equal(
+      ValidateCreateTransactions(data),
+      `dry_run must be a boolean if provided.`,
+    );
+    tt.end();
+  });
+
   t.test(`allows effective_date as an ISO string`, tt => {
     const data: CreateTransactions<Record<string, never>> = {
       ...baseFields,
@@ -801,6 +831,19 @@ tap.test(`Issue #44 — bulk transaction request fields`, t => {
     tt.end();
   });
 
+  t.test(`allows dry_run on bulk payloads`, tt => {
+    const data: DryRun<BulkTransactions<Record<string, never>>> = {
+      dry_run: true,
+      transactions: [
+        {...baseBulkTxn, reference: `bulk_ref_001`},
+        {...baseBulkTxn, reference: `bulk_ref_002`, amount: 2000},
+      ],
+    };
+
+    tt.equal(ValidateBulkTransactions(data), null);
+    tt.end();
+  });
+
   t.test(`rejects invalid skip_queue on bulk payloads`, tt => {
     const data = {
       skip_queue: `true`,
@@ -911,6 +954,16 @@ tap.test(`Issue #45 — updateStatus precise_amount on partial commit`, t => {
     tt.end();
   });
 
+  t.test(`allows dry_run on update payloads`, tt => {
+    const data: DryRun<UpdateTransactionStatus<Record<string, never>>> = {
+      status: `commit`,
+      dry_run: true,
+    };
+
+    tt.equal(ValidateUpdateTransactions(data), null);
+    tt.end();
+  });
+
   t.test(`rejects invalid skip_queue on update payloads (issue #117)`, tt => {
     const data = {
       status: `commit`,
@@ -956,6 +1009,29 @@ tap.test(`Issue #46 — refund transaction request fields`, t => {
     } as unknown as RefundTransactionRequest;
 
     tt.equal(ValidateRefundTransaction(data), `Invalid field: amount`);
+    tt.end();
+  });
+
+  t.test(
+    `allows dry_run, description, and meta_data on refund payloads`,
+    tt => {
+      const data: DryRun<RefundTransactionRequest> = {
+        dry_run: true,
+        description: `Card reversal`,
+        meta_data: {type: `refund`},
+      };
+
+      tt.equal(ValidateRefundTransaction(data), null);
+      tt.end();
+    },
+  );
+
+  t.test(`rejects invalid dry_run on refund payloads`, tt => {
+    const data = {dry_run: `true`} as unknown as RefundTransactionRequest;
+    tt.equal(
+      ValidateRefundTransaction(data),
+      `dry_run must be a boolean if provided.`,
+    );
     tt.end();
   });
 
@@ -1047,6 +1123,33 @@ tap.test(`Issue #15 — bulkCommitInflight validation`, t => {
     },
   );
 
+  t.test(`allows dry_run on bulk commit payloads`, tt => {
+    const data: DryRun<BulkCommitInflightRequest> = {
+      dry_run: true,
+      transactions: [
+        {transaction_id: `txn_11111111-1111-4111-8111-111111111111`},
+      ],
+    };
+
+    tt.equal(ValidateBulkCommitInflight(data), null);
+    tt.end();
+  });
+
+  t.test(`rejects invalid dry_run on bulk commit payloads`, tt => {
+    const data = {
+      dry_run: `true`,
+      transactions: [
+        {transaction_id: `txn_11111111-1111-4111-8111-111111111111`},
+      ],
+    } as unknown as BulkCommitInflightRequest;
+
+    tt.equal(
+      ValidateBulkCommitInflight(data),
+      `dry_run must be a boolean if provided.`,
+    );
+    tt.end();
+  });
+
   t.end();
 });
 
@@ -1117,6 +1220,29 @@ tap.test(`Issue #16 — bulkVoidInflight validation`, t => {
       tt.end();
     },
   );
+
+  t.test(`allows dry_run on bulk void payloads`, tt => {
+    const data: DryRun<BulkVoidInflightRequest> = {
+      dry_run: true,
+      transaction_ids: [`txn_11111111-1111-4111-8111-111111111111`],
+    };
+
+    tt.equal(ValidateBulkVoidInflight(data), null);
+    tt.end();
+  });
+
+  t.test(`rejects invalid dry_run on bulk void payloads`, tt => {
+    const data = {
+      dry_run: `true`,
+      transaction_ids: [`txn_11111111-1111-4111-8111-111111111111`],
+    } as unknown as BulkVoidInflightRequest;
+
+    tt.equal(
+      ValidateBulkVoidInflight(data),
+      `dry_run must be a boolean if provided.`,
+    );
+    tt.end();
+  });
 
   t.end();
 });
