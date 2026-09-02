@@ -32,6 +32,21 @@ export function ValidateCreateLedgerBalance<T extends Record<string, unknown>>(
     return `identity_id must be a valid string if provided`;
   }
 
+  if (data.indicator !== undefined) {
+    if (!IsValidString(data.indicator) || data.indicator.trim() === ``) {
+      return `indicator must be a non-empty string if provided`;
+    }
+    if (!data.indicator.startsWith(`@`)) {
+      return `indicator must start with @`;
+    }
+    if (/\s/.test(data.indicator)) {
+      return `indicator must not contain spaces`;
+    }
+    if (data.ledger_id !== `general_ledger_id`) {
+      return `indicator is only valid when ledger_id is general_ledger_id`;
+    }
+  }
+
   // Validate currency
   if (!IsValidString(data.currency)) {
     return `currency must be either 'USD' or 'NGN'`;

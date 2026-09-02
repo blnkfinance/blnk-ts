@@ -1,14 +1,16 @@
 import {BlnkLogger} from "../../types/blnkClient";
-import {BlnkRequest, FormatResponseType} from "../../types/general";
+import {ApiResponse, BlnkRequest, FormatResponseType} from "../../types/general";
 import {
   BulkCommitInflightRequest,
   BulkCommitInflightResponse,
   BulkVoidInflightRequest,
   BulkVoidInflightResponse,
+  BulkTransactionPreview,
   BulkTransactionResponse,
   BulkTransactions,
   CreateTransactionResponse,
   CreateTransactions,
+  TransactionPreview,
   RecoverQueueRequest,
   RecoverQueueResponse,
   RefundTransactionRequest,
@@ -81,7 +83,15 @@ export class Transactions {
    * };
    * const createdTransaction = await create(transactionData);
    */
-  async create<T extends Record<string, unknown>>(data: CreateTransactions<T>) {
+  async create<T extends Record<string, unknown>>(
+    data: CreateTransactions<T> & {dry_run: true},
+  ): Promise<ApiResponse<TransactionPreview | null>>;
+  async create<T extends Record<string, unknown>>(
+    data: CreateTransactions<T>,
+  ): Promise<ApiResponse<CreateTransactionResponse<T> | null>>;
+  async create<T extends Record<string, unknown>>(
+    data: CreateTransactions<T> & {dry_run?: boolean},
+  ) {
     try {
       //if data has inflight set to true, make sure inflight_expiry_date is set
       const validatorResponse = ValidateCreateTransactions(data);
@@ -93,7 +103,7 @@ export class Transactions {
 
       const response = await this.request<
         CreateTransactions<T>,
-        CreateTransactionResponse<T>
+        CreateTransactionResponse<T> | TransactionPreview
       >(`transactions`, payload, `POST`);
 
       if (response.data === null) {
@@ -143,7 +153,15 @@ export class Transactions {
    */
   async updateStatus<T extends Record<string, never>>(
     id: string,
+    update: UpdateTransactionStatus<T> & {dry_run: true},
+  ): Promise<ApiResponse<TransactionPreview | null>>;
+  async updateStatus<T extends Record<string, never>>(
+    id: string,
     update: UpdateTransactionStatus<T>,
+  ): Promise<ApiResponse<CreateTransactionResponse<T> | null>>;
+  async updateStatus<T extends Record<string, never>>(
+    id: string,
+    update: UpdateTransactionStatus<T> & {dry_run?: boolean},
   ) {
     try {
       const validatorResponse = ValidateUpdateTransactions(update);
@@ -152,7 +170,7 @@ export class Transactions {
       }
       const response = await this.request<
         UpdateTransactionStatus<T>,
-        CreateTransactionResponse<T>
+        CreateTransactionResponse<T> | TransactionPreview
       >(`transactions/inflight/${id}`, update, `PUT`);
       return response;
     } catch (error: unknown) {
@@ -174,7 +192,7 @@ export class Transactions {
       see @link https://docs.blnkfinance.com/transactions/refunds
    *
    * @param id - The ID of the transaction to be refunded.
-   * @param options - Optional refund options (`skip_queue` for synchronous processing).
+   * @param options - Optional refund options (`skip_queue`, `description`, `meta_data`, `dry_run`).
    * @returns A promise that resolves with the response of the refund transaction.
    * @throws If an error occurs during the refund process, an error response is returned.
    *
@@ -182,10 +200,19 @@ export class Transactions {
    * const transactionId = "123456";
    * const refundResponse = await Transactions.refund(transactionId);
    * const syncRefund = await Transactions.refund(transactionId, { skip_queue: true });
+   * const preview = await Transactions.refund(transactionId, { dry_run: true });
    */
   async refund<T extends Record<string, never>>(
     id: string,
+    options: RefundTransactionRequest & {dry_run: true},
+  ): Promise<ApiResponse<TransactionPreview | null>>;
+  async refund<T extends Record<string, never>>(
+    id: string,
     options?: RefundTransactionRequest,
+  ): Promise<ApiResponse<CreateTransactionResponse<T> | null>>;
+  async refund<T extends Record<string, never>>(
+    id: string,
+    options?: RefundTransactionRequest & {dry_run?: boolean},
   ) {
     try {
       if (options !== undefined) {
@@ -197,7 +224,7 @@ export class Transactions {
 
       const response = await this.request<
         RefundTransactionRequest | null,
-        CreateTransactionResponse<T>
+        CreateTransactionResponse<T> | TransactionPreview
       >(`refund-transaction/${id}`, options ?? null, `POST`);
       return response;
     } catch (error: unknown) {
@@ -405,8 +432,18 @@ export class Transactions {
    *     { transaction_id: 'txn_22222222-2222-4222-8222-222222222222', amount: 40 },
    *   ],
    * });
+   * const preview = await blnk.Transactions.bulkCommitInflight({
+   *   dry_run: true,
+   *   transactions: [{ transaction_id: 'txn_11111111-1111-4111-8111-111111111111' }],
+   * });
    */
-  async bulkCommitInflight(data: BulkCommitInflightRequest) {
+  async bulkCommitInflight(
+    data: BulkCommitInflightRequest & {dry_run: true},
+  ): Promise<ApiResponse<BulkTransactionPreview | null>>;
+  async bulkCommitInflight(
+    data: BulkCommitInflightRequest,
+  ): Promise<ApiResponse<BulkCommitInflightResponse | null>>;
+  async bulkCommitInflight(data: BulkCommitInflightRequest & {dry_run?: boolean}) {
     try {
       const validatorResponse = ValidateBulkCommitInflight(data);
       if (validatorResponse) {
@@ -415,7 +452,7 @@ export class Transactions {
 
       const response = await this.request<
         BulkCommitInflightRequest,
-        BulkCommitInflightResponse
+        BulkCommitInflightResponse | BulkTransactionPreview
       >(`transactions/inflight/bulk/commit`, data, `POST`);
       return response;
     } catch (error: unknown) {
@@ -440,8 +477,18 @@ export class Transactions {
    *     'txn_22222222-2222-4222-8222-222222222222',
    *   ],
    * });
+   * const preview = await blnk.Transactions.bulkVoidInflight({
+   *   dry_run: true,
+   *   transaction_ids: ['txn_11111111-1111-4111-8111-111111111111'],
+   * });
    */
-  async bulkVoidInflight(data: BulkVoidInflightRequest) {
+  async bulkVoidInflight(
+    data: BulkVoidInflightRequest & {dry_run: true},
+  ): Promise<ApiResponse<BulkTransactionPreview | null>>;
+  async bulkVoidInflight(
+    data: BulkVoidInflightRequest,
+  ): Promise<ApiResponse<BulkVoidInflightResponse | null>>;
+  async bulkVoidInflight(data: BulkVoidInflightRequest & {dry_run?: boolean}) {
     try {
       const validatorResponse = ValidateBulkVoidInflight(data);
       if (validatorResponse) {
@@ -450,7 +497,7 @@ export class Transactions {
 
       const response = await this.request<
         BulkVoidInflightRequest,
-        BulkVoidInflightResponse
+        BulkVoidInflightResponse | BulkTransactionPreview
       >(`transactions/inflight/bulk/void`, data, `POST`);
       return response;
     } catch (error: unknown) {
@@ -464,7 +511,13 @@ export class Transactions {
   }
 
   async createBulk<T extends Record<string, unknown>>(
+    data: BulkTransactions<T> & {dry_run: true},
+  ): Promise<ApiResponse<BulkTransactionPreview | null>>;
+  async createBulk<T extends Record<string, unknown>>(
     data: BulkTransactions<T>,
+  ): Promise<ApiResponse<BulkTransactionResponse | null>>;
+  async createBulk<T extends Record<string, unknown>>(
+    data: BulkTransactions<T> & {dry_run?: boolean},
   ) {
     try {
       const validatorResponse = ValidateBulkTransactions(data);
@@ -479,7 +532,7 @@ export class Transactions {
 
       const response = await this.request<
         BulkTransactions<T>,
-        BulkTransactionResponse
+        BulkTransactionResponse | BulkTransactionPreview
       >(`transactions/bulk`, payload, `POST`);
 
       if (response.data === null) {

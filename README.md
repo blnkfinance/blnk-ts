@@ -251,6 +251,16 @@ const newBalance = await LedgerBalances.create({
 console.log("Balance Created:", newBalance);
 ```
 
+Create a General Ledger balance on Core **0.15.3+** with `ledger_id: "general_ledger_id"` and an `@` indicator:
+
+```typescript
+const glBalance = await LedgerBalances.create({
+  ledger_id: "general_ledger_id",
+  currency: "USD",
+  indicator: "@WorldUSD",
+});
+```
+
 With fund lineage tracking enabled (requires `identity_id`):
 
 ```typescript
@@ -385,6 +395,28 @@ const newTransaction = await Transactions.create({
 console.log("Transaction Recorded:", newTransaction);
 ```
 
+### Dry-run a transaction
+
+On Core **0.15.3+**, set `dry_run: true` on create, bulk create, refund, inflight `updateStatus`, `bulkCommitInflight`, or `bulkVoidInflight` to preview balances without writing anything. The response is HTTP 200 with `would_apply` and `balances` — not a posted transaction.
+
+```typescript
+const preview = await Transactions.create({
+  amount: 120,
+  precision: 100,
+  reference: 'ref_card_settle_4821',
+  description: 'Card settlement preview',
+  currency: 'USD',
+  source: '@WorldUSD',
+  destination: '@MyBalance',
+  dry_run: true,
+});
+// preview.status === 200
+// preview.data?.dry_run === true
+// preview.data?.would_apply
+```
+
+See [Dry-run transactions](https://docs.blnkfinance.com/transactions/dry-run).
+
 ### Atomic split transactions
 
 Set `atomic: true` when creating a split transaction (`destinations` or `sources`) so all legs succeed or fail together:
@@ -487,6 +519,15 @@ const response = await Transactions.bulkCommitInflight({
 });
 
 // response.data.succeeded, response.data.failed, response.data.results
+
+const commitPreview = await Transactions.bulkCommitInflight({
+  dry_run: true,
+  transactions: [
+    { transaction_id: 'txn_11111111-1111-4111-8111-111111111111' },
+  ],
+});
+// commitPreview.data?.dry_run === true
+// commitPreview.data?.would_apply
 ```
 
 ### Bulk void inflight transactions
@@ -503,11 +544,16 @@ const response = await Transactions.bulkVoidInflight({
 });
 
 // response.data.succeeded, response.data.failed, response.data.results
+
+const voidPreview = await Transactions.bulkVoidInflight({
+  dry_run: true,
+  transaction_ids: ['txn_11111111-1111-4111-8111-111111111111'],
+});
 ```
 
 ### Refund a transaction
 
-`Transactions.refund` accepts an optional body with `skip_queue` to process the refund synchronously. Omit the body to queue the refund (default):
+`Transactions.refund` accepts an optional body with `skip_queue` to process the refund synchronously. On Core **0.15.3+** you can also set `description`, `meta_data`, and `dry_run`. Omit the body to queue the refund (default):
 
 ```typescript
 // Queued refund (default)
@@ -515,6 +561,15 @@ await Transactions.refund(transactionId);
 
 // Synchronous refund
 await Transactions.refund(transactionId, { skip_queue: true });
+
+// Refund with description and metadata
+await Transactions.refund(transactionId, {
+  description: 'Card reversal',
+  meta_data: { type: 'refund' },
+});
+
+// Preview without writing
+await Transactions.refund(transactionId, { dry_run: true });
 ```
 
 ### Create transaction response

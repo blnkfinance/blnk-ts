@@ -323,6 +323,32 @@ tap.test(`Creates a transaction`, async t => {
     },
   );
 
+  t.test(`create forwards dry_run on request`, async childTest => {
+    const capturedRequest = childTest.captureFn(thirdPartyRequest);
+    const transactions = new Transactions(
+      capturedRequest,
+      mockLogger,
+      FormatResponse,
+    );
+
+    const data: CreateTransactions<meta_dataT> & {dry_run: true} = {
+      amount: 10000,
+      currency: `USD`,
+      description: `Dry-run preview`,
+      meta_data: {company_name: `Test Company`},
+      precision: 100,
+      reference: `dry_run_ref_001`,
+      source: `@FundingPool`,
+      destination: `@Recipient`,
+      dry_run: true,
+    };
+
+    const transaction = await transactions.create<meta_dataT>(data);
+    childTest.match(capturedRequest.args(), [[`transactions`, data, `POST`]]);
+    childTest.equal(transaction.status, 201);
+    childTest.end();
+  });
+
   t.test(`It should handle missing required fields`, async childTest => {
     const capturedRequest = childTest.captureFn(thirdPartyRequest);
     const transactions = new Transactions(
@@ -813,6 +839,29 @@ tap.test(`Refunds a transaction`, async t => {
       refundResponse.message,
       `skip_queue must be a boolean if provided.`,
     );
+    childTest.end();
+  });
+
+  t.test(
+    `refund forwards description, meta_data, and dry_run`,
+    async childTest => {
+    const capturedRequest = childTest.captureFn(thirdPartyRequest);
+    const transactions = new Transactions(
+      capturedRequest,
+      mockLogger,
+      FormatResponse,
+    );
+
+    const options: RefundTransactionRequest & {dry_run: true} = {
+      dry_run: true,
+      description: `Card reversal`,
+      meta_data: {type: `refund`},
+    };
+    const refundResponse = await transactions.refund(id, options);
+    childTest.match(capturedRequest.args(), [
+      [`refund-transaction/${id}`, options, `POST`],
+    ]);
+    childTest.equal(refundResponse.status, 201);
     childTest.end();
   });
 });
@@ -1396,6 +1445,29 @@ tap.test(`Issue #15 — bulkCommitInflight`, async t => {
       childTest.end();
     },
   );
+
+  t.test(`bulkCommitInflight forwards dry_run on request`, async childTest => {
+    const capturedRequest = childTest.captureFn(thirdPartyRequest);
+    const transactions = new Transactions(
+      capturedRequest,
+      mockLogger,
+      FormatResponse,
+    );
+
+    const data: BulkCommitInflightRequest & {dry_run: true} = {
+      dry_run: true,
+      transactions: [
+        {transaction_id: `txn_11111111-1111-4111-8111-111111111111`},
+      ],
+    };
+
+    const response = await transactions.bulkCommitInflight(data);
+    childTest.match(capturedRequest.args(), [
+      [`transactions/inflight/bulk/commit`, data, `POST`],
+    ]);
+    childTest.equal(response.status, 200);
+    childTest.end();
+  });
 });
 
 tap.test(`Issue #16 — bulkVoidInflight`, async t => {
@@ -1510,4 +1582,25 @@ tap.test(`Issue #16 — bulkVoidInflight`, async t => {
       childTest.end();
     },
   );
+
+  t.test(`bulkVoidInflight forwards dry_run on request`, async childTest => {
+    const capturedRequest = childTest.captureFn(thirdPartyRequest);
+    const transactions = new Transactions(
+      capturedRequest,
+      mockLogger,
+      FormatResponse,
+    );
+
+    const data: BulkVoidInflightRequest & {dry_run: true} = {
+      dry_run: true,
+      transaction_ids: [`txn_11111111-1111-4111-8111-111111111111`],
+    };
+
+    const response = await transactions.bulkVoidInflight(data);
+    childTest.match(capturedRequest.args(), [
+      [`transactions/inflight/bulk/void`, data, `POST`],
+    ]);
+    childTest.equal(response.status, 200);
+    childTest.end();
+  });
 });

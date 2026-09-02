@@ -1,5 +1,29 @@
 # Release Notes
 
+## v1.4.0
+
+v1.4.0 targets **Blnk Core 0.15.3**. v1.3.0 shipped Core 0.15.0 parity; this release adds dry-run previews, General Ledger `indicator` on create, refund narration/metadata, and named Core error codes.
+
+See [Dry-run transactions](https://docs.blnkfinance.com/transactions/dry-run) and the [Core changelog](https://docs.blnkfinance.com/changelog/blnk-core).
+
+### Transactions
+
+- **`dry_run`** — Optional on `Transactions.create`, `createBulk`, `refund`, `updateStatus`, `bulkCommitInflight`, and `bulkVoidInflight`. Core returns HTTP 200 with a preview (`would_apply`, `rejection`, `balances`). Nothing is written; `reference` is not consumed. Typed as `TransactionPreview` / `BulkTransactionPreview`. [Guide](https://docs.blnkfinance.com/transactions/dry-run)
+
+- **`Transactions.refund`** — Accepts `description` and `meta_data` in addition to `skip_queue`. Empty description inherits the original; metadata is merged onto the inherited copy. [Reference](https://docs.blnkfinance.com/reference/refund-transaction)
+
+### Balances
+
+- **`LedgerBalances.create`** — Optional `indicator` (must start with `@`, no spaces) when `ledger_id` is `"general_ledger_id"`. Duplicate indicator + currency returns `409` / `GEN_CONFLICT`. [Guide](https://docs.blnkfinance.com/balances/internal-balances)
+
+### Hooks
+
+- **`Hooks.list()`** — `type` remains optional. Omitting it lists PRE and POST hooks (`GET /hooks`).
+
+### Errors
+
+- **`BlnkErrorCode`** — Exported constants for `TXN_INVALID_AMOUNT`, `GEN_CONFLICT`, and `TXN_VALIDATION_ERROR`. Core 0.15.3 uses `TXN_VALIDATION_ERROR` for negative amounts and for source equal to destination; duplicate GL indicators return `GEN_CONFLICT`. Branch on `response.error?.code`. [Guide](https://docs.blnkfinance.com/advanced/error-codes)
+
 ## v1.2.0
 
 v1.2.0 extends the SDK beyond ledger, balance, and transaction APIs. **v1.1.0** closed the Core parity gap for those domains; this release adds search, reconciliation, identity, metadata, hooks, and API key management, plus a modernized HTTP client.

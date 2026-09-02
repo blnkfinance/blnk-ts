@@ -16,6 +16,8 @@ import {IsValidString} from "../stringUtils";
 import {isValidTransactionDateInput} from "../transactionSerialization";
 import {isValidMetaData} from "./ledgerBalance";
 
+type WithDryRun<T> = T & {dry_run?: boolean};
+
 const NON_NEGATIVE_INTEGER_STRING = /^\d+$/;
 
 function validateOptionalDateField(
@@ -173,7 +175,7 @@ function validateSplitLegRouting(
 }
 
 export function ValidateCreateTransactions<T extends Record<string, unknown>>(
-  data: CreateTransactions<T>,
+  data: WithDryRun<CreateTransactions<T>>,
 ): string | null {
   const transactionTotal = resolveTransactionTotal(data);
   if (transactionTotal === null) {
@@ -300,6 +302,10 @@ export function ValidateCreateTransactions<T extends Record<string, unknown>>(
 
   if (data.meta_data !== undefined && !isValidMetaData(data.meta_data)) {
     return `meta_data must be a valid object if provided`;
+  }
+
+  if (data.dry_run !== undefined && typeof data.dry_run !== `boolean`) {
+    return `dry_run must be a boolean if provided.`;
   }
 
   return null;
@@ -544,7 +550,7 @@ function validateDistributionLegsWithDecimals(
 }
 
 export function ValidateUpdateTransactions<T extends Record<string, unknown>>(
-  data: UpdateTransactionStatus<T>,
+  data: WithDryRun<UpdateTransactionStatus<T>>,
 ): string | null {
   if (typeof data.status !== `string`) {
     return `Status must be a string.`;
@@ -574,12 +580,17 @@ export function ValidateUpdateTransactions<T extends Record<string, unknown>>(
     return `skip_queue must be a boolean if provided.`;
   }
 
+  if (data.dry_run !== undefined && typeof data.dry_run !== `boolean`) {
+    return `dry_run must be a boolean if provided.`;
+  }
+
   const allowedFields = [
     `status`,
     `amount`,
     `precise_amount`,
     `meta_data`,
     `skip_queue`,
+    `dry_run`,
   ];
   for (const key in data) {
     if (!allowedFields.includes(key)) {
@@ -591,13 +602,25 @@ export function ValidateUpdateTransactions<T extends Record<string, unknown>>(
 }
 
 export function ValidateRefundTransaction(
-  data: RefundTransactionRequest,
+  data: WithDryRun<RefundTransactionRequest>,
 ): string | null {
   if (data.skip_queue !== undefined && typeof data.skip_queue !== `boolean`) {
     return `skip_queue must be a boolean if provided.`;
   }
 
-  const allowedFields = [`skip_queue`];
+  if (data.dry_run !== undefined && typeof data.dry_run !== `boolean`) {
+    return `dry_run must be a boolean if provided.`;
+  }
+
+  if (data.description !== undefined && typeof data.description !== `string`) {
+    return `description must be a string if provided.`;
+  }
+
+  if (data.meta_data !== undefined && !isValidMetaData(data.meta_data)) {
+    return `meta_data must be a valid object if provided`;
+  }
+
+  const allowedFields = [`skip_queue`, `dry_run`, `description`, `meta_data`];
   for (const key in data) {
     if (!allowedFields.includes(key)) {
       return `Invalid field: ${key}`;
@@ -612,6 +635,10 @@ export function ValidateBulkVoidInflight(
 ): string | null {
   if (data.skip_queue !== undefined && typeof data.skip_queue !== `boolean`) {
     return `skip_queue must be a boolean if provided.`;
+  }
+
+  if (data.dry_run !== undefined && typeof data.dry_run !== `boolean`) {
+    return `dry_run must be a boolean if provided.`;
   }
 
   if (!Array.isArray(data.transaction_ids)) {
@@ -634,7 +661,7 @@ export function ValidateBulkVoidInflight(
     }
   }
 
-  const allowedFields = [`skip_queue`, `transaction_ids`];
+  const allowedFields = [`skip_queue`, `dry_run`, `transaction_ids`];
   for (const key in data) {
     if (!allowedFields.includes(key)) {
       return `Invalid field: ${key}`;
@@ -649,6 +676,10 @@ export function ValidateBulkCommitInflight(
 ): string | null {
   if (data.skip_queue !== undefined && typeof data.skip_queue !== `boolean`) {
     return `skip_queue must be a boolean if provided.`;
+  }
+
+  if (data.dry_run !== undefined && typeof data.dry_run !== `boolean`) {
+    return `dry_run must be a boolean if provided.`;
   }
 
   if (!Array.isArray(data.transactions)) {
@@ -690,7 +721,7 @@ export function ValidateBulkCommitInflight(
     }
   }
 
-  const allowedFields = [`skip_queue`, `transactions`];
+  const allowedFields = [`skip_queue`, `dry_run`, `transactions`];
   for (const key in data) {
     if (!allowedFields.includes(key)) {
       return `Invalid field: ${key}`;
@@ -701,7 +732,7 @@ export function ValidateBulkCommitInflight(
 }
 
 export function ValidateBulkTransactions<T extends Record<string, unknown>>(
-  data: BulkTransactions<T>,
+  data: WithDryRun<BulkTransactions<T>>,
 ): string | null {
   if (data.atomic !== undefined && typeof data.atomic !== `boolean`) {
     return `Atomic must be a boolean if provided.`;
@@ -717,6 +748,10 @@ export function ValidateBulkTransactions<T extends Record<string, unknown>>(
 
   if (data.skip_queue !== undefined && typeof data.skip_queue !== `boolean`) {
     return `skip_queue must be a boolean if provided.`;
+  }
+
+  if (data.dry_run !== undefined && typeof data.dry_run !== `boolean`) {
+    return `dry_run must be a boolean if provided.`;
   }
 
   if (!Array.isArray(data.transactions)) {

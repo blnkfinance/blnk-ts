@@ -157,9 +157,15 @@ export type UpdateTransactionStatus<T extends Record<string, unknown>> = {
 };
 
 /** Optional body for `POST /refund-transaction/{transaction_id}`. */
-export interface RefundTransactionRequest {
+export interface RefundTransactionRequest<
+  T extends Record<string, unknown> = Record<string, unknown>,
+> {
   /** Process synchronously without queuing. Default: `false`. */
   skip_queue?: boolean;
+  /** Replaces the reversal description. Otherwise inherits the original. */
+  description?: string;
+  /** Merged onto metadata inherited from the original transaction. */
+  meta_data?: T;
 }
 
 export interface BulkTransactions<T extends Record<string, unknown>> {
@@ -214,6 +220,11 @@ export interface BulkCommitInflightItem {
 export interface BulkCommitInflightRequest {
   /** Process synchronously without queuing. Default: `false` (Core 0.15.0 queues commit/void). */
   skip_queue?: boolean;
+  /**
+   * Preview the batch without committing. Default: `false`.
+   * Response is `BulkTransactionPreview` (HTTP 200); holds stay INFLIGHT.
+   */
+  dry_run?: boolean;
   transactions: BulkCommitInflightItem[];
 }
 
@@ -242,6 +253,11 @@ export interface BulkCommitInflightResponse {
 export interface BulkVoidInflightRequest {
   /** Process synchronously without queuing. Default: `false` (Core 0.15.0 queues commit/void). */
   skip_queue?: boolean;
+  /**
+   * Preview the batch without voiding. Default: `false`.
+   * Response is `BulkTransactionPreview` (HTTP 200); holds stay INFLIGHT.
+   */
+  dry_run?: boolean;
   transaction_ids: string[];
 }
 
@@ -322,4 +338,75 @@ export interface RecoverQueueResponse {
   recovered: number;
   /** Threshold duration Core applied (e.g. `5m0s`). */
   threshold: string;
+}
+
+/** Why a dry-run projection would not apply. */
+export interface PreviewRejection {
+  code: string;
+  reason: string;
+  message: string;
+}
+
+/** One balance's current and projected state in a dry-run. Amounts are minor-unit strings. */
+export interface BalanceProjection {
+  balance_id: string;
+  role: string;
+  currency: string;
+  virtual?: boolean;
+  current_balance: string;
+  current_available?: string;
+  current_credit_balance?: string;
+  current_debit_balance?: string;
+  current_inflight_debit_balance?: string;
+  current_inflight_credit_balance?: string;
+  resulting_balance: string;
+  resulting_available?: string;
+  resulting_credit_balance?: string;
+  resulting_debit_balance?: string;
+  resulting_inflight_debit_balance?: string;
+  resulting_inflight_credit_balance?: string;
+}
+
+/** One split leg in a multi-source or multi-destination dry-run. */
+export interface LegProjection {
+  identifier: string;
+  role: string;
+  precise_amount: string;
+  amount: number;
+}
+
+/**
+ * Response from a dry-run create, refund, or inflight update (HTTP 200).
+ *
+ * @see https://docs.blnkfinance.com/transactions/dry-run
+ */
+export interface TransactionPreview {
+  dry_run: true;
+  would_apply: boolean;
+  rejection?: PreviewRejection;
+  operation?: `commit` | `void` | string;
+  status?: StatusType | string;
+  reference?: string;
+  currency: string;
+  amount: number;
+  precise_amount: string;
+  precision: number;
+  balances: BalanceProjection[];
+  legs?: LegProjection[];
+  notes?: string[];
+}
+
+/**
+ * Response from a dry-run bulk create (HTTP 200).
+ *
+ * @see https://docs.blnkfinance.com/transactions/dry-run
+ */
+export interface BulkTransactionPreview {
+  dry_run: true;
+  would_apply: boolean;
+  cumulative: boolean;
+  atomic?: boolean;
+  results: TransactionPreview[];
+  balances?: BalanceProjection[];
+  notes?: string[];
 }

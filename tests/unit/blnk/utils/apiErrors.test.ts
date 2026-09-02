@@ -1,6 +1,9 @@
 /* eslint-disable n/no-unpublished-import */
 import tap from "tap";
-import {parseBlnkApiErrorBody} from "../../../../src/types/errors";
+import {
+  BlnkErrorCode,
+  parseBlnkApiErrorBody,
+} from "../../../../src/types/errors";
 
 tap.test(`parseBlnkApiErrorBody`, t => {
   t.test(`parses error_detail from Core API responses`, tt => {
@@ -50,6 +53,33 @@ tap.test(`parseBlnkApiErrorBody`, t => {
   t.test(`returns null for non-object bodies`, tt => {
     tt.equal(parseBlnkApiErrorBody(null), null);
     tt.equal(parseBlnkApiErrorBody(`oops`), null);
+    tt.end();
+  });
+
+  t.test(`surfaces Core 0.15.3 codes callers should recognize`, tt => {
+    const cases = [
+      {
+        code: BlnkErrorCode.TXN_INVALID_AMOUNT,
+        message: `precise_amount must be positive`,
+      },
+      {
+        code: BlnkErrorCode.GEN_CONFLICT,
+        message: `internal balance already exists for this indicator and currency`,
+      },
+      {
+        code: BlnkErrorCode.TXN_VALIDATION_ERROR,
+        message: `source and destination cannot be the same balance`,
+      },
+    ];
+
+    for (const expected of cases) {
+      const parsed = parseBlnkApiErrorBody({
+        error: expected.message,
+        error_detail: expected,
+      });
+      tt.equal(parsed?.code, expected.code);
+      tt.equal(parsed?.message, expected.message);
+    }
     tt.end();
   });
 
