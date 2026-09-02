@@ -44,6 +44,11 @@ export interface CreateTransactions<T extends Record<string, unknown>> {
    */
   atomic?: boolean;
   allow_overdraft?: boolean;
+  /**
+   * Preview the post without writing. Default: `false`.
+   * When `true`, Core returns HTTP 200 and `TransactionPreview`.
+   */
+  dry_run?: boolean;
   meta_data?: T;
 }
 
@@ -154,6 +159,11 @@ export type UpdateTransactionStatus<T extends Record<string, unknown>> = {
   meta_data?: T;
   /** Process synchronously without queuing. Default: `false` (Core 0.15.0 queues commit/void). */
   skip_queue?: boolean;
+  /**
+   * Preview commit/void without settling the hold. Default: `false`.
+   * When `true`, Core returns HTTP 200 and `TransactionPreview`.
+   */
+  dry_run?: boolean;
 };
 
 /** Optional body for `POST /refund-transaction/{transaction_id}`. */
@@ -166,6 +176,11 @@ export interface RefundTransactionRequest<
   description?: string;
   /** Merged onto metadata inherited from the original transaction. */
   meta_data?: T;
+  /**
+   * Preview the refund without writing. Default: `false`.
+   * When `true`, Core returns HTTP 200 and `TransactionPreview`.
+   */
+  dry_run?: boolean;
 }
 
 export interface BulkTransactions<T extends Record<string, unknown>> {
@@ -174,6 +189,11 @@ export interface BulkTransactions<T extends Record<string, unknown>> {
   run_async?: boolean;
   /** Process synchronously without queuing. Default: `false`. */
   skip_queue?: boolean;
+  /**
+   * Preview the batch without writing. Default: `false`.
+   * When `true`, Core returns HTTP 200 and `BulkTransactionPreview`.
+   */
+  dry_run?: boolean;
   transactions: CreateTransactions<T>[];
 }
 

@@ -8,6 +8,7 @@ import {
 import {BlnkRequest} from "../../../../src/types/general";
 import {FormatResponse} from "../../../../src/blnk/utils/httpClient";
 import {coreCreateTransactionReferenceResponse} from "../../../fixtures/coreCreateTransactionResponse";
+import {postedTransaction} from "../../../utils.test";
 import {
   BulkCommitInflightRequest,
   BulkVoidInflightRequest,
@@ -48,7 +49,7 @@ tap.test(`Creates a transaction`, async t => {
     childTest.match(capturedRequest.args(), [[`transactions`, data, `POST`]]);
     childTest.equal(transaction.data?.amount, data.amount);
     childTest.equal(transaction.data?.currency, data.currency);
-    childTest.equal(transaction.data?.description, data.description);
+    childTest.equal(postedTransaction(transaction.data).description, data.description);
     childTest.end();
   });
 
@@ -238,26 +239,18 @@ tap.test(`Creates a transaction`, async t => {
     const transaction = await transactions.create<meta_dataT>(data);
 
     childTest.equal(transaction.status, 201);
-    childTest.equal(transaction.data?.hash, coreResponse.hash);
+    const posted = postedTransaction(transaction.data);
+    childTest.equal(posted.hash, coreResponse.hash);
+    childTest.equal(posted.parent_transaction, coreResponse.parent_transaction);
+    childTest.equal(posted.allow_overdraft, coreResponse.allow_overdraft);
+    childTest.equal(posted.inflight, coreResponse.inflight);
+    childTest.equal(posted.scheduled_for, coreResponse.scheduled_for);
     childTest.equal(
-      transaction.data?.parent_transaction,
-      coreResponse.parent_transaction,
-    );
-    childTest.equal(
-      transaction.data?.allow_overdraft,
-      coreResponse.allow_overdraft,
-    );
-    childTest.equal(transaction.data?.inflight, coreResponse.inflight);
-    childTest.equal(
-      transaction.data?.scheduled_for,
-      coreResponse.scheduled_for,
-    );
-    childTest.equal(
-      transaction.data?.inflight_expiry_date,
+      posted.inflight_expiry_date,
       coreResponse.inflight_expiry_date,
     );
     childTest.equal(
-      transaction.data?.inflight_commit_date,
+      posted.inflight_commit_date,
       coreResponse.inflight_commit_date,
     );
     childTest.end();
@@ -324,14 +317,15 @@ tap.test(`Creates a transaction`, async t => {
   );
 
   t.test(`create forwards dry_run on request`, async childTest => {
-    const capturedRequest = childTest.captureFn(thirdPartyRequest);
+    const dryRunRequest = createMockBlnkRequest(true, undefined, 200);
+    const capturedRequest = childTest.captureFn(dryRunRequest);
     const transactions = new Transactions(
       capturedRequest,
       mockLogger,
       FormatResponse,
     );
 
-    const data: CreateTransactions<meta_dataT> & {dry_run: true} = {
+    const data: CreateTransactions<meta_dataT> = {
       amount: 10000,
       currency: `USD`,
       description: `Dry-run preview`,
@@ -345,7 +339,7 @@ tap.test(`Creates a transaction`, async t => {
 
     const transaction = await transactions.create<meta_dataT>(data);
     childTest.match(capturedRequest.args(), [[`transactions`, data, `POST`]]);
-    childTest.equal(transaction.status, 201);
+    childTest.equal(transaction.status, 200);
     childTest.end();
   });
 
@@ -563,6 +557,27 @@ tap.test(`Updates a transaction`, async t => {
       childTest.end();
     },
   );
+
+  t.test(`updateStatus forwards dry_run on request`, async childTest => {
+    const capturedRequest = childTest.captureFn(thirdPartyRequest);
+    const transactions = new Transactions(
+      capturedRequest,
+      mockLogger,
+      FormatResponse,
+    );
+
+    const data: UpdateTransactionStatus<{}> = {
+      status: `commit`,
+      dry_run: true,
+    };
+
+    const transaction = await transactions.updateStatus(id, data);
+    childTest.match(capturedRequest.args(), [
+      [`transactions/inflight/${id}`, data, `PUT`],
+    ]);
+    childTest.equal(transaction.status, 200);
+    childTest.end();
+  });
 });
 
 tap.test(`GET transaction by id`, async t => {
@@ -845,14 +860,15 @@ tap.test(`Refunds a transaction`, async t => {
   t.test(
     `refund forwards description, meta_data, and dry_run`,
     async childTest => {
-    const capturedRequest = childTest.captureFn(thirdPartyRequest);
+    const dryRunRequest = createMockBlnkRequest(true, undefined, 200);
+    const capturedRequest = childTest.captureFn(dryRunRequest);
     const transactions = new Transactions(
       capturedRequest,
       mockLogger,
       FormatResponse,
     );
 
-    const options: RefundTransactionRequest & {dry_run: true} = {
+    const options: RefundTransactionRequest = {
       dry_run: true,
       description: `Card reversal`,
       meta_data: {type: `refund`},
@@ -861,7 +877,7 @@ tap.test(`Refunds a transaction`, async t => {
     childTest.match(capturedRequest.args(), [
       [`refund-transaction/${id}`, options, `POST`],
     ]);
-    childTest.equal(refundResponse.status, 201);
+    childTest.equal(refundResponse.status, 200);
     childTest.end();
   });
 });
@@ -1321,6 +1337,39 @@ tap.test(`Creates bulk transactions`, async t => {
       childTest.end();
     },
   );
+
+  t.test(`createBulk forwards dry_run on request`, async childTest => {
+    const dryRunRequest = createMockBlnkRequest(true, undefined, 200);
+    const capturedRequest = childTest.captureFn(dryRunRequest);
+    const transactions = new Transactions(
+      capturedRequest,
+      mockLogger,
+      FormatResponse,
+    );
+
+    const data: BulkTransactions<meta_dataT> = {
+      dry_run: true,
+      transactions: [
+        {
+          amount: 1000,
+          currency: `USD`,
+          description: `Bulk dry-run`,
+          meta_data: {department: `sales`, project: `Q4_campaign`},
+          precision: 100,
+          reference: `bulk_dry_run_001`,
+          source: `@source_account_1`,
+          destination: `@destination_account_1`,
+        },
+      ],
+    };
+
+    const bulkResponse = await transactions.createBulk<meta_dataT>(data);
+    childTest.match(capturedRequest.args(), [
+      [`transactions/bulk`, data, `POST`],
+    ]);
+    childTest.equal(bulkResponse.status, 200);
+    childTest.end();
+  });
 });
 
 tap.test(`Issue #15 — bulkCommitInflight`, async t => {

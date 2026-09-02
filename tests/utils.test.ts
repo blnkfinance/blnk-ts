@@ -1,3 +1,18 @@
+import {
+  CreateTransactionResponse,
+  TransactionPreview,
+} from "../src/types/transactions";
+
+/** Narrow a create/refund/inflight response to the posted transaction shape. */
+export function postedTransaction<T extends Record<string, unknown>>(
+  data: CreateTransactionResponse<T> | TransactionPreview | null | undefined,
+): CreateTransactionResponse<T> {
+  if (!data || (`dry_run` in data && data.dry_run === true)) {
+    throw new Error(`expected a posted transaction response`);
+  }
+  return data as CreateTransactionResponse<T>;
+}
+
 export function GenerateRandomNumbersWithPrefix(prefix: string, count: number) {
   const randomNumbers = [];
 

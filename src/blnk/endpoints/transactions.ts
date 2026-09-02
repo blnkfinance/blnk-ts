@@ -87,10 +87,13 @@ export class Transactions {
     data: CreateTransactions<T> & {dry_run: true},
   ): Promise<ApiResponse<TransactionPreview | null>>;
   async create<T extends Record<string, unknown>>(
-    data: CreateTransactions<T>,
+    data: CreateTransactions<T> & {dry_run?: false},
   ): Promise<ApiResponse<CreateTransactionResponse<T> | null>>;
   async create<T extends Record<string, unknown>>(
-    data: CreateTransactions<T> & {dry_run?: boolean},
+    data: CreateTransactions<T>,
+  ): Promise<ApiResponse<CreateTransactionResponse<T> | TransactionPreview | null>>;
+  async create<T extends Record<string, unknown>>(
+    data: CreateTransactions<T>,
   ) {
     try {
       //if data has inflight set to true, make sure inflight_expiry_date is set
@@ -157,11 +160,17 @@ export class Transactions {
   ): Promise<ApiResponse<TransactionPreview | null>>;
   async updateStatus<T extends Record<string, never>>(
     id: string,
-    update: UpdateTransactionStatus<T>,
+    update: UpdateTransactionStatus<T> & {dry_run?: false},
   ): Promise<ApiResponse<CreateTransactionResponse<T> | null>>;
   async updateStatus<T extends Record<string, never>>(
     id: string,
-    update: UpdateTransactionStatus<T> & {dry_run?: boolean},
+    update: UpdateTransactionStatus<T>,
+  ): Promise<
+    ApiResponse<CreateTransactionResponse<T> | TransactionPreview | null>
+  >;
+  async updateStatus<T extends Record<string, never>>(
+    id: string,
+    update: UpdateTransactionStatus<T>,
   ) {
     try {
       const validatorResponse = ValidateUpdateTransactions(update);
@@ -208,11 +217,17 @@ export class Transactions {
   ): Promise<ApiResponse<TransactionPreview | null>>;
   async refund<T extends Record<string, never>>(
     id: string,
-    options?: RefundTransactionRequest,
+    options?: RefundTransactionRequest & {dry_run?: false},
   ): Promise<ApiResponse<CreateTransactionResponse<T> | null>>;
   async refund<T extends Record<string, never>>(
     id: string,
-    options?: RefundTransactionRequest & {dry_run?: boolean},
+    options?: RefundTransactionRequest,
+  ): Promise<
+    ApiResponse<CreateTransactionResponse<T> | TransactionPreview | null>
+  >;
+  async refund<T extends Record<string, never>>(
+    id: string,
+    options?: RefundTransactionRequest,
   ) {
     try {
       if (options !== undefined) {
@@ -441,9 +456,14 @@ export class Transactions {
     data: BulkCommitInflightRequest & {dry_run: true},
   ): Promise<ApiResponse<BulkTransactionPreview | null>>;
   async bulkCommitInflight(
-    data: BulkCommitInflightRequest,
+    data: BulkCommitInflightRequest & {dry_run?: false},
   ): Promise<ApiResponse<BulkCommitInflightResponse | null>>;
-  async bulkCommitInflight(data: BulkCommitInflightRequest & {dry_run?: boolean}) {
+  async bulkCommitInflight(
+    data: BulkCommitInflightRequest,
+  ): Promise<
+    ApiResponse<BulkCommitInflightResponse | BulkTransactionPreview | null>
+  >;
+  async bulkCommitInflight(data: BulkCommitInflightRequest) {
     try {
       const validatorResponse = ValidateBulkCommitInflight(data);
       if (validatorResponse) {
@@ -486,9 +506,14 @@ export class Transactions {
     data: BulkVoidInflightRequest & {dry_run: true},
   ): Promise<ApiResponse<BulkTransactionPreview | null>>;
   async bulkVoidInflight(
-    data: BulkVoidInflightRequest,
+    data: BulkVoidInflightRequest & {dry_run?: false},
   ): Promise<ApiResponse<BulkVoidInflightResponse | null>>;
-  async bulkVoidInflight(data: BulkVoidInflightRequest & {dry_run?: boolean}) {
+  async bulkVoidInflight(
+    data: BulkVoidInflightRequest,
+  ): Promise<
+    ApiResponse<BulkVoidInflightResponse | BulkTransactionPreview | null>
+  >;
+  async bulkVoidInflight(data: BulkVoidInflightRequest) {
     try {
       const validatorResponse = ValidateBulkVoidInflight(data);
       if (validatorResponse) {
@@ -514,10 +539,15 @@ export class Transactions {
     data: BulkTransactions<T> & {dry_run: true},
   ): Promise<ApiResponse<BulkTransactionPreview | null>>;
   async createBulk<T extends Record<string, unknown>>(
-    data: BulkTransactions<T>,
+    data: BulkTransactions<T> & {dry_run?: false},
   ): Promise<ApiResponse<BulkTransactionResponse | null>>;
   async createBulk<T extends Record<string, unknown>>(
-    data: BulkTransactions<T> & {dry_run?: boolean},
+    data: BulkTransactions<T>,
+  ): Promise<
+    ApiResponse<BulkTransactionResponse | BulkTransactionPreview | null>
+  >;
+  async createBulk<T extends Record<string, unknown>>(
+    data: BulkTransactions<T>,
   ) {
     try {
       const validatorResponse = ValidateBulkTransactions(data);

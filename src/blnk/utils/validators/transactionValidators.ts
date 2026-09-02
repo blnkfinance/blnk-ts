@@ -16,8 +16,6 @@ import {IsValidString} from "../stringUtils";
 import {isValidTransactionDateInput} from "../transactionSerialization";
 import {isValidMetaData} from "./ledgerBalance";
 
-type WithDryRun<T> = T & {dry_run?: boolean};
-
 const NON_NEGATIVE_INTEGER_STRING = /^\d+$/;
 
 function validateOptionalDateField(
@@ -175,7 +173,7 @@ function validateSplitLegRouting(
 }
 
 export function ValidateCreateTransactions<T extends Record<string, unknown>>(
-  data: WithDryRun<CreateTransactions<T>>,
+  data: CreateTransactions<T>,
 ): string | null {
   const transactionTotal = resolveTransactionTotal(data);
   if (transactionTotal === null) {
@@ -550,7 +548,7 @@ function validateDistributionLegsWithDecimals(
 }
 
 export function ValidateUpdateTransactions<T extends Record<string, unknown>>(
-  data: WithDryRun<UpdateTransactionStatus<T>>,
+  data: UpdateTransactionStatus<T>,
 ): string | null {
   if (typeof data.status !== `string`) {
     return `Status must be a string.`;
@@ -602,7 +600,7 @@ export function ValidateUpdateTransactions<T extends Record<string, unknown>>(
 }
 
 export function ValidateRefundTransaction(
-  data: WithDryRun<RefundTransactionRequest>,
+  data: RefundTransactionRequest,
 ): string | null {
   if (data.skip_queue !== undefined && typeof data.skip_queue !== `boolean`) {
     return `skip_queue must be a boolean if provided.`;
@@ -732,7 +730,7 @@ export function ValidateBulkCommitInflight(
 }
 
 export function ValidateBulkTransactions<T extends Record<string, unknown>>(
-  data: WithDryRun<BulkTransactions<T>>,
+  data: BulkTransactions<T>,
 ): string | null {
   if (data.atomic !== undefined && typeof data.atomic !== `boolean`) {
     return `Atomic must be a boolean if provided.`;

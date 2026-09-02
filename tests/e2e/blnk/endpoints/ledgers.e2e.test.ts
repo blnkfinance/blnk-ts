@@ -4,6 +4,7 @@ import {BlnkClientOptions} from "../../../../src/types/blnkClient";
 import {
   BASE_URL,
   GenerateRandomNumbersWithPrefix,
+  postedTransaction,
   Sleep,
 } from "../../../utils.test";
 import {BlnkInit} from "../../../../src";
@@ -254,7 +255,7 @@ tap.test(`Ledger balance transactions`, async t => {
       ...transactionFields,
       `precise_amount`,
     ]);
-    transactionId = response.data!.transaction_id;
+    transactionId = postedTransaction(response.data).transaction_id;
     childTest.end();
   });
 

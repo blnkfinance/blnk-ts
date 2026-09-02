@@ -65,14 +65,11 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "if (!pm.collectionVariables.get('run_id')) {",
-              "  pm.collectionVariables.set('run_id', Date.now().toString());",
-              "}",
-              "if (!pm.collectionVariables.get('indicator')) {",
-              "  pm.collectionVariables.set('indicator', '@TsSdk' + pm.collectionVariables.get('run_id'));",
-              "}",
-              "if (!pm.collectionVariables.get('dest_indicator')) {",
-              "  pm.collectionVariables.set('dest_indicator', '@TsSdkDest' + pm.collectionVariables.get('run_id'));",
+              "if (pm.info.requestName === '0. Health') {",
+              "  const runId = Date.now().toString();",
+              "  pm.collectionVariables.set('run_id', runId);",
+              "  pm.collectionVariables.set('indicator', '@TsSdk' + runId);",
+              "  pm.collectionVariables.set('dest_indicator', '@TsSdkDest' + runId);",
               "}"
             ]
           }

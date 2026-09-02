@@ -13,7 +13,6 @@ import {CreateLedgerBalance} from "../../src/types/ledgerBalances";
 import {
   BulkTransactionResponse,
   BulkTransactions,
-  CreateTransactions,
 } from "../../src/types/transactions";
 import {
   BASE_URL,
@@ -67,7 +66,7 @@ tap.test(`SDK integration — each added capability vs Blnk Core`, async t => {
       destination: `@Recipient`,
       skip_queue: true,
       effective_date: `2025-02-15T10:30:00Z`,
-    } as CreateTransactions<Record<string, never>>);
+    });
 
     tt.equal(response.status, 201);
     tt.equal(response.data?.skip_queue, true);
@@ -86,7 +85,7 @@ tap.test(`SDK integration — each added capability vs Blnk Core`, async t => {
       inflight_expiry_date: `2026-12-31T23:59:59Z`,
       inflight_commit_date: `2024-04-22T15:28:03+00:00`,
       scheduled_for: `2025-12-31T23:59:59Z`,
-    } as CreateTransactions<Record<string, never>>);
+    });
 
     tt.equal(response.status, 201);
     tt.ok(response.data?.transaction_id);
@@ -141,7 +140,7 @@ tap.test(`SDK integration — each added capability vs Blnk Core`, async t => {
       ],
       effective_date: `2024-04-22T15:28:03+00:00`,
       inflight_expiry_date: `2025-08-01T08:00:00Z`,
-    } as CreateTransactions<Record<string, never>>);
+    });
 
     tt.equal(response.status, 201);
     tt.ok(response.data?.transaction_id);
@@ -166,7 +165,7 @@ tap.test(`SDK integration — each added capability vs Blnk Core`, async t => {
         {identifier: sarah, distribution: `left`},
       ],
       destination,
-    } as CreateTransactions<Record<string, never>>);
+    });
 
     tt.equal(response.status, 201);
     tt.ok(response.data?.transaction_id);
@@ -190,7 +189,7 @@ tap.test(`SDK integration — each added capability vs Blnk Core`, async t => {
         {identifier: bob, distribution: `20000`},
         {identifier: charlie, distribution: `left`},
       ],
-    } as CreateTransactions<Record<string, never>>);
+    });
 
     tt.equal(response.status, 201);
     tt.ok(response.data?.transaction_id);
@@ -211,7 +210,7 @@ tap.test(`SDK integration — each added capability vs Blnk Core`, async t => {
         {identifier: merchant, precise_distribution: `9733`},
         {identifier: fee, precise_distribution: `267`},
       ],
-    } as CreateTransactions<Record<string, never>>);
+    });
 
     tt.equal(response.status, 201);
     tt.ok(response.data?.transaction_id);
@@ -228,7 +227,7 @@ tap.test(`SDK integration — each added capability vs Blnk Core`, async t => {
       reference: GenerateRandomNumbersWithPrefix(`issue42-pamt`, 6),
       source: `@FundingPool`,
       destination,
-    } as CreateTransactions<Record<string, never>>);
+    });
 
     tt.equal(response.status, 201);
     tt.ok(response.data?.transaction_id);
@@ -247,7 +246,7 @@ tap.test(`SDK integration — each added capability vs Blnk Core`, async t => {
       destination,
       inflight: true,
       inflight_expiry_date: `2026-12-31T23:59:59Z`,
-    } as CreateTransactions<Record<string, never>>);
+    });
 
     tt.equal(createResp.status, 201);
     await Sleep(2);
@@ -272,7 +271,7 @@ tap.test(`SDK integration — each added capability vs Blnk Core`, async t => {
         destination: `@Recipient`,
         allow_overdraft: false,
         inflight: false,
-      } as CreateTransactions<Record<string, never>>);
+      });
 
       tt.equal(response.status, 201);
       tt.ok(response.data?.hash, `hash present`);
@@ -305,7 +304,7 @@ tap.test(`SDK integration — each added capability vs Blnk Core`, async t => {
         {identifier: destA, distribution: `33.33%`},
         {identifier: destB, distribution: `66.67%`},
       ],
-    } as CreateTransactions<Record<string, never>>);
+    });
 
     tt.equal(response.status, 201);
     tt.ok(response.data?.transaction_id);
@@ -328,7 +327,7 @@ tap.test(`SDK integration — each added capability vs Blnk Core`, async t => {
         {identifier: b, precise_distribution: `5000`},
         {identifier: c, distribution: `left`},
       ],
-    } as CreateTransactions<Record<string, never>>);
+    });
 
     tt.equal(response.status, 201);
     tt.ok(response.data?.transaction_id);
@@ -385,7 +384,7 @@ tap.test(`SDK integration — each added capability vs Blnk Core`, async t => {
       destination,
       inflight: true,
       inflight_expiry_date: `2026-12-31T23:59:59Z`,
-    } as CreateTransactions<Record<string, never>>);
+    });
 
     tt.equal(createResp.status, 201);
     await Sleep(2);
@@ -412,7 +411,7 @@ tap.test(`SDK integration — each added capability vs Blnk Core`, async t => {
       destination,
       inflight: true,
       inflight_expiry_date: `2026-12-31T23:59:59Z`,
-    } as CreateTransactions<Record<string, never>>);
+    });
 
     tt.equal(createResp.status, 201);
     await Sleep(2);
@@ -438,7 +437,7 @@ tap.test(`SDK integration — each added capability vs Blnk Core`, async t => {
       destination,
       inflight: true,
       inflight_expiry_date: `2026-12-31T23:59:59Z`,
-    } as CreateTransactions<Record<string, never>>);
+    });
 
     tt.equal(createResp.status, 201);
     await Sleep(2);
@@ -465,7 +464,7 @@ tap.test(`SDK integration — each added capability vs Blnk Core`, async t => {
         destination,
         inflight: true,
         inflight_expiry_date: `2026-12-31T23:59:59Z`,
-      } as CreateTransactions<Record<string, never>>);
+      });
       tt.equal(createResp.status, 201);
       return createResp.data!.transaction_id;
     }
@@ -502,7 +501,7 @@ tap.test(`SDK integration — each added capability vs Blnk Core`, async t => {
         destination,
         inflight: true,
         inflight_expiry_date: `2026-12-31T23:59:59Z`,
-      } as CreateTransactions<Record<string, never>>);
+      });
       tt.equal(createResp.status, 201);
       return createResp.data!.transaction_id;
     }
@@ -535,7 +534,7 @@ tap.test(`SDK integration — each added capability vs Blnk Core`, async t => {
       reference,
       source: `@FundingPool`,
       destination: `@Recipient`,
-    } as CreateTransactions<Record<string, never>>);
+    });
 
     tt.equal(createResp.status, 201);
     const transactionId = createResp.data!.transaction_id;
@@ -559,7 +558,7 @@ tap.test(`SDK integration — each added capability vs Blnk Core`, async t => {
       reference,
       source: `@FundingPool`,
       destination: `@Recipient`,
-    } as CreateTransactions<Record<string, never>>);
+    });
 
     tt.equal(createResp.status, 201);
     tt.ok(createResp.data?.transaction_id);
@@ -584,7 +583,7 @@ tap.test(`SDK integration — each added capability vs Blnk Core`, async t => {
       source: `@FundingPool`,
       destination,
       skip_queue: true,
-    } as CreateTransactions<Record<string, never>>);
+    });
 
     tt.equal(createResp.status, 201);
     tt.equal(createResp.data?.status, `APPLIED`);
@@ -602,7 +601,7 @@ tap.test(`SDK integration — each added capability vs Blnk Core`, async t => {
       source: `@FundingPool`,
       destination,
       skip_queue: true,
-    } as CreateTransactions<Record<string, never>>);
+    });
 
     tt.equal(createResp2.status, 201);
     const originalTxnId2 = createResp2.data!.transaction_id;
