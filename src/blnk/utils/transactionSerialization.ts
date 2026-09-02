@@ -1,5 +1,6 @@
 import {
   CreateTransactions,
+  MaybeDryRun,
   TransactionDateInput,
 } from "../../types/transactions";
 
@@ -48,25 +49,23 @@ export function serializeTransactionDate(
   return value;
 }
 
+/** Either the posted or the dry-run form of a create-transaction body. */
+type CreateTransactionsInput = MaybeDryRun<
+  CreateTransactions<Record<string, unknown>>
+>;
+
 /**
  * Prepares a create-transaction payload for the API, converting Date fields to ISO strings.
+ * The input type is preserved so posted and dry-run bodies keep their `dry_run` literal.
  */
-export function serializeCreateTransaction<T extends Record<string, unknown>>(
-  data: CreateTransactions<T>,
-): CreateTransactions<T> {
+export function serializeCreateTransaction<D extends CreateTransactionsInput>(
+  data: D,
+): D {
   return {
     ...data,
-    inflight_expiry_date: serializeTransactionDate(
-      data.inflight_expiry_date,
-    ) as CreateTransactions<T>[`inflight_expiry_date`],
-    scheduled_for: serializeTransactionDate(
-      data.scheduled_for,
-    ) as CreateTransactions<T>[`scheduled_for`],
-    effective_date: serializeTransactionDate(
-      data.effective_date,
-    ) as CreateTransactions<T>[`effective_date`],
-    inflight_commit_date: serializeTransactionDate(
-      data.inflight_commit_date,
-    ) as CreateTransactions<T>[`inflight_commit_date`],
-  };
+    inflight_expiry_date: serializeTransactionDate(data.inflight_expiry_date),
+    scheduled_for: serializeTransactionDate(data.scheduled_for),
+    effective_date: serializeTransactionDate(data.effective_date),
+    inflight_commit_date: serializeTransactionDate(data.inflight_commit_date),
+  } as D;
 }

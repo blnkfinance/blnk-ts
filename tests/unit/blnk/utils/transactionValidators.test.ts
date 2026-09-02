@@ -14,6 +14,7 @@ import {
   BulkVoidInflightRequest,
   BulkTransactions,
   CreateTransactions,
+  DryRun,
   MAX_BULK_CREATE_ITEMS,
   MAX_BULK_INFLIGHT_ITEMS,
   RecoverQueueRequest,
@@ -418,7 +419,7 @@ tap.test(`Issue #40 — create transaction request fields`, t => {
   });
 
   t.test(`allows dry_run on create payloads`, tt => {
-    const data: CreateTransactions<Record<string, never>> & {dry_run: true} = {
+    const data: DryRun<CreateTransactions<Record<string, never>>> = {
       ...baseFields,
       amount: 1000,
       source: `@FundingPool`,
@@ -831,7 +832,7 @@ tap.test(`Issue #44 — bulk transaction request fields`, t => {
   });
 
   t.test(`allows dry_run on bulk payloads`, tt => {
-    const data: BulkTransactions<Record<string, never>> & {dry_run: true} = {
+    const data: DryRun<BulkTransactions<Record<string, never>>> = {
       dry_run: true,
       transactions: [
         {...baseBulkTxn, reference: `bulk_ref_001`},
@@ -954,9 +955,7 @@ tap.test(`Issue #45 — updateStatus precise_amount on partial commit`, t => {
   });
 
   t.test(`allows dry_run on update payloads`, tt => {
-    const data: UpdateTransactionStatus<Record<string, never>> & {
-      dry_run: true;
-    } = {
+    const data: DryRun<UpdateTransactionStatus<Record<string, never>>> = {
       status: `commit`,
       dry_run: true,
     };
@@ -1013,16 +1012,19 @@ tap.test(`Issue #46 — refund transaction request fields`, t => {
     tt.end();
   });
 
-  t.test(`allows dry_run, description, and meta_data on refund payloads`, tt => {
-    const data: RefundTransactionRequest & {dry_run: true} = {
-      dry_run: true,
-      description: `Card reversal`,
-      meta_data: {type: `refund`},
-    };
+  t.test(
+    `allows dry_run, description, and meta_data on refund payloads`,
+    tt => {
+      const data: DryRun<RefundTransactionRequest> = {
+        dry_run: true,
+        description: `Card reversal`,
+        meta_data: {type: `refund`},
+      };
 
-    tt.equal(ValidateRefundTransaction(data), null);
-    tt.end();
-  });
+      tt.equal(ValidateRefundTransaction(data), null);
+      tt.end();
+    },
+  );
 
   t.test(`rejects invalid dry_run on refund payloads`, tt => {
     const data = {dry_run: `true`} as unknown as RefundTransactionRequest;
@@ -1122,7 +1124,7 @@ tap.test(`Issue #15 — bulkCommitInflight validation`, t => {
   );
 
   t.test(`allows dry_run on bulk commit payloads`, tt => {
-    const data: BulkCommitInflightRequest = {
+    const data: DryRun<BulkCommitInflightRequest> = {
       dry_run: true,
       transactions: [
         {transaction_id: `txn_11111111-1111-4111-8111-111111111111`},
@@ -1220,7 +1222,7 @@ tap.test(`Issue #16 — bulkVoidInflight validation`, t => {
   );
 
   t.test(`allows dry_run on bulk void payloads`, tt => {
-    const data: BulkVoidInflightRequest = {
+    const data: DryRun<BulkVoidInflightRequest> = {
       dry_run: true,
       transaction_ids: [`txn_11111111-1111-4111-8111-111111111111`],
     };

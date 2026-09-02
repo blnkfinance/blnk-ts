@@ -7,6 +7,23 @@
  */
 export type TransactionDateInput = Date | string;
 
+/**
+ * Dry-run form of a request body. `dry_run` is narrowed to the literal `true`,
+ * so an endpoint that receives it returns a preview type and can never be
+ * mistaken for a posted transaction.
+ *
+ * @example
+ * const preview: DryRun<CreateTransactions<Meta>> = {...body, dry_run: true};
+ */
+export type DryRun<T> = Omit<T, `dry_run`> & {dry_run: true};
+
+/**
+ * Either form of a request body. Use when `dry_run` is only known at runtime;
+ * the endpoint then returns the posted-or-preview union, forcing a narrow
+ * before posted-only fields such as `transaction_id` are read.
+ */
+export type MaybeDryRun<T> = Omit<T, `dry_run`> & {dry_run?: boolean};
+
 export interface CreateTransactions<T extends Record<string, unknown>> {
   /** Human-readable amount. Provide `amount` or `precise_amount` (at least one). */
   amount?: number;
@@ -46,9 +63,10 @@ export interface CreateTransactions<T extends Record<string, unknown>> {
   allow_overdraft?: boolean;
   /**
    * Preview the post without writing. Default: `false`.
-   * When `true`, Core returns HTTP 200 and `TransactionPreview`.
+   * Pass `dry_run: true` (or use `DryRun<CreateTransactions<T>>`) to get
+   * HTTP 200 and a `TransactionPreview` instead of a posted transaction.
    */
-  dry_run?: boolean;
+  dry_run?: false;
   meta_data?: T;
 }
 
@@ -161,9 +179,10 @@ export type UpdateTransactionStatus<T extends Record<string, unknown>> = {
   skip_queue?: boolean;
   /**
    * Preview commit/void without settling the hold. Default: `false`.
-   * When `true`, Core returns HTTP 200 and `TransactionPreview`.
+   * Pass `dry_run: true` (or use `DryRun<UpdateTransactionStatus<T>>`) to get
+   * HTTP 200 and a `TransactionPreview` instead of a posted transaction.
    */
-  dry_run?: boolean;
+  dry_run?: false;
 };
 
 /** Optional body for `POST /refund-transaction/{transaction_id}`. */
@@ -178,9 +197,10 @@ export interface RefundTransactionRequest<
   meta_data?: T;
   /**
    * Preview the refund without writing. Default: `false`.
-   * When `true`, Core returns HTTP 200 and `TransactionPreview`.
+   * Pass `dry_run: true` (or use `DryRun<RefundTransactionRequest>`) to get
+   * HTTP 200 and a `TransactionPreview` instead of a posted transaction.
    */
-  dry_run?: boolean;
+  dry_run?: false;
 }
 
 export interface BulkTransactions<T extends Record<string, unknown>> {
@@ -191,9 +211,10 @@ export interface BulkTransactions<T extends Record<string, unknown>> {
   skip_queue?: boolean;
   /**
    * Preview the batch without writing. Default: `false`.
-   * When `true`, Core returns HTTP 200 and `BulkTransactionPreview`.
+   * Pass `dry_run: true` (or use `DryRun<BulkTransactions<T>>`) to get
+   * HTTP 200 and a `BulkTransactionPreview` instead of a posted batch.
    */
-  dry_run?: boolean;
+  dry_run?: false;
   transactions: CreateTransactions<T>[];
 }
 
@@ -242,9 +263,10 @@ export interface BulkCommitInflightRequest {
   skip_queue?: boolean;
   /**
    * Preview the batch without committing. Default: `false`.
-   * Response is `BulkTransactionPreview` (HTTP 200); holds stay INFLIGHT.
+   * Pass `dry_run: true` (or use `DryRun<BulkCommitInflightRequest>`) to get
+   * a `BulkTransactionPreview` (HTTP 200); holds stay INFLIGHT.
    */
-  dry_run?: boolean;
+  dry_run?: false;
   transactions: BulkCommitInflightItem[];
 }
 
@@ -275,9 +297,10 @@ export interface BulkVoidInflightRequest {
   skip_queue?: boolean;
   /**
    * Preview the batch without voiding. Default: `false`.
-   * Response is `BulkTransactionPreview` (HTTP 200); holds stay INFLIGHT.
+   * Pass `dry_run: true` (or use `DryRun<BulkVoidInflightRequest>`) to get
+   * a `BulkTransactionPreview` (HTTP 200); holds stay INFLIGHT.
    */
-  dry_run?: boolean;
+  dry_run?: false;
   transaction_ids: string[];
 }
 

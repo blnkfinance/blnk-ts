@@ -15,6 +15,7 @@ import {
   BulkTransactions,
   CreateTransactionResponse,
   CreateTransactions,
+  DryRun,
   MAX_BULK_CREATE_ITEMS,
   MAX_BULK_INFLIGHT_ITEMS,
   RefundTransactionRequest,
@@ -49,7 +50,10 @@ tap.test(`Creates a transaction`, async t => {
     childTest.match(capturedRequest.args(), [[`transactions`, data, `POST`]]);
     childTest.equal(transaction.data?.amount, data.amount);
     childTest.equal(transaction.data?.currency, data.currency);
-    childTest.equal(postedTransaction(transaction.data).description, data.description);
+    childTest.equal(
+      postedTransaction(transaction.data).description,
+      data.description,
+    );
     childTest.end();
   });
 
@@ -325,7 +329,7 @@ tap.test(`Creates a transaction`, async t => {
       FormatResponse,
     );
 
-    const data: CreateTransactions<meta_dataT> = {
+    const data: DryRun<CreateTransactions<meta_dataT>> = {
       amount: 10000,
       currency: `USD`,
       description: `Dry-run preview`,
@@ -566,7 +570,7 @@ tap.test(`Updates a transaction`, async t => {
       FormatResponse,
     );
 
-    const data: UpdateTransactionStatus<{}> = {
+    const data: DryRun<UpdateTransactionStatus<{}>> = {
       status: `commit`,
       dry_run: true,
     };
@@ -860,26 +864,27 @@ tap.test(`Refunds a transaction`, async t => {
   t.test(
     `refund forwards description, meta_data, and dry_run`,
     async childTest => {
-    const dryRunRequest = createMockBlnkRequest(true, undefined, 200);
-    const capturedRequest = childTest.captureFn(dryRunRequest);
-    const transactions = new Transactions(
-      capturedRequest,
-      mockLogger,
-      FormatResponse,
-    );
+      const dryRunRequest = createMockBlnkRequest(true, undefined, 200);
+      const capturedRequest = childTest.captureFn(dryRunRequest);
+      const transactions = new Transactions(
+        capturedRequest,
+        mockLogger,
+        FormatResponse,
+      );
 
-    const options: RefundTransactionRequest = {
-      dry_run: true,
-      description: `Card reversal`,
-      meta_data: {type: `refund`},
-    };
-    const refundResponse = await transactions.refund(id, options);
-    childTest.match(capturedRequest.args(), [
-      [`refund-transaction/${id}`, options, `POST`],
-    ]);
-    childTest.equal(refundResponse.status, 200);
-    childTest.end();
-  });
+      const options: DryRun<RefundTransactionRequest> = {
+        dry_run: true,
+        description: `Card reversal`,
+        meta_data: {type: `refund`},
+      };
+      const refundResponse = await transactions.refund(id, options);
+      childTest.match(capturedRequest.args(), [
+        [`refund-transaction/${id}`, options, `POST`],
+      ]);
+      childTest.equal(refundResponse.status, 200);
+      childTest.end();
+    },
+  );
 });
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1347,7 +1352,7 @@ tap.test(`Creates bulk transactions`, async t => {
       FormatResponse,
     );
 
-    const data: BulkTransactions<meta_dataT> = {
+    const data: DryRun<BulkTransactions<meta_dataT>> = {
       dry_run: true,
       transactions: [
         {
@@ -1503,7 +1508,7 @@ tap.test(`Issue #15 — bulkCommitInflight`, async t => {
       FormatResponse,
     );
 
-    const data: BulkCommitInflightRequest & {dry_run: true} = {
+    const data: DryRun<BulkCommitInflightRequest> = {
       dry_run: true,
       transactions: [
         {transaction_id: `txn_11111111-1111-4111-8111-111111111111`},
@@ -1640,7 +1645,7 @@ tap.test(`Issue #16 — bulkVoidInflight`, async t => {
       FormatResponse,
     );
 
-    const data: BulkVoidInflightRequest & {dry_run: true} = {
+    const data: DryRun<BulkVoidInflightRequest> = {
       dry_run: true,
       transaction_ids: [`txn_11111111-1111-4111-8111-111111111111`],
     };

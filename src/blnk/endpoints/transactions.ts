@@ -1,5 +1,9 @@
 import {BlnkLogger} from "../../types/blnkClient";
-import {ApiResponse, BlnkRequest, FormatResponseType} from "../../types/general";
+import {
+  ApiResponse,
+  BlnkRequest,
+  FormatResponseType,
+} from "../../types/general";
 import {
   BulkCommitInflightRequest,
   BulkCommitInflightResponse,
@@ -10,6 +14,8 @@ import {
   BulkTransactions,
   CreateTransactionResponse,
   CreateTransactions,
+  DryRun,
+  MaybeDryRun,
   TransactionPreview,
   RecoverQueueRequest,
   RecoverQueueResponse,
@@ -84,16 +90,18 @@ export class Transactions {
    * const createdTransaction = await create(transactionData);
    */
   async create<T extends Record<string, unknown>>(
-    data: CreateTransactions<T> & {dry_run: true},
+    data: DryRun<CreateTransactions<T>>,
   ): Promise<ApiResponse<TransactionPreview | null>>;
   async create<T extends Record<string, unknown>>(
-    data: CreateTransactions<T> & {dry_run?: false},
+    data: CreateTransactions<T>,
   ): Promise<ApiResponse<CreateTransactionResponse<T> | null>>;
   async create<T extends Record<string, unknown>>(
-    data: CreateTransactions<T>,
-  ): Promise<ApiResponse<CreateTransactionResponse<T> | TransactionPreview | null>>;
+    data: MaybeDryRun<CreateTransactions<T>>,
+  ): Promise<
+    ApiResponse<CreateTransactionResponse<T> | TransactionPreview | null>
+  >;
   async create<T extends Record<string, unknown>>(
-    data: CreateTransactions<T>,
+    data: MaybeDryRun<CreateTransactions<T>>,
   ) {
     try {
       //if data has inflight set to true, make sure inflight_expiry_date is set
@@ -105,7 +113,7 @@ export class Transactions {
       const payload = serializeCreateTransaction(data);
 
       const response = await this.request<
-        CreateTransactions<T>,
+        MaybeDryRun<CreateTransactions<T>>,
         CreateTransactionResponse<T> | TransactionPreview
       >(`transactions`, payload, `POST`);
 
@@ -156,21 +164,21 @@ export class Transactions {
    */
   async updateStatus<T extends Record<string, never>>(
     id: string,
-    update: UpdateTransactionStatus<T> & {dry_run: true},
+    update: DryRun<UpdateTransactionStatus<T>>,
   ): Promise<ApiResponse<TransactionPreview | null>>;
   async updateStatus<T extends Record<string, never>>(
     id: string,
-    update: UpdateTransactionStatus<T> & {dry_run?: false},
+    update: UpdateTransactionStatus<T>,
   ): Promise<ApiResponse<CreateTransactionResponse<T> | null>>;
   async updateStatus<T extends Record<string, never>>(
     id: string,
-    update: UpdateTransactionStatus<T>,
+    update: MaybeDryRun<UpdateTransactionStatus<T>>,
   ): Promise<
     ApiResponse<CreateTransactionResponse<T> | TransactionPreview | null>
   >;
   async updateStatus<T extends Record<string, never>>(
     id: string,
-    update: UpdateTransactionStatus<T>,
+    update: MaybeDryRun<UpdateTransactionStatus<T>>,
   ) {
     try {
       const validatorResponse = ValidateUpdateTransactions(update);
@@ -178,7 +186,7 @@ export class Transactions {
         return this.formatResponse(400, validatorResponse, null);
       }
       const response = await this.request<
-        UpdateTransactionStatus<T>,
+        MaybeDryRun<UpdateTransactionStatus<T>>,
         CreateTransactionResponse<T> | TransactionPreview
       >(`transactions/inflight/${id}`, update, `PUT`);
       return response;
@@ -213,21 +221,21 @@ export class Transactions {
    */
   async refund<T extends Record<string, never>>(
     id: string,
-    options: RefundTransactionRequest & {dry_run: true},
+    options: DryRun<RefundTransactionRequest>,
   ): Promise<ApiResponse<TransactionPreview | null>>;
   async refund<T extends Record<string, never>>(
     id: string,
-    options?: RefundTransactionRequest & {dry_run?: false},
+    options?: RefundTransactionRequest,
   ): Promise<ApiResponse<CreateTransactionResponse<T> | null>>;
   async refund<T extends Record<string, never>>(
     id: string,
-    options?: RefundTransactionRequest,
+    options?: MaybeDryRun<RefundTransactionRequest>,
   ): Promise<
     ApiResponse<CreateTransactionResponse<T> | TransactionPreview | null>
   >;
   async refund<T extends Record<string, never>>(
     id: string,
-    options?: RefundTransactionRequest,
+    options?: MaybeDryRun<RefundTransactionRequest>,
   ) {
     try {
       if (options !== undefined) {
@@ -238,7 +246,7 @@ export class Transactions {
       }
 
       const response = await this.request<
-        RefundTransactionRequest | null,
+        MaybeDryRun<RefundTransactionRequest> | null,
         CreateTransactionResponse<T> | TransactionPreview
       >(`refund-transaction/${id}`, options ?? null, `POST`);
       return response;
@@ -453,17 +461,17 @@ export class Transactions {
    * });
    */
   async bulkCommitInflight(
-    data: BulkCommitInflightRequest & {dry_run: true},
+    data: DryRun<BulkCommitInflightRequest>,
   ): Promise<ApiResponse<BulkTransactionPreview | null>>;
   async bulkCommitInflight(
-    data: BulkCommitInflightRequest & {dry_run?: false},
+    data: BulkCommitInflightRequest,
   ): Promise<ApiResponse<BulkCommitInflightResponse | null>>;
   async bulkCommitInflight(
-    data: BulkCommitInflightRequest,
+    data: MaybeDryRun<BulkCommitInflightRequest>,
   ): Promise<
     ApiResponse<BulkCommitInflightResponse | BulkTransactionPreview | null>
   >;
-  async bulkCommitInflight(data: BulkCommitInflightRequest) {
+  async bulkCommitInflight(data: MaybeDryRun<BulkCommitInflightRequest>) {
     try {
       const validatorResponse = ValidateBulkCommitInflight(data);
       if (validatorResponse) {
@@ -471,7 +479,7 @@ export class Transactions {
       }
 
       const response = await this.request<
-        BulkCommitInflightRequest,
+        MaybeDryRun<BulkCommitInflightRequest>,
         BulkCommitInflightResponse | BulkTransactionPreview
       >(`transactions/inflight/bulk/commit`, data, `POST`);
       return response;
@@ -503,17 +511,17 @@ export class Transactions {
    * });
    */
   async bulkVoidInflight(
-    data: BulkVoidInflightRequest & {dry_run: true},
+    data: DryRun<BulkVoidInflightRequest>,
   ): Promise<ApiResponse<BulkTransactionPreview | null>>;
   async bulkVoidInflight(
-    data: BulkVoidInflightRequest & {dry_run?: false},
+    data: BulkVoidInflightRequest,
   ): Promise<ApiResponse<BulkVoidInflightResponse | null>>;
   async bulkVoidInflight(
-    data: BulkVoidInflightRequest,
+    data: MaybeDryRun<BulkVoidInflightRequest>,
   ): Promise<
     ApiResponse<BulkVoidInflightResponse | BulkTransactionPreview | null>
   >;
-  async bulkVoidInflight(data: BulkVoidInflightRequest) {
+  async bulkVoidInflight(data: MaybeDryRun<BulkVoidInflightRequest>) {
     try {
       const validatorResponse = ValidateBulkVoidInflight(data);
       if (validatorResponse) {
@@ -521,7 +529,7 @@ export class Transactions {
       }
 
       const response = await this.request<
-        BulkVoidInflightRequest,
+        MaybeDryRun<BulkVoidInflightRequest>,
         BulkVoidInflightResponse | BulkTransactionPreview
       >(`transactions/inflight/bulk/void`, data, `POST`);
       return response;
@@ -536,18 +544,18 @@ export class Transactions {
   }
 
   async createBulk<T extends Record<string, unknown>>(
-    data: BulkTransactions<T> & {dry_run: true},
+    data: DryRun<BulkTransactions<T>>,
   ): Promise<ApiResponse<BulkTransactionPreview | null>>;
   async createBulk<T extends Record<string, unknown>>(
-    data: BulkTransactions<T> & {dry_run?: false},
+    data: BulkTransactions<T>,
   ): Promise<ApiResponse<BulkTransactionResponse | null>>;
   async createBulk<T extends Record<string, unknown>>(
-    data: BulkTransactions<T>,
+    data: MaybeDryRun<BulkTransactions<T>>,
   ): Promise<
     ApiResponse<BulkTransactionResponse | BulkTransactionPreview | null>
   >;
   async createBulk<T extends Record<string, unknown>>(
-    data: BulkTransactions<T>,
+    data: MaybeDryRun<BulkTransactions<T>>,
   ) {
     try {
       const validatorResponse = ValidateBulkTransactions(data);
@@ -555,13 +563,13 @@ export class Transactions {
         return this.formatResponse(400, validatorResponse, null);
       }
 
-      const payload: BulkTransactions<T> = {
+      const payload: MaybeDryRun<BulkTransactions<T>> = {
         ...data,
         transactions: data.transactions.map(serializeCreateTransaction),
       };
 
       const response = await this.request<
-        BulkTransactions<T>,
+        MaybeDryRun<BulkTransactions<T>>,
         BulkTransactionResponse | BulkTransactionPreview
       >(`transactions/bulk`, payload, `POST`);
 

@@ -415,6 +415,31 @@ const preview = await Transactions.create({
 // preview.data?.would_apply
 ```
 
+`dry_run` is discriminated so a preview is never typed as a posted transaction. Requests typed with a plain request type keep the posted response, so existing code is unaffected:
+
+```typescript
+const body: CreateTransactions<Meta> = {/* ... */};
+const posted = await Transactions.create(body);
+posted.data?.transaction_id; // still typed
+
+// Preview: pass the flag inline, or type the body as DryRun<...>
+const previewBody: DryRun<CreateTransactions<Meta>> = {...body, dry_run: true};
+const preview = await Transactions.create(previewBody);
+preview.data?.would_apply; // TransactionPreview — no transaction_id
+```
+
+When the flag is only known at runtime the response widens to the posted-or-preview union, so narrow before reading posted-only fields:
+
+```typescript
+const result = await Transactions.create({...body, dry_run: shouldPreview});
+
+if (result.data && 'transaction_id' in result.data) {
+  console.log('posted', result.data.transaction_id);
+} else if (result.data) {
+  console.log('preview', result.data.would_apply);
+}
+```
+
 See [Dry-run transactions](https://docs.blnkfinance.com/transactions/dry-run).
 
 ### Atomic split transactions

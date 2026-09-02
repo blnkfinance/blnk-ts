@@ -56,26 +56,27 @@ tap.test(`Ledger Balance Tests`, t => {
   t.test(
     `it should create a General Ledger balance with indicator`,
     async tt => {
-    const thirdPartyRequest = createMockBlnkRequest(true, undefined, 201);
-    const capturedRequest = tt.captureFn(thirdPartyRequest);
-    const ledgerBalance = new LedgerBalances(
-      capturedRequest,
-      mockLogger,
-      FormatResponse,
-    );
+      const thirdPartyRequest = createMockBlnkRequest(true, undefined, 201);
+      const capturedRequest = tt.captureFn(thirdPartyRequest);
+      const ledgerBalance = new LedgerBalances(
+        capturedRequest,
+        mockLogger,
+        FormatResponse,
+      );
 
-    const data: CreateLedgerBalance<Record<string, never>> = {
-      currency: `USD`,
-      ledger_id: `general_ledger_id`,
-      indicator: `@WorldUSD`,
-    };
+      const data: CreateLedgerBalance<Record<string, never>> = {
+        currency: `USD`,
+        ledger_id: `general_ledger_id`,
+        indicator: `@WorldUSD`,
+      };
 
-    const response = await ledgerBalance.create(data);
+      const response = await ledgerBalance.create(data);
 
-    tt.match(capturedRequest.args(), [[`balances`, data, `POST`]]);
-    tt.equal(response.status, 201, `Response is 201`);
-    tt.end();
-  });
+      tt.match(capturedRequest.args(), [[`balances`, data, `POST`]]);
+      tt.equal(response.status, 201, `Response is 201`);
+      tt.end();
+    },
+  );
   t.test(`it should handle missing optional fields`, async tt => {
     const thirdPartyRequest = createMockBlnkRequest(true, undefined, 201);
     const capturedRequest = tt.captureFn(thirdPartyRequest);

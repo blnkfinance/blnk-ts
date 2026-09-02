@@ -10,6 +10,8 @@ See [Dry-run transactions](https://docs.blnkfinance.com/transactions/dry-run) an
 
 - **`dry_run`** — Optional on `Transactions.create`, `createBulk`, `refund`, `updateStatus`, `bulkCommitInflight`, and `bulkVoidInflight`. Core returns HTTP 200 with a preview (`would_apply`, `rejection`, `balances`). Nothing is written; `reference` is not consumed. Typed as `TransactionPreview` / `BulkTransactionPreview`. [Guide](https://docs.blnkfinance.com/transactions/dry-run)
 
+- **`DryRun<T>` / `MaybeDryRun<T>`** — `dry_run` is discriminated, so a preview can never be typed as a posted transaction. Existing calls are unaffected: a body typed with a plain request type (for example `CreateTransactions<T>`) still resolves to the posted response, and `data.transaction_id` keeps compiling. Pass `dry_run: true` inline or type the body as `DryRun<CreateTransactions<T>>` to get a preview. When the flag is only known at runtime, the result widens to the posted-or-preview union and must be narrowed before reading posted-only fields.
+
 - **`Transactions.refund`** — Accepts `description` and `meta_data` in addition to `skip_queue`. Empty description inherits the original; metadata is merged onto the inherited copy. [Reference](https://docs.blnkfinance.com/reference/refund-transaction)
 
 ### Balances

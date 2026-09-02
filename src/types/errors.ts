@@ -22,8 +22,7 @@ export const BlnkErrorCode = {
   TXN_VALIDATION_ERROR: `TXN_VALIDATION_ERROR`,
 } as const;
 
-export type BlnkErrorCode =
-  (typeof BlnkErrorCode)[keyof typeof BlnkErrorCode];
+export type BlnkErrorCode = (typeof BlnkErrorCode)[keyof typeof BlnkErrorCode];
 
 /**
  * Extracts structured Blnk API error details from a JSON error body.
