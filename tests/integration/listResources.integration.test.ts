@@ -93,7 +93,7 @@ tap.test(
       condition: {
         field: `debit_balance`,
         operator: `>`,
-        value: 0,
+        value: 1,
         precision: 100,
       },
     } as MonitorData);
