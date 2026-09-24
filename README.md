@@ -25,8 +25,10 @@ git clone https://github.com/blnkfinance/blnk && cd blnk
 Install the Blnk TypeScript SDK in your project:
 
 ```bash
-npm install @blnkfinance/blnk-typescript --save
+npm install @blnkfinance/blnk-typescript@1.5.0 --save
 ```
+
+`v1.5.0` targets **Blnk Core 0.15.4**. See [RELEASE.md](RELEASE.md) for the error catalogue, `Search.multiSearch`, and list methods (`Ledgers.list`, `LedgerBalances.list`, `Transactions.list`, `BalanceMonitor.listByBalanceId`).
 
 ### Step 3: Setting Up Configuration
 

@@ -1,8 +1,10 @@
 # Release Notes
 
-## Unreleased — Core 0.15.4
+## v1.5.0
 
-Aligns the TypeScript SDK error catalogue with [Blnk Core 0.15.4](https://docs.blnkfinance.com/changelog/blnk-core).
+v1.5.0 targets **Blnk Core 0.15.4**. v1.4.0 shipped Core 0.15.3 parity; this release adds the full Core error catalogue, `Search.multiSearch`, and list methods for ledgers, balances, transactions, and monitors by balance id.
+
+See the [error codes guide](https://docs.blnkfinance.com/advanced/error-codes) and the [Core changelog](https://docs.blnkfinance.com/changelog/blnk-core).
 
 ### List
 
