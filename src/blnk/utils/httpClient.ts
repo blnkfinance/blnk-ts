@@ -38,6 +38,19 @@ export function FormatResponse<T>(
   return {status, message, data};
 }
 
+/**
+ * Serializes a JSON request body. An integer-string `precise_amount` is written
+ * as a bare JSON number: Core binds it into a Go `*big.Int`, which rejects a
+ * quoted value with `GEN_MALFORMED_REQUEST`. Quotes inside string values are
+ * escaped by `JSON.stringify`, so the pattern only matches the key itself.
+ */
+export function serializeRequestBody(data: unknown): string {
+  return JSON.stringify(data).replace(
+    /"precise_amount":"\s*(\d+)\s*"/g,
+    (_, digits: string) => `"precise_amount":${BigInt(digits)}`,
+  );
+}
+
 /** Reads a fetch response body as JSON, returning null for empty bodies. */
 export async function readResponseJsonBody(
   response: Response,

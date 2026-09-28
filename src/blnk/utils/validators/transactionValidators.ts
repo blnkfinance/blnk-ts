@@ -47,10 +47,11 @@ type TransactionTotal =
 /**
  * Parses a non-negative integer for precise amount/distribution fields.
  * Uses BigInt so string values larger than Number.MAX_SAFE_INTEGER stay exact.
+ * A number past that limit has already lost digits, so it is rejected.
  */
 function parsePreciseInteger(value: string | number): bigint | null {
   if (typeof value === `number`) {
-    if (!Number.isFinite(value) || value < 0 || !Number.isInteger(value)) {
+    if (!Number.isSafeInteger(value) || value < 0) {
       return null;
     }
     return BigInt(value);

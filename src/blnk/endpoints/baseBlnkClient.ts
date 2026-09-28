@@ -18,7 +18,7 @@ import {
   nodeFormDataToFetchBody,
 } from "../utils/formDataBody";
 import {HandleError} from "../utils/logger";
-import {readResponseJsonBody} from "../utils/httpClient";
+import {readResponseJsonBody, serializeRequestBody} from "../utils/httpClient";
 import {redactSensitiveLogMeta, safeLogMeta} from "../utils/safeLogMeta";
 import {
   isRetryableFetchError,
@@ -137,7 +137,7 @@ export class Blnk {
       } else if (isWebFormData(data)) {
         body = data;
       } else {
-        body = JSON.stringify(data);
+        body = serializeRequestBody(data);
       }
     }
 
