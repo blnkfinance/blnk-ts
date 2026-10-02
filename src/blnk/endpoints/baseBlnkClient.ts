@@ -29,6 +29,10 @@ import {
   retryDelayForAttempt,
   sleep,
 } from "../utils/requestRetry";
+import {
+  buildBlnkRequestUrl,
+  normalizeInstanceId,
+} from "../utils/proxyRequestUrl";
 import {ApiKeys} from "./apiKeys";
 import {BalanceMonitor} from "./balanceMonitors";
 import {Hooks} from "./hooks";
@@ -87,11 +91,13 @@ export class Blnk {
 
     this.apiKey = apiKey;
     const {logger, ...restOptions} = options;
+    const instanceId = normalizeInstanceId(restOptions.instanceId);
     this.options = {
       timeout: DEFAULT_TIMEOUT_MS,
       retryCount: DEFAULT_RETRY_COUNT,
       retryDelayMs: DEFAULT_RETRY_DELAY_MS,
       ...restOptions,
+      ...(instanceId !== undefined ? {instanceId} : {}),
     };
     this.options.retryCount = normalizeRetryCount(this.options.retryCount);
     this.options.retryDelayMs = normalizeRetryDelayMs(
@@ -153,7 +159,11 @@ export class Blnk {
 
     type FetchInitWithDuplex = RequestInit & {duplex?: `half`};
 
-    const url = `${this.options.baseUrl}${endpoint}`;
+    const url = buildBlnkRequestUrl(
+      this.options.baseUrl,
+      endpoint,
+      this.options.instanceId,
+    );
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       if (attempt > 1) {

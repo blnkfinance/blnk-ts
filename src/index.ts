@@ -13,6 +13,7 @@ import {Transactions} from "./blnk/endpoints/transactions";
 import {FormatResponse} from "./blnk/utils/httpClient";
 import {CustomLogger} from "./blnk/utils/logger";
 import {
+  DEFAULT_CLOUD_API_BASE_URL,
   DEFAULT_RETRY_COUNT,
   DEFAULT_RETRY_DELAY_MS,
   DEFAULT_TIMEOUT_MS,
@@ -48,6 +49,7 @@ export function BlnkInit(apiKey: string, options: BlnkClientOptions) {
 }
 //module.exports = BlnkInit as BlnkInitFn & {default: BlnkInitFn};
 export {
+  DEFAULT_CLOUD_API_BASE_URL,
   DEFAULT_RETRY_COUNT,
   DEFAULT_RETRY_DELAY_MS,
   DEFAULT_TIMEOUT_MS,

@@ -786,5 +786,69 @@ tap.test(`Blnk SDK tests`, t => {
     );
     tt.equal(blnkWithoutBaseUrl[`options`].baseUrl, `base/`);
   });
+
+  t.test(`CST-468 — throws when instanceId is empty`, async tt => {
+    tt.throws(() => {
+      new Blnk(
+        apiKey,
+        {...options, instanceId: `  `},
+        mockServices,
+        FormatResponse,
+        thirdPartyRequest,
+      );
+    }, /instanceId cannot be empty/);
+    tt.end();
+  });
+
+  t.test(
+    `CST-468 — Cloud proxy requests use /proxy and instance_id`,
+    async tt => {
+      const capturedFetch = tt.captureFn(fetchMock.fetch);
+      const proxyBlnk = new Blnk(
+        apiKey,
+        {
+          ...options,
+          baseUrl: `https://api.cloud.blnkfinance.com`,
+          instanceId: `instance_abc`,
+        },
+        mockServices,
+        FormatResponse,
+        capturedFetch,
+      );
+
+      await proxyBlnk[`request`](`ledgers?limit=10`, {}, `GET`);
+
+      tt.equal(
+        capturedFetch.calls[0]?.args[0],
+        `https://api.cloud.blnkfinance.com/proxy/ledgers?limit=10&instance_id=instance_abc`,
+      );
+      const headers = capturedFetch.calls[0]?.args[1]?.headers as Record<
+        string,
+        string
+      >;
+      tt.equal(headers[`X-Blnk-Key`], apiKey);
+      tt.end();
+    },
+  );
+
+  t.test(
+    `CST-468 — Core requests stay on the Core path without instance_id`,
+    async tt => {
+      const capturedFetch = tt.captureFn(fetchMock.fetch);
+      const coreBlnk = new Blnk(
+        apiKey,
+        options,
+        mockServices,
+        FormatResponse,
+        capturedFetch,
+      );
+
+      await coreBlnk[`request`](`ledgers`, {}, `GET`);
+
+      tt.equal(capturedFetch.calls[0]?.args[0], `http://mock-api.com/ledgers`);
+      tt.end();
+    },
+  );
+
   t.end();
 });

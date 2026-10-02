@@ -1,3 +1,6 @@
+/** Cloud API origin for Proxy requests (`/proxy/{corePath}?instance_id=`). */
+export const DEFAULT_CLOUD_API_BASE_URL = `https://api.cloud.blnkfinance.com`;
+
 /** Default HTTP timeout in ms (matches Go SDK and install docs). */
 export const DEFAULT_TIMEOUT_MS = 10000;
 

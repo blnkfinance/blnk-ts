@@ -1,5 +1,14 @@
 export interface BlnkClientOptions {
   baseUrl: string; // Required
+  /**
+   * Cloud Core instance ID (`instance_...`). When set, requests are sent to
+   * `{baseUrl}proxy/{corePath}?instance_id=...` instead of Core directly.
+   * Use Cloud's API origin as `baseUrl` (e.g. `https://api.cloud.blnkfinance.com`)
+   * and a Cloud API key or OAuth access token as the SDK key.
+   *
+   * @see https://docs.blnkfinance.com/cloud/reference/proxy-api
+   */
+  instanceId?: string;
   /** HTTP timeout in ms. Defaults to 10000. */
   timeout?: number;
   /**
