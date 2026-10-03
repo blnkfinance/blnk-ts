@@ -119,6 +119,26 @@ console.log("Ledger Created:", newLedger);
 
 This creates a new ledger for storing customer balances.
 
+### Using Blnk Cloud proxy
+
+To call Core through [Cloud Proxy](https://docs.blnkfinance.com/cloud/reference/proxy-api), pass your Cloud API key (or OAuth access token) and the Core `instance_id`. The SDK keeps the same Core request bodies and paths, prefixes them with `/proxy`, and sends `instance_id` as a query parameter.
+
+```typescript
+import { BlnkInit, DEFAULT_CLOUD_API_BASE_URL } from '@blnkfinance/blnk-typescript';
+
+const blnk = BlnkInit('<cloud_api_key>', {
+  baseUrl: DEFAULT_CLOUD_API_BASE_URL, // https://api.cloud.blnkfinance.com
+  instanceId: 'instance_...',
+});
+
+const newLedger = await blnk.Ledgers.create({
+  name: 'Customer Savings Account',
+});
+// POST https://api.cloud.blnkfinance.com/proxy/ledgers?instance_id=instance_...
+```
+
+`instanceId` is required for proxy routing. Omit it when you talk to Core directly (`baseUrl` is your Core origin).
+
 ### Updating a ledger name
 
 Rename an existing ledger without changing its ID or affecting balances and transactions:
