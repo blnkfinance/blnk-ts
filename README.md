@@ -25,10 +25,10 @@ git clone https://github.com/blnkfinance/blnk && cd blnk
 Install the Blnk TypeScript SDK in your project:
 
 ```bash
-npm install @blnkfinance/blnk-typescript@1.5.0 --save
+npm install @blnkfinance/blnk-typescript@1.6.0 --save
 ```
 
-`v1.5.0` targets **Blnk Core 0.15.4**. See [RELEASE.md](RELEASE.md) for the error catalogue, `Search.multiSearch`, and list methods (`Ledgers.list`, `LedgerBalances.list`, `Transactions.list`, `BalanceMonitor.listByBalanceId`).
+`v1.6.0` targets **Blnk Core 0.15.4**. Cloud proxy `instanceId` is available in 1.6.0. See [RELEASE.md](RELEASE.md) for the error catalogue, `Search.multiSearch`, and list methods (`Ledgers.list`, `LedgerBalances.list`, `Transactions.list`, `BalanceMonitor.listByBalanceId`).
 
 ### Step 3: Setting Up Configuration
 
@@ -137,7 +137,7 @@ const newLedger = await blnk.Ledgers.create({
 // POST https://api.cloud.blnkfinance.com/proxy/ledgers?instance_id=instance_...
 ```
 
-`instanceId` is required for proxy routing. Omit it when you talk to Core directly (`baseUrl` is your Core origin).
+`instanceId` is available in 1.6.0 and is required for proxy routing. Omit it when you talk to Core directly (`baseUrl` is your Core origin).
 
 ### Updating a ledger name
 
