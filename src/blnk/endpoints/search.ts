@@ -19,6 +19,7 @@ import {
   StartReindexResponse,
 } from "../../types/search";
 import {HandleError} from "../utils/logger";
+import {endpointPath} from "../utils/pathSegment";
 import {
   ValidateFilterParams,
   ValidateMultiSearchParams,
@@ -98,7 +99,7 @@ export class Search {
       const response = await this.request<
         SearchParams,
         SearchResponse<SearchDocumentByCollection[typeof service]>
-      >(`search/${service}`, data, `POST`);
+      >(endpointPath`search/${service}`, data, `POST`);
 
       return response;
     } catch (error) {
@@ -129,7 +130,7 @@ export class Search {
       const response = await this.request<
         FilterParams,
         FilterResponse<FilterRecordByCollection[typeof collection]>
-      >(`${collection}/filter`, data, `POST`);
+      >(endpointPath`${collection}/filter`, data, `POST`);
 
       return response;
     } catch (error) {

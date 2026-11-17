@@ -8,6 +8,7 @@ import {
   UpdateHookData,
 } from "../../types/hooks";
 import {HandleError} from "../utils/logger";
+import {endpointPath} from "../utils/pathSegment";
 import {
   ValidateCreateHookData,
   ValidateListHooksOptions,
@@ -105,7 +106,7 @@ export class Hooks {
       }
 
       const response = await this.request<undefined, HookResp>(
-        `hooks/${id}`,
+        endpointPath`hooks/${id}`,
         undefined,
         `GET`,
       );
@@ -138,7 +139,7 @@ export class Hooks {
       }
 
       const response = await this.request<UpdateHookData, HookResp>(
-        `hooks/${id}`,
+        endpointPath`hooks/${id}`,
         data,
         `PUT`,
       );
@@ -166,7 +167,7 @@ export class Hooks {
       }
 
       const response = await this.request<undefined, DeleteHookResp>(
-        `hooks/${id}`,
+        endpointPath`hooks/${id}`,
         undefined,
         `DELETE`,
       );

@@ -1,5 +1,6 @@
 import {BlnkLogger} from "../../types/blnkClient";
 import {ApiResponse, FormatResponseType} from "../../types/general";
+import {InvalidPathSegmentError} from "./pathSegment";
 import {safeLogMeta} from "./safeLogMeta";
 
 export const CustomLogger: BlnkLogger = {
@@ -21,6 +22,9 @@ export function HandleError(
   fnName: string,
 ): ApiResponse<null> {
   logger.error(fnName, ...safeLogMeta(error));
+  if (error instanceof InvalidPathSegmentError) {
+    return formatResponse(400, error.message, null);
+  }
   if (error instanceof Error) {
     return formatResponse(500, error.message, null);
   } else {

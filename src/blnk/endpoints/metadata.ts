@@ -2,6 +2,7 @@ import {BlnkLogger} from "../../types/blnkClient";
 import {BlnkRequest, FormatResponseType} from "../../types/general";
 import {UpdateMetadataData, UpdateMetadataResp} from "../../types/metadata";
 import {HandleError} from "../utils/logger";
+import {endpointPath} from "../utils/pathSegment";
 import {ValidateUpdateMetadataData} from "../utils/validators/metadataValidators";
 
 /**
@@ -37,7 +38,7 @@ export class Metadata {
       const response = await this.request<
         UpdateMetadataData,
         UpdateMetadataResp
-      >(`${id}/metadata`, data, `POST`);
+      >(endpointPath`${id}/metadata`, data, `POST`);
 
       return response;
     } catch (error: unknown) {

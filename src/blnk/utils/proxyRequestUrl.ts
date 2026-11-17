@@ -1,3 +1,5 @@
+import {assertNoDotSegments, InvalidPathSegmentError} from "./pathSegment";
+
 const PROXY_PATH_PREFIX = `proxy`;
 
 /**
@@ -43,19 +45,48 @@ function corePathForProxy(endpoint: string): string {
 }
 
 /**
+ * Throws unless `url` is still under the base path. `new URL` resolves plain
+ * `../`, so this is the last check that the request stays inside the API (or
+ * Cloud `/proxy/`) base.
+ */
+function assertWithinBase(url: string, baseUrl: string): void {
+  const resolved = new URL(url);
+  const base = new URL(baseUrl);
+  const basePath = base.pathname.endsWith(`/`)
+    ? base.pathname
+    : `${base.pathname}/`;
+  if (
+    resolved.origin !== base.origin ||
+    !`${resolved.pathname}/`.startsWith(basePath)
+  ) {
+    throw new InvalidPathSegmentError(
+      `request path escapes the API base: ${resolved.pathname}`,
+    );
+  }
+  assertNoDotSegments(resolved.pathname);
+}
+
+/**
  * Builds the request URL for Core or Cloud proxy.
  *
  * Direct Core: `{baseUrl}{endpoint}` (unchanged).
  * Cloud proxy: `{baseUrl}proxy/{corePath}?instance_id=...`
  * plus any query string already on the Core path.
+ *
+ * Throws {@link InvalidPathSegmentError} when the endpoint contains a dot
+ * segment, including percent-encoded ones such as `%2e%2e`.
  */
 export function buildBlnkRequestUrl(
   baseUrl: string,
   endpoint: string,
   instanceId?: string,
 ): string {
+  assertNoDotSegments(endpoint);
+
   if (!instanceId) {
-    return `${baseUrl}${endpoint}`;
+    const href = `${baseUrl}${endpoint}`;
+    assertWithinBase(href, baseUrl);
+    return href;
   }
 
   const path = baseUrlIncludesProxy(baseUrl)
@@ -64,5 +95,11 @@ export function buildBlnkRequestUrl(
 
   const url = new URL(path, baseUrl);
   url.searchParams.set(`instance_id`, instanceId);
+  assertWithinBase(
+    url.href,
+    baseUrlIncludesProxy(baseUrl)
+      ? baseUrl
+      : new URL(`${PROXY_PATH_PREFIX}/`, baseUrl).href,
+  );
   return url.href;
 }
