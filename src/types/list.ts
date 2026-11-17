@@ -1,10 +1,9 @@
 /**
  * Pagination for Core list routes (`GET /ledgers`, `GET /balances`,
- * `GET /transactions`, `GET /identities`). Sent as query parameters.
+ * `GET /transactions`). Sent as query parameters.
  *
  * Unset fields fall back to Core defaults: `limit=10` and `offset=0` on
- * ledgers and balances, `limit=20` and `offset=0` on transactions and
- * identities.
+ * ledgers and balances, `limit=20` and `offset=0` on transactions.
  */
 export interface ListOptions {
   /** Page size, at least 1. */

@@ -151,9 +151,9 @@ const updatedLedger = await Ledgers.update(
 console.log('Ledger Updated:', updatedLedger);
 ```
 
-### List ledgers, balances, transactions, and identities
+### List ledgers, balances, and transactions
 
-`Ledgers.list`, `LedgerBalances.list`, `Transactions.list`, and `Identity.list` wrap Core's `GET /ledgers`, `GET /balances`, `GET /transactions`, and `GET /identities`. Omit options to use Core's default page (`limit=10` / `offset=0` for ledgers and balances, `limit=20` for transactions and identities). Invalid `limit` or `offset` is rejected client-side with HTTP 400.
+`Ledgers.list`, `LedgerBalances.list`, and `Transactions.list` wrap Core's `GET /ledgers`, `GET /balances`, and `GET /transactions`. Omit options to use Core's default page (`limit=10` / `offset=0` for ledgers and balances, `limit=20` for transactions). Invalid `limit` or `offset` is rejected client-side with HTTP 400.
 
 ```typescript
 const firstPage = await Ledgers.list();
@@ -162,8 +162,16 @@ const nextPage = await Ledgers.list({ limit: 10, offset: 10 });
 const balances = await LedgerBalances.list({ limit: 50 });
 
 const recentTransactions = await Transactions.list({ limit: 100 });
+```
 
-const identities = await Identity.list({ limit: 20, offset: 20 });
+`Identity.list()` takes no options. Core's `GET /identities` ignores `limit` and `offset` and returns every identity. To page identities, use `Search.filter` on the `identities` collection, which reads `limit` and `offset` from the request body. An empty `filters` array matches all identities:
+
+```typescript
+const identities = await Search.filter(
+  { filters: [], limit: 20, offset: 20 },
+  'identities',
+);
+// identities.data?.data — one page of identity records
 ```
 
 ---

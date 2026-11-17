@@ -18,7 +18,6 @@ import {
   CreateTransactions,
   UpdateTransactionStatus,
 } from "../../../../src/types/transactions";
-import {ListOptions} from "../../../../src/types/list";
 
 /**
  * Blnk Core 0.15.9 parity. Every call goes through the real client and global
@@ -448,42 +447,6 @@ tap.test(`include on get balance (gap 5)`, async t => {
         const res = await r.blnk.LedgerBalances.get(`bln_1`, options);
         tt.equal(res.status, 400);
         tt.match(res.message, /include/);
-        tt.same(r.requests, []);
-      }),
-    );
-  }
-});
-
-tap.test(`identity list pagination (gap 6)`, async t => {
-  t.test(`sends limit and offset`, async tt =>
-    withRecorder(tt, async r => {
-      r.reply.body = [];
-      const res = await r.blnk.Identity.list({limit: 20, offset: 40});
-      tt.equal(res.status, 200);
-      tt.same(r.requests, [
-        {method: `GET`, url: `/identities?limit=20&offset=40`, body: undefined},
-      ]);
-    }),
-  );
-
-  t.test(`no options sends no query string`, async tt =>
-    withRecorder(tt, async r => {
-      r.reply.body = [];
-      await r.blnk.Identity.list();
-      tt.equal(r.requests[0].url, `/identities`);
-    }),
-  );
-
-  const invalid: [string, ListOptions][] = [
-    [`limit 0`, {limit: 0}],
-    [`negative offset`, {offset: -1}],
-    [`fractional limit`, {limit: 1.5}],
-  ];
-  for (const [name, options] of invalid) {
-    t.test(`rejects ${name} before sending`, async tt =>
-      withRecorder(tt, async r => {
-        const res = await r.blnk.Identity.list(options);
-        tt.equal(res.status, 400);
         tt.same(r.requests, []);
       }),
     );
