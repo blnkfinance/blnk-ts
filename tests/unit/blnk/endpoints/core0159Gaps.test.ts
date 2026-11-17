@@ -308,14 +308,29 @@ tap.test(`inflight commit and void reference (gap 3)`, async t => {
     }),
   );
 
-  t.test(`updateStatus rejects an empty reference`, async tt =>
+  for (const blank of [``, ` `, `\t\n `]) {
+    t.test(
+      `updateStatus rejects reference ${JSON.stringify(blank)}`,
+      async tt =>
+        withRecorder(tt, async r => {
+          const res = await r.blnk.Transactions.updateStatus(`txn_1`, {
+            status: `commit`,
+            reference: blank,
+          });
+          tt.equal(res.status, 400);
+          tt.match(res.message, /reference must be a non-empty string/);
+          tt.same(r.requests, []);
+        }),
+    );
+  }
+
+  t.test(`updateStatus rejects a non-string reference`, async tt =>
     withRecorder(tt, async r => {
       const res = await r.blnk.Transactions.updateStatus(`txn_1`, {
         status: `commit`,
-        reference: ` `,
+        reference: 42 as unknown as string,
       });
       tt.equal(res.status, 400);
-      tt.match(res.message, /reference must be a non-empty string/);
       tt.same(r.requests, []);
     }),
   );
@@ -362,12 +377,57 @@ tap.test(`overdraft_limit on create (gap 4)`, async t => {
     }),
   );
 
-  for (const bad of [-1, Infinity, `500` as unknown as number]) {
+  const badLimits = [
+    -1,
+    -0.01,
+    NaN,
+    Infinity,
+    -Infinity,
+    `500` as unknown as number,
+  ];
+  for (const bad of badLimits) {
     t.test(`create rejects overdraft_limit ${String(bad)}`, async tt =>
       withRecorder(tt, async r => {
         const res = await r.blnk.Transactions.create({
           ...txn,
           overdraft_limit: bad,
+        });
+        tt.equal(res.status, 400);
+        tt.match(res.message, /overdraft_limit must be a non-negative number/);
+        tt.same(r.requests, []);
+      }),
+    );
+  }
+});
+
+tap.test(`overdraft_limit on bulk items (gap 4)`, async t => {
+  t.test(`createBulk sends overdraft_limit on each item`, async tt =>
+    withRecorder(tt, async r => {
+      r.reply.status = 201;
+      r.reply.body = {batch_id: `bulk_1`, status: `applied`};
+      await r.blnk.Transactions.createBulk({
+        atomic: true,
+        transactions: [
+          {...txn, reference: `bulk_ref_1`, overdraft_limit: 5},
+          {...txn, reference: `bulk_ref_2`},
+        ],
+      });
+      const sent = r.requests[0];
+      tt.equal(sent.url, `/transactions/bulk`);
+      tt.match(sent.body, {
+        transactions: [{overdraft_limit: 5}, {reference: `bulk_ref_2`}],
+      });
+    }),
+  );
+
+  for (const bad of [-1, NaN, Infinity]) {
+    t.test(`createBulk rejects an item with overdraft_limit ${bad}`, async tt =>
+      withRecorder(tt, async r => {
+        const res = await r.blnk.Transactions.createBulk({
+          transactions: [
+            {...txn, reference: `bulk_ok`},
+            {...txn, reference: `bulk_bad`, overdraft_limit: bad},
+          ],
         });
         tt.equal(res.status, 400);
         tt.match(res.message, /overdraft_limit must be a non-negative number/);
@@ -423,6 +483,19 @@ tap.test(`include on get balance (gap 5)`, async t => {
       tt.equal(
         r.requests[0].url,
         `/balances/bln_1?with_queued=true&include=ledger`,
+      );
+    }),
+  );
+
+  t.test(`from_source: true is still sent (docs contract)`, async tt =>
+    withRecorder(tt, async r => {
+      await r.blnk.LedgerBalances.get(`bln_1`, {
+        from_source: true,
+        include: [`identity`],
+      });
+      tt.equal(
+        r.requests[0].url,
+        `/balances/bln_1?from_source=true&include=identity`,
       );
     }),
   );

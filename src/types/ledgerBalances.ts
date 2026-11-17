@@ -122,11 +122,7 @@ export interface GetBalanceRequest {
    * `?include=identity&include=ledger`.
    */
   include?: BalanceInclude[];
-  /**
-   * @deprecated `GET /balances/{balance_id}` ignores `from_source`; Core only
-   * reads it on `GET /balances/{balance_id}/at`. Use `LedgerBalances.getAt`
-   * with `from_source: true` to rebuild a balance from transactions.
-   */
+  /** Reconstruct balance from transactions instead of snapshots when true. */
   from_source?: boolean;
   /** Include queued credit and debit balances when true. */
   with_queued?: boolean;

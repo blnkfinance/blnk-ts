@@ -320,21 +320,29 @@ const lineageBalance = await LedgerBalances.create({
 
 ### Get balance
 
-`LedgerBalances.get` retrieves a balance by ID (`GET /balances/{balance_id}`). Pass `include` to embed the balance's identity and ledger, and `with_queued: true` to add queued credit and debit balances:
+`LedgerBalances.get` retrieves a balance by ID (`GET /balances/{balance_id}`). Pass `{ from_source: true }` to reconstruct the balance from transactions instead of snapshots:
 
 ```typescript
 const response = await LedgerBalances.get(
   'bln_5ce86029-3c2e-4e2a-aae2-7fb931ca4c4f',
-  { include: ['identity', 'ledger'] },
+  { from_source: true },
 );
 
 // response.data.balance_id
 // response.data.balance
-// response.data.identity?.first_name
-// response.data.ledger?.name
 ```
 
-`from_source` on `get` is deprecated because Core ignores it on this route. To rebuild a balance from transactions, use `LedgerBalances.getAt` with `from_source: true`.
+Pass `include` to embed the balance's identity and ledger in the response (`?include=identity&include=ledger`):
+
+```typescript
+const withRelations = await LedgerBalances.get(
+  'bln_5ce86029-3c2e-4e2a-aae2-7fb931ca4c4f',
+  { include: ['identity', 'ledger'] },
+);
+
+// withRelations.data.identity?.first_name
+// withRelations.data.ledger?.name
+```
 
 ### Get balance by indicator
 
