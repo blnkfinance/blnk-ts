@@ -1,0 +1,89 @@
+# Runs the Core-backed integration tests against a real Blnk Core so request
+# and response shapes are checked against the server, not only against stubs.
+
+name: Core integration
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  core-0159:
+    name: Core 0.15.9
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    env:
+      BLNK_IMAGE: ghcr.io/blnkfinance/blnk:0.15.9
+      BLNK_BASE_URL: http://localhost:15101/
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Start Blnk Core
+      run: |
+        mkdir -p "$RUNNER_TEMP/core" && cd "$RUNNER_TEMP/core"
+        KEY="$(openssl rand -hex 16)"
+        echo "::add-mask::$KEY"
+        echo "BLNK_API_KEY=$KEY" >> "$GITHUB_ENV"
+        cat > blnk.json <<EOF
+        {
+          "project_name": "Blnk",
+          "data_source": { "dns": "postgres://postgres:password@postgres:5432/blnk?sslmode=disable" },
+          "redis": { "dns": "redis:6379" },
+          "server": { "port": "5001", "secret_key": "$KEY" }
+        }
+        EOF
+        cat > docker-compose.yaml <<'EOF'
+        services:
+          server:
+            image: ${BLNK_IMAGE}
+            restart: on-failure
+            entrypoint: ["/bin/sh", "-c"]
+            command: ["blnk migrate up && exec blnk start"]
+            ports: ["127.0.0.1:15101:5001"]
+            depends_on: [redis, postgres]
+            volumes: ["./blnk.json:/blnk.json"]
+          worker:
+            image: ${BLNK_IMAGE}
+            restart: on-failure
+            entrypoint: ["blnk", "workers"]
+            depends_on: [redis, postgres]
+            volumes: ["./blnk.json:/blnk.json"]
+          redis:
+            image: redis:7.2.4
+          postgres:
+            image: postgres:16
+            environment:
+              POSTGRES_USER: postgres
+              POSTGRES_PASSWORD: password
+              POSTGRES_DB: blnk
+        EOF
+        docker compose up -d
+        for i in $(seq 1 60); do
+          if curl -sf "$BLNK_BASE_URL" >/dev/null; then echo "Core is up"; exit 0; fi
+          sleep 2
+        done
+        docker compose logs server
+        exit 1
+
+    - name: Core 0.15.9 integration tests
+      env:
+        BLNK_E2E: '1'
+      run: npx tap tests/integration/core-0.15.9.integration.test.ts --disable-coverage
+
+    - name: Core logs
+      if: failure()
+      run: cd "$RUNNER_TEMP/core" && docker compose logs server worker

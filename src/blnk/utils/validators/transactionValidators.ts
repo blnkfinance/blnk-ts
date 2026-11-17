@@ -307,6 +307,15 @@ export function ValidateCreateTransactions<T extends Record<string, unknown>>(
     return `Allow overdraft must be a boolean if provided.`;
   }
 
+  if (
+    data.overdraft_limit !== undefined &&
+    (typeof data.overdraft_limit !== `number` ||
+      !Number.isFinite(data.overdraft_limit) ||
+      data.overdraft_limit < 0)
+  ) {
+    return `overdraft_limit must be a non-negative number if provided.`;
+  }
+
   if (data.meta_data !== undefined && !isValidMetaData(data.meta_data)) {
     return `meta_data must be a valid object if provided`;
   }
@@ -591,6 +600,21 @@ export function ValidateUpdateTransactions<T extends Record<string, unknown>>(
     return `dry_run must be a boolean if provided.`;
   }
 
+  if (
+    data.reference !== undefined &&
+    (typeof data.reference !== `string` || data.reference.trim() === ``)
+  ) {
+    return `reference must be a non-empty string if provided.`;
+  }
+
+  // Core compares the key exactly, so "ref" and "ref " would be two keys.
+  if (
+    data.reference !== undefined &&
+    data.reference !== data.reference.trim()
+  ) {
+    return `reference must not have leading or trailing whitespace.`;
+  }
+
   const allowedFields = [
     `status`,
     `amount`,
@@ -598,6 +622,7 @@ export function ValidateUpdateTransactions<T extends Record<string, unknown>>(
     `meta_data`,
     `skip_queue`,
     `dry_run`,
+    `reference`,
   ];
   for (const key in data) {
     if (!allowedFields.includes(key)) {

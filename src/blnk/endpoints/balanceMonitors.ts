@@ -2,6 +2,9 @@ import {
   DeleteBalanceMonitorResp,
   MonitorData,
   MonitorDataResp,
+  UpdateMonitorCondition,
+  UpdateMonitorRequest,
+  UpdateMonitorResp,
 } from "../../types/balanceMonitor";
 import {BlnkLogger} from "../../types/blnkClient";
 import {BlnkRequest, FormatResponseType} from "../../types/general";
@@ -11,7 +14,29 @@ import {
   ValidateBalanceId,
   ValidateMonitorData,
   ValidateMonitorId,
+  ValidateUpdateMonitorRequest,
 } from "../utils/validators/balanceMonitors";
+
+/**
+ * Copies only the fields that are set, so Core keeps the rest. Keys outside
+ * `UpdateMonitorRequest` (such as `call_back_url`) are never sent.
+ */
+function partialMonitorBody(data: UpdateMonitorRequest): UpdateMonitorRequest {
+  const body: UpdateMonitorRequest = {};
+  if (data.balance_id !== undefined) body.balance_id = data.balance_id;
+  if (data.description !== undefined) body.description = data.description;
+  if (data.trigger !== undefined) body.trigger = data.trigger;
+  if (data.condition !== undefined) {
+    const condition: UpdateMonitorCondition = {};
+    const {field, operator, value, precision} = data.condition;
+    if (field !== undefined) condition.field = field;
+    if (operator !== undefined) condition.operator = operator;
+    if (value !== undefined) condition.value = value;
+    if (precision !== undefined) condition.precision = precision;
+    if (Object.keys(condition).length > 0) body.condition = condition;
+  }
+  return body;
+}
 
 /**
  * Represents a Balance Monitor that interacts with the balance monitoring system.
@@ -24,7 +49,8 @@ import {
  * @method create - Creates a new balance monitor with the provided data.
  * @method get - Retrieves a balance monitor by its ID.
  * @method list - Retrieves a list of all balance monitors.
- * @method update - Updates an existing balance monitor with new data.
+ * @method update - Deprecated. Replaces a balance monitor with a full body.
+ * @method updatePartial - Changes only the fields that are set (Core 0.15.9+).
  * @method delete - Deletes a balance monitor by its ID.
  * @example
  * const monitor = new BalanceMonitor(requestFunction, loggerInstance, formatResponseFunction);
@@ -58,7 +84,8 @@ export class BalanceMonitor {
    *   condition: { ... },
    *   description: 'Sample description',
    *   balance_id: '12345',
-   *   call_back_url: 'https://example.com/callback'
+   *   call_back_url: 'https://example.com/callback',
+   *   trigger: 'edge', // or 'level'; Core defaults to 'edge'
    * };
    * const createdMonitor = await create(newMonitorData);
    */
@@ -193,6 +220,11 @@ export class BalanceMonitor {
    *   balance_id: "67890",
    *   call_back_url: "https://updated-url.com"
    * });
+   *
+   * @deprecated Use `updatePartial`, which sends only the fields that change.
+   * Core 0.15.9 ignores `call_back_url` on update and replies with
+   * `{message, precision_unchanged}`, not the monitor, so this method's
+   * `MonitorDataResp` return type does not match the response body.
    */
   async update(id: string, data: MonitorData) {
     try {
@@ -212,6 +244,52 @@ export class BalanceMonitor {
         this.logger,
         this.formatResponse,
         this.update.name,
+      );
+    }
+  }
+
+  /**
+   * Updates a balance monitor via `PUT /balance-monitors/{id}`, sending only
+   * the fields that are set. Core 0.15.9+ keeps every field the request leaves
+   * out, so a rename doesn't touch the threshold and `condition.value: 0`
+   * moves the threshold to zero.
+   *
+   * Core ignores a precision change unless `condition.value` is sent with it;
+   * the response then has `precision_unchanged: true`.
+   *
+   * @see https://docs.blnkfinance.com/reference/edit-balance-monitor
+   *
+   * @example
+   * // Rename only
+   * await BalanceMonitor.updatePartial('mon_123', {description: 'Low balance'});
+   *
+   * // Move the threshold to $50 at precision 100 and alert on every transaction
+   * await BalanceMonitor.updatePartial('mon_123', {
+   *   trigger: 'level',
+   *   condition: {value: 50, precision: 100},
+   * });
+   */
+  async updatePartial(id: string, data: UpdateMonitorRequest) {
+    try {
+      const idError = ValidateMonitorId(id);
+      if (idError) {
+        return this.formatResponse(400, idError, null);
+      }
+      const validatorResponse = ValidateUpdateMonitorRequest(data);
+      if (validatorResponse) {
+        return this.formatResponse(400, validatorResponse, null);
+      }
+      const response = await this.request<
+        UpdateMonitorRequest,
+        UpdateMonitorResp
+      >(endpointPath`balance-monitors/${id}`, partialMonitorBody(data), `PUT`);
+      return response;
+    } catch (error) {
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.updatePartial.name,
       );
     }
   }

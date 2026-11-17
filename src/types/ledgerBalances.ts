@@ -1,3 +1,6 @@
+import {IdentityDataResponse} from "./identity";
+import {CreateLedgerResp} from "./ledger";
+
 /** Fund allocation strategy when `track_fund_lineage` is enabled. */
 export type AllocationStrategy = `FIFO` | `LIFO` | `PROPORTIONAL`;
 
@@ -25,7 +28,10 @@ export interface CreateLedgerBalanceResp<T extends Record<string, unknown>> {
   inflight_credit_balance: number;
   debit_balance: number;
   inflight_debit_balance: number;
-  /** Removed from Core 0.15.0 balance responses. */
+  /**
+   * @deprecated Removed from Core balance responses in 0.15.0. Core no longer
+   * sends it, so it is always `undefined`. Use `precision` on transactions.
+   */
   currency_multiplier?: number;
   ledger_id: string;
   identity_id: string;
@@ -38,6 +44,16 @@ export interface CreateLedgerBalanceResp<T extends Record<string, unknown>> {
   track_fund_lineage?: boolean;
   allocation_strategy?: AllocationStrategy;
   meta_data?: T;
+  /**
+   * The balance's identity. Only present when `LedgerBalances.get` is called
+   * with `include: ['identity']` and the balance has an identity.
+   */
+  identity?: IdentityDataResponse<Record<string, unknown>>;
+  /**
+   * The balance's ledger. Only present when `LedgerBalances.get` is called
+   * with `include: ['ledger']`.
+   */
+  ledger?: CreateLedgerResp<Record<string, unknown>>;
 }
 
 /** Per-provider fund breakdown in `BalanceLineageResponse.providers`. */
@@ -95,8 +111,17 @@ export interface HistoricalBalanceDetails {
   debit_balance: string | number;
 }
 
+/** Related records `GET /balances/{balance_id}` can embed in the response. */
+export type BalanceInclude = `identity` | `ledger`;
+
 /** Options for `GET /balances/{balance_id}`. */
 export interface GetBalanceRequest {
+  /**
+   * Embeds related records in the response: `identity` fills
+   * `CreateLedgerBalanceResp.identity` and `ledger` fills `.ledger`. Sent as
+   * `?include=identity&include=ledger`.
+   */
+  include?: BalanceInclude[];
   /** Reconstruct balance from transactions instead of snapshots when true. */
   from_source?: boolean;
   /** Include queued credit and debit balances when true. */
