@@ -13,6 +13,7 @@ import {
   TokenizeIdentityFieldResp,
   TokenizeIdentityResp,
 } from "../../types/identity";
+import {ListOptions} from "../../types/list";
 import {HandleError} from "../utils/logger";
 import {endpointPath} from "../utils/pathSegment";
 import {serializeIdentityData} from "../utils/identitySerialization";
@@ -23,6 +24,10 @@ import {
   ValidateTokenizeIdentityData,
   ValidateTokenizeIdentityField,
 } from "../utils/validators/identityValidators";
+import {
+  ListOptionsQueryString,
+  ValidateListOptions,
+} from "../utils/validators/listValidators";
 
 /**
  * Represents an Identity class that handles operations related to identity data.
@@ -125,20 +130,28 @@ export class Identity {
   }
 
   /**
-   * Asynchronously retrieves a list of identity data.
+   * Lists identities via `GET /identities`. Omit options to use Core's
+   * default page (`limit=20`, `offset=0`). Invalid pagination is rejected
+   * client-side with HTTP 400; Core would silently fall back to its defaults.
    *
+   * @param options - Optional `limit` (at least 1) and `offset` (at least 0).
    * @returns {Promise<IdentityDataResponse<Record<string, unknown>>[]>} A promise that resolves to an array of identity data responses.
    *
    * @example
-   * const identityService = new IdentityService();
-   * const identityList = await identityService.list();
+   * const firstPage = await Identity.list();
+   * const secondPage = await Identity.list({limit: 20, offset: 20});
    */
-  async list() {
+  async list(options?: ListOptions) {
     try {
+      const error = ValidateListOptions(options);
+      if (error) {
+        return this.formatResponse(400, error, null);
+      }
+
       const response = await this.request<
         null,
         IdentityDataResponse<Record<string, unknown>>[]
-      >(`identities`, null, `GET`);
+      >(`identities${ListOptionsQueryString(options)}`, null, `GET`);
       return response;
     } catch (error: unknown) {
       return HandleError(

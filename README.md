@@ -151,9 +151,9 @@ const updatedLedger = await Ledgers.update(
 console.log('Ledger Updated:', updatedLedger);
 ```
 
-### List ledgers, balances, and transactions
+### List ledgers, balances, transactions, and identities
 
-`Ledgers.list`, `LedgerBalances.list`, and `Transactions.list` wrap Core's `GET /ledgers`, `GET /balances`, and `GET /transactions` (present since ~0.14.x; this SDK is aligned with Core 0.15.4). Omit options to use Core's default page (`limit=10` / `offset=0` for ledgers and balances, `limit=20` for transactions). Invalid `limit` or `offset` is rejected client-side with HTTP 400.
+`Ledgers.list`, `LedgerBalances.list`, `Transactions.list`, and `Identity.list` wrap Core's `GET /ledgers`, `GET /balances`, `GET /transactions`, and `GET /identities`. Omit options to use Core's default page (`limit=10` / `offset=0` for ledgers and balances, `limit=20` for transactions and identities). Invalid `limit` or `offset` is rejected client-side with HTTP 400.
 
 ```typescript
 const firstPage = await Ledgers.list();
@@ -162,6 +162,8 @@ const nextPage = await Ledgers.list({ limit: 10, offset: 10 });
 const balances = await LedgerBalances.list({ limit: 50 });
 
 const recentTransactions = await Transactions.list({ limit: 100 });
+
+const identities = await Identity.list({ limit: 20, offset: 20 });
 ```
 
 ---
@@ -310,17 +312,21 @@ const lineageBalance = await LedgerBalances.create({
 
 ### Get balance
 
-`LedgerBalances.get` retrieves a balance by ID (`GET /balances/{balance_id}`). Pass `{ from_source: true }` to reconstruct the balance from transactions instead of snapshots:
+`LedgerBalances.get` retrieves a balance by ID (`GET /balances/{balance_id}`). Pass `include` to embed the balance's identity and ledger, and `with_queued: true` to add queued credit and debit balances:
 
 ```typescript
 const response = await LedgerBalances.get(
   'bln_5ce86029-3c2e-4e2a-aae2-7fb931ca4c4f',
-  { from_source: true },
+  { include: ['identity', 'ledger'] },
 );
 
 // response.data.balance_id
 // response.data.balance
+// response.data.identity?.first_name
+// response.data.ledger?.name
 ```
+
+`from_source` on `get` is deprecated because Core ignores it on this route. To rebuild a balance from transactions, use `LedgerBalances.getAt` with `from_source: true`.
 
 ### Get balance by indicator
 
@@ -385,6 +391,53 @@ const response = await LedgerBalances.getLineage(
 // response.data.total_with_lineage
 // response.data.providers
 ```
+
+### Create a balance monitor
+
+`BalanceMonitor.create` registers a monitor on a balance (`POST /balance-monitors`). `condition.value` is in major units: Core stores `precise_value = value × precision`, so a $100 threshold at precision 100 is `value: 100`.
+
+`trigger` sets when the monitor fires (Core 0.15.7+). `edge`, Core's default, alerts once when the condition becomes true. `level` alerts on every transaction while the condition holds. Any other value is rejected client-side with HTTP 400.
+
+```typescript
+const { BalanceMonitor } = blnk;
+
+const monitor = await BalanceMonitor.create({
+  balance_id: 'bln_5ce86029-3c2e-4e2a-aae2-7fb931ca4c4f',
+  condition: {
+    field: 'balance',
+    operator: '<',
+    value: 100, // $100.00
+    precision: 100,
+  },
+  description: 'Low balance',
+  trigger: 'edge',
+});
+
+// monitor.data?.condition.precise_value — 10000
+// monitor.data?.condition_state — last observed result, once evaluated
+```
+
+### Update a balance monitor
+
+`BalanceMonitor.updatePartial` sends only the fields you set (`PUT /balance-monitors/{monitor_id}`). Core 0.15.9+ keeps every field the request leaves out, so a rename does not move the threshold, and `value: 0` sets the threshold to zero. There is no `call_back_url`, because Core ignores it on update.
+
+```typescript
+// Rename only
+await BalanceMonitor.updatePartial(monitor.data!.monitor_id, {
+  description: 'Low balance alert',
+});
+
+// Move the threshold to $50 and alert on every transaction below it
+const updated = await BalanceMonitor.updatePartial(monitor.data!.monitor_id, {
+  trigger: 'level',
+  condition: { value: 50, precision: 100 },
+});
+
+// updated.data?.message
+// updated.data?.precision_unchanged — true when precision was sent without value
+```
+
+`BalanceMonitor.update` still works but is deprecated: it needs a full monitor body.
 
 ### Delete balance monitor
 
@@ -505,6 +558,26 @@ const response = await Transactions.create({
 });
 ```
 
+### Overdraft limit
+
+With `allow_overdraft: true`, set `overdraft_limit` to cap how far the source balance may go below zero. The limit is in major units, like `amount`. Omit it, or pass `0`, to allow an unlimited overdraft:
+
+```typescript
+await Transactions.create({
+  amount: 750,
+  precision: 100,
+  reference: 'overdraft_ref_001',
+  description: 'Card payment',
+  currency: 'USD',
+  source: 'bln_28edb3e5-c168-4127-a1c4-16274e7a28d3',
+  destination: 'bln_ebcd230f-6265-4d4a-a4ca-45974c47f746',
+  allow_overdraft: true,
+  overdraft_limit: 500, // balance may go down to -$500.00
+});
+```
+
+See [Overdrafts](https://docs.blnkfinance.com/transactions/overdrafts).
+
 ### Get transaction by ID
 
 `Transactions.get` retrieves a transaction by its `transaction_id` (GET `/transactions/{transaction_id}`):
@@ -565,6 +638,15 @@ await Transactions.updateStatus(transactionId, {
   status: 'commit',
   precise_amount: 50000,
   skip_queue: true,
+});
+```
+
+Pass `reference` to make a commit or void idempotent (Core 0.15.7+). Sending the same reference again returns the original result instead of applying it twice. Reusing it with a different amount is a conflict:
+
+```typescript
+await Transactions.updateStatus(transactionId, {
+  status: 'commit',
+  reference: 'commit_order_8812',
 });
 ```
 

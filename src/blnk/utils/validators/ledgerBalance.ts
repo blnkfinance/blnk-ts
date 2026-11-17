@@ -1,5 +1,6 @@
 import {
   AllocationStrategy,
+  BalanceInclude,
   CreateBalanceSnapshotRequest,
   CreateLedgerBalance,
   GetBalanceAtRequest,
@@ -138,8 +139,25 @@ export function ValidateGetBalance(data: GetBalanceRequest): null | string {
     return `with_queued must be a boolean if provided`;
   }
 
+  if (data.include !== undefined) {
+    if (!Array.isArray(data.include)) {
+      return `include must be an array if provided`;
+    }
+    for (const value of data.include) {
+      if (!BALANCE_INCLUDES.includes(value)) {
+        return `include values must be "identity" or "ledger"`;
+      }
+    }
+  }
+
   return null;
 }
+
+/** Values Core expands on `GET /balances/{balance_id}`. */
+export const BALANCE_INCLUDES: readonly BalanceInclude[] = [
+  `identity`,
+  `ledger`,
+];
 
 export function ValidateGetBalanceAt(data: GetBalanceAtRequest): null | string {
   if (!data || typeof data !== `object`) {

@@ -105,18 +105,21 @@ export class LedgerBalances {
   /**
    * Retrieves a balance by its ID.
    *
-   * Pass `{ from_source: true }` to reconstruct the balance from transactions
-   * instead of snapshots (`GET /balances/{balance_id}?from_source=true`).
+   * Pass `{ include: ['identity', 'ledger'] }` to embed the balance's
+   * identity and ledger in the response
+   * (`GET /balances/{balance_id}?include=identity&include=ledger`).
    * Pass `{ with_queued: true }` to include queued credit and debit balances
    * (`GET /balances/{balance_id}?with_queued=true`).
    *
-   * @see https://docs.blnkfinance.com/reference/balance-from-source
+   * `from_source` is deprecated: Core ignores it on this route. It is still
+   * sent when set, so existing calls behave the same.
    *
    * @example
    * const response = await ledgerBalances.get(
    *   'bln_5ce86029-3c2e-4e2a-aae2-7fb931ca4c4f',
-   *   { from_source: true },
+   *   { include: ['identity'] },
    * );
+   * response.data?.identity?.first_name;
    */
   async get<T extends Record<string, unknown>>(
     id: string,
@@ -137,6 +140,9 @@ export class LedgerBalances {
       }
       if (options?.with_queued) {
         queryParams.push(`with_queued=true`);
+      }
+      for (const include of new Set(options?.include ?? [])) {
+        queryParams.push(`include=${encodeURIComponent(include)}`);
       }
       if (queryParams.length > 0) {
         endpoint += `?${queryParams.join(`&`)}`;

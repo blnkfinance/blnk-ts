@@ -62,6 +62,14 @@ export interface CreateTransactions<T extends Record<string, unknown>> {
   atomic?: boolean;
   allow_overdraft?: boolean;
   /**
+   * Maximum overdraft in major units (same units as `amount`) when
+   * `allow_overdraft` is true. The source balance may go down to
+   * `-overdraft_limit`. Omit or `0` allows an unlimited overdraft.
+   *
+   * @see https://docs.blnkfinance.com/transactions/overdrafts
+   */
+  overdraft_limit?: number;
+  /**
    * Preview the post without writing. Default: `false`.
    * Pass `dry_run: true` (or use `DryRun<CreateTransactions<T>>`) to get
    * HTTP 200 and a `TransactionPreview` instead of a posted transaction.
@@ -177,6 +185,12 @@ export type UpdateTransactionStatus<T extends Record<string, unknown>> = {
   meta_data?: T;
   /** Process synchronously without queuing. Default: `false` (Core 0.15.0 queues commit/void). */
   skip_queue?: boolean;
+  /**
+   * Idempotency key for this commit or void (Core 0.15.7+). Repeating a
+   * request with the same reference returns the original result instead of
+   * applying it again. Reusing it with a different amount is a conflict.
+   */
+  reference?: string;
   /**
    * Preview commit/void without settling the hold. Default: `false`.
    * Pass `dry_run: true` (or use `DryRun<UpdateTransactionStatus<T>>`) to get
