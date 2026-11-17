@@ -607,6 +607,14 @@ export function ValidateUpdateTransactions<T extends Record<string, unknown>>(
     return `reference must be a non-empty string if provided.`;
   }
 
+  // Core compares the key exactly, so "ref" and "ref " would be two keys.
+  if (
+    data.reference !== undefined &&
+    data.reference !== data.reference.trim()
+  ) {
+    return `reference must not have leading or trailing whitespace.`;
+  }
+
   const allowedFields = [
     `status`,
     `amount`,

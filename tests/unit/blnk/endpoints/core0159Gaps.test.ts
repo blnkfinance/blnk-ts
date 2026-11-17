@@ -324,6 +324,32 @@ tap.test(`inflight commit and void reference (gap 3)`, async t => {
     );
   }
 
+  for (const padded of [` ref`, `ref `, `\tref`, `ref\n`]) {
+    t.test(
+      `updateStatus rejects padded reference ${JSON.stringify(padded)}`,
+      async tt =>
+        withRecorder(tt, async r => {
+          const res = await r.blnk.Transactions.updateStatus(`txn_1`, {
+            status: `commit`,
+            reference: padded,
+          });
+          tt.equal(res.status, 400);
+          tt.match(res.message, /leading or trailing whitespace/);
+          tt.same(r.requests, []);
+        }),
+    );
+  }
+
+  t.test(`updateStatus keeps inner spaces in a reference`, async tt =>
+    withRecorder(tt, async r => {
+      await r.blnk.Transactions.updateStatus(`txn_1`, {
+        status: `commit`,
+        reference: `order 8812`,
+      });
+      tt.same(r.requests[0].body, {status: `commit`, reference: `order 8812`});
+    }),
+  );
+
   t.test(`updateStatus rejects a non-string reference`, async tt =>
     withRecorder(tt, async r => {
       const res = await r.blnk.Transactions.updateStatus(`txn_1`, {

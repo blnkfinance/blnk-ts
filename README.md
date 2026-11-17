@@ -657,7 +657,7 @@ await Transactions.updateStatus(transactionId, {
 });
 ```
 
-Pass `reference` to make a commit or void idempotent (Core 0.15.7+). Sending the same reference again returns the original result instead of applying it twice. Reusing it with a different amount is a conflict:
+Pass `reference` to make a commit or void idempotent (Core 0.15.7+). Sending the same reference again returns the original result instead of applying it twice. Reusing it with a different amount is a conflict. Core compares the reference exactly, so the SDK rejects a blank reference or one with leading or trailing whitespace:
 
 ```typescript
 await Transactions.updateStatus(transactionId, {

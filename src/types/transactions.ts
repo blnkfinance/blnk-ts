@@ -189,6 +189,8 @@ export type UpdateTransactionStatus<T extends Record<string, unknown>> = {
    * Idempotency key for this commit or void (Core 0.15.7+). Repeating a
    * request with the same reference returns the original result instead of
    * applying it again. Reusing it with a different amount is a conflict.
+   * Must not be blank or have leading or trailing whitespace: Core compares
+   * it exactly, so `"ref"` and `"ref "` would be different keys.
    */
   reference?: string;
   /**
