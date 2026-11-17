@@ -25,6 +25,7 @@ import {
 } from "../../types/transactions";
 import {ListOptions} from "../../types/list";
 import {HandleError} from "../utils/logger";
+import {endpointPath, pathReference} from "../utils/pathSegment";
 import {serializeCreateTransaction} from "../utils/transactionSerialization";
 import {
   ListOptionsQueryString,
@@ -193,7 +194,7 @@ export class Transactions {
       const response = await this.request<
         MaybeDryRun<UpdateTransactionStatus<T>>,
         CreateTransactionResponse<T> | TransactionPreview
-      >(`transactions/inflight/${id}`, update, `PUT`);
+      >(endpointPath`transactions/inflight/${id}`, update, `PUT`);
       return response;
     } catch (error: unknown) {
       return HandleError(
@@ -253,7 +254,7 @@ export class Transactions {
       const response = await this.request<
         MaybeDryRun<RefundTransactionRequest> | null,
         CreateTransactionResponse<T> | TransactionPreview
-      >(`refund-transaction/${id}`, options ?? null, `POST`);
+      >(endpointPath`refund-transaction/${id}`, options ?? null, `POST`);
       return response;
     } catch (error: unknown) {
       return HandleError(
@@ -335,7 +336,7 @@ export class Transactions {
       const response = await this.request<
         undefined,
         CreateTransactionResponse<T>
-      >(`transactions/${transactionId}`, undefined, `GET`);
+      >(endpointPath`transactions/${transactionId}`, undefined, `GET`);
       return response;
     } catch (error: unknown) {
       return HandleError(
@@ -397,7 +398,7 @@ export class Transactions {
         undefined,
         CreateTransactionResponse<T>
       >(
-        `transactions/reference/${encodeURIComponent(reference)}`,
+        `transactions/reference/${pathReference(reference, `reference`)}`,
         undefined,
         `GET`,
       );
@@ -429,7 +430,7 @@ export class Transactions {
       const response = await this.request<
         undefined,
         TransactionLineageResponse<T>
-      >(`transactions/${transactionId}/lineage`, undefined, `GET`);
+      >(endpointPath`transactions/${transactionId}/lineage`, undefined, `GET`);
       return response;
     } catch (error: unknown) {
       return HandleError(

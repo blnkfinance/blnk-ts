@@ -3,6 +3,7 @@ import {BlnkRequest, FormatResponseType} from "../../types/general";
 import {CreateLedger, CreateLedgerResp, UpdateLedger} from "../../types/ledger";
 import {ListOptions} from "../../types/list";
 import {HandleError} from "../utils/logger";
+import {endpointPath} from "../utils/pathSegment";
 import {
   ValidateCreateLedger,
   ValidateUpdateLedger,
@@ -85,11 +86,20 @@ export class Ledgers {
   }
 
   async get<T extends Record<string, unknown>>(id: string) {
-    return await this.request<undefined, CreateLedgerResp<T>>(
-      `ledgers/${id}`,
-      undefined,
-      `GET`,
-    );
+    try {
+      return await this.request<undefined, CreateLedgerResp<T>>(
+        endpointPath`ledgers/${id}`,
+        undefined,
+        `GET`,
+      );
+    } catch (error: unknown) {
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        this.get.name,
+      );
+    }
   }
 
   /**
@@ -151,7 +161,7 @@ export class Ledgers {
       }
 
       const response = await this.request<UpdateLedger, CreateLedgerResp<T>>(
-        `ledgers/${id}`,
+        endpointPath`ledgers/${id}`,
         data,
         `PUT`,
       );

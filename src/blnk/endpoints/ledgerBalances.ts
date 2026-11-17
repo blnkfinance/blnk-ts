@@ -14,6 +14,7 @@ import {
 } from "../../types/ledgerBalances";
 import {ListOptions} from "../../types/list";
 import {HandleError} from "../utils/logger";
+import {endpointPath} from "../utils/pathSegment";
 import {
   ValidateCreateBalanceSnapshot,
   ValidateCreateLedgerBalance,
@@ -129,7 +130,7 @@ export class LedgerBalances {
         }
       }
 
-      let endpoint = `balances/${id}`;
+      let endpoint = endpointPath`balances/${id}`;
       const queryParams: string[] = [];
       if (options?.from_source) {
         queryParams.push(`from_source=true`);
@@ -210,7 +211,7 @@ export class LedgerBalances {
         undefined,
         CreateLedgerBalanceResp<T>
       >(
-        `balances/indicator/${encodeURIComponent(indicator)}/currency/${encodeURIComponent(currency)}`,
+        endpointPath`balances/indicator/${indicator}/currency/${currency}`,
         undefined,
         `GET`,
       );
@@ -251,7 +252,7 @@ export class LedgerBalances {
       const response = await this.request<
         UpdateBalanceIdentity,
         UpdateBalanceIdentityResponse
-      >(`balances/${balanceId}/identity`, data, `PUT`);
+      >(endpointPath`balances/${balanceId}/identity`, data, `PUT`);
 
       return response;
     } catch (error: unknown) {
@@ -325,7 +326,7 @@ export class LedgerBalances {
         return this.formatResponse(400, error, null);
       }
 
-      let endpoint = `balances/${balanceId}/at?timestamp=${encodeURIComponent(options.timestamp)}`;
+      let endpoint = `${endpointPath`balances/${balanceId}/at`}?timestamp=${encodeURIComponent(options.timestamp)}`;
       if (options.from_source) {
         endpoint += `&from_source=true`;
       }
@@ -364,7 +365,7 @@ export class LedgerBalances {
       }
 
       const response = await this.request<undefined, BalanceLineageResponse>(
-        `balances/${balanceId}/lineage`,
+        endpointPath`balances/${balanceId}/lineage`,
         undefined,
         `GET`,
       );

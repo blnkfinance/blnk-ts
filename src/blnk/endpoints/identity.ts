@@ -14,6 +14,7 @@ import {
   TokenizeIdentityResp,
 } from "../../types/identity";
 import {HandleError} from "../utils/logger";
+import {endpointPath} from "../utils/pathSegment";
 import {serializeIdentityData} from "../utils/identitySerialization";
 import {
   ValidateDetokenizeIdentityData,
@@ -108,7 +109,7 @@ export class Identity {
   async get<T extends Record<string, unknown>>(id: string) {
     try {
       const response = await this.request<null, IdentityDataResponse<T>>(
-        `identities/${id}`,
+        endpointPath`identities/${id}`,
         null,
         `GET`,
       );
@@ -190,7 +191,7 @@ export class Identity {
       const response = await this.request<
         IdentityData<T>,
         IdentityDataResponse<T>
-      >(`identities/${id}`, payload, `PUT`);
+      >(endpointPath`identities/${id}`, payload, `PUT`);
       return response;
     } catch (error: unknown) {
       return HandleError(
@@ -215,7 +216,7 @@ export class Identity {
       }
 
       const response = await this.request<undefined, DeleteIdentityResp>(
-        `identities/${encodeURIComponent(id)}`,
+        endpointPath`identities/${id}`,
         undefined,
         `DELETE`,
       );
@@ -244,7 +245,7 @@ export class Identity {
       }
 
       const response = await this.request<null, GetTokenizedFieldsResp>(
-        `identities/${id}/tokenized-fields`,
+        endpointPath`identities/${id}/tokenized-fields`,
         null,
         `GET`,
       );
@@ -273,7 +274,7 @@ export class Identity {
       }
 
       const response = await this.request<null, TokenizeIdentityFieldResp>(
-        `identities/${id}/tokenize/${field}`,
+        endpointPath`identities/${id}/tokenize/${field}`,
         null,
         `POST`,
       );
@@ -304,7 +305,7 @@ export class Identity {
       const response = await this.request<
         TokenizeIdentityData,
         TokenizeIdentityResp
-      >(`identities/${id}/tokenize`, data, `POST`);
+      >(endpointPath`identities/${id}/tokenize`, data, `POST`);
 
       return response;
     } catch (error: unknown) {
@@ -330,7 +331,7 @@ export class Identity {
       }
 
       const response = await this.request<null, DetokenizeIdentityFieldResp>(
-        `identities/${id}/detokenize/${field}`,
+        endpointPath`identities/${id}/detokenize/${field}`,
         null,
         `GET`,
       );
@@ -363,7 +364,7 @@ export class Identity {
       const response = await this.request<
         DetokenizeIdentityData,
         DetokenizeIdentityResp
-      >(`identities/${id}/detokenize`, data, `POST`);
+      >(endpointPath`identities/${id}/detokenize`, data, `POST`);
 
       return response;
     } catch (error: unknown) {

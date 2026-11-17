@@ -2,6 +2,7 @@ import {ReadStream} from "fs";
 import {BlnkLogger} from "../../types/blnkClient";
 import {BlnkRequest, FormatResponseType} from "../../types/general";
 import {HandleError} from "../utils/logger";
+import {endpointPath} from "../utils/pathSegment";
 import fs from "fs";
 import {
   DeleteMatchingRuleResp,
@@ -171,7 +172,7 @@ export class Reconciliation {
       }
 
       const response = await this.request<Matcher, MatchingRuleResp>(
-        `reconciliation/matching-rules/${ruleId}`,
+        endpointPath`reconciliation/matching-rules/${ruleId}`,
         data,
         `PUT`,
       );
@@ -199,7 +200,7 @@ export class Reconciliation {
       }
 
       const response = await this.request<undefined, DeleteMatchingRuleResp>(
-        `reconciliation/matching-rules/${ruleId}`,
+        endpointPath`reconciliation/matching-rules/${ruleId}`,
         undefined,
         `DELETE`,
       );
@@ -291,7 +292,7 @@ export class Reconciliation {
       }
 
       const response = await this.request<undefined, ReconciliationResp>(
-        `reconciliation/${reconciliationId}`,
+        endpointPath`reconciliation/${reconciliationId}`,
         undefined,
         `GET`,
       );

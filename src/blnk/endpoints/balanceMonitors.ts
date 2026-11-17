@@ -6,6 +6,7 @@ import {
 import {BlnkLogger} from "../../types/blnkClient";
 import {BlnkRequest, FormatResponseType} from "../../types/general";
 import {HandleError} from "../utils/logger";
+import {endpointPath} from "../utils/pathSegment";
 import {
   ValidateBalanceId,
   ValidateMonitorData,
@@ -99,7 +100,7 @@ export class BalanceMonitor {
   async get(id: string) {
     try {
       const response = await this.request<undefined, MonitorDataResp>(
-        `balance-monitors/${id}`,
+        endpointPath`balance-monitors/${id}`,
         undefined,
         `GET`,
       );
@@ -158,7 +159,7 @@ export class BalanceMonitor {
       }
 
       const response = await this.request<undefined, MonitorDataResp[]>(
-        `balance-monitors/balances/${encodeURIComponent(balanceId)}`,
+        endpointPath`balance-monitors/balances/${balanceId}`,
         undefined,
         `GET`,
       );
@@ -200,7 +201,7 @@ export class BalanceMonitor {
         return this.formatResponse(400, validatorResponse, null);
       }
       const response = await this.request<MonitorData, MonitorDataResp>(
-        `balance-monitors/${id}`,
+        endpointPath`balance-monitors/${id}`,
         data,
         `PUT`,
       );
@@ -228,7 +229,7 @@ export class BalanceMonitor {
       }
 
       const response = await this.request<undefined, DeleteBalanceMonitorResp>(
-        `balance-monitors/${encodeURIComponent(id)}`,
+        endpointPath`balance-monitors/${id}`,
         undefined,
         `DELETE`,
       );

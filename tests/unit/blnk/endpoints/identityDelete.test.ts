@@ -44,11 +44,15 @@ tap.test(`Issue #116 — Identity.delete`, async t => {
     const capturedRequest = tt.captureFn(thirdPartyRequest);
     const identity = new Identity(capturedRequest, mockLogger, FormatResponse);
 
-    await identity.delete(`idt_test/special`);
+    await identity.delete(`idt_test special`);
 
     tt.match(capturedRequest.args(), [
-      [`identities/idt_test%2Fspecial`, undefined, `DELETE`],
+      [`identities/idt_test%20special`, undefined, `DELETE`],
     ]);
+
+    const rejected = await identity.delete(`idt_test/special`);
+    tt.equal(rejected.status, 400);
+    tt.equal(capturedRequest.calls.length, 1);
     tt.end();
   });
 

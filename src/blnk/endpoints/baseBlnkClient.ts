@@ -159,11 +159,22 @@ export class Blnk {
 
     type FetchInitWithDuplex = RequestInit & {duplex?: `half`};
 
-    const url = buildBlnkRequestUrl(
-      this.options.baseUrl,
-      endpoint,
-      this.options.instanceId,
-    );
+    let url: string;
+    try {
+      url = buildBlnkRequestUrl(
+        this.options.baseUrl,
+        endpoint,
+        this.options.instanceId,
+      );
+    } catch (error: unknown) {
+      // Nothing is sent when the URL cannot be built safely.
+      return HandleError(
+        error,
+        this.logger,
+        this.formatResponse,
+        `${this.request.name}`,
+      );
+    }
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       if (attempt > 1) {

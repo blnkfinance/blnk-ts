@@ -4,6 +4,7 @@ import {
   buildBlnkRequestUrl,
   normalizeInstanceId,
 } from "../../../../src/blnk/utils/proxyRequestUrl";
+import {InvalidPathSegmentError} from "../../../../src/blnk/utils/pathSegment";
 import {DEFAULT_CLOUD_API_BASE_URL} from "../../../../src/blnk/constants/clientDefaults";
 
 tap.test(`normalizeInstanceId`, t => {
@@ -111,5 +112,47 @@ tap.test(`buildBlnkRequestUrl`, t => {
     tt.end();
   });
 
+  t.end();
+});
+
+tap.test(`buildBlnkRequestUrl refuses paths that leave the base`, t => {
+  const bases: [string, string | undefined][] = [
+    [`http://mock-api.com/`, undefined],
+    [`http://mock-api.com/api/`, undefined],
+    [`http://mock-api.com/`, `instance_1`],
+    [`http://mock-api.com/proxy/`, `instance_1`],
+  ];
+  const endpoints = [
+    `ledgers/../backup`,
+    `ledgers/%2e%2e/%2e%2e/secret`,
+    `ledgers/%2E%2E`,
+    `ledgers/..%2Fbackup`,
+    `ledgers/.`,
+    `../api-keys/x`,
+  ];
+  for (const [base, instanceId] of bases) {
+    for (const endpoint of endpoints) {
+      t.throws(
+        () => buildBlnkRequestUrl(base, endpoint, instanceId),
+        InvalidPathSegmentError,
+        `${base} ${instanceId ?? `core`} ${endpoint}`,
+      );
+    }
+  }
+
+  t.throws(
+    () =>
+      buildBlnkRequestUrl(
+        `http://mock-api.com/proxy/`,
+        `http://evil.example/x`,
+        `instance_1`,
+      ),
+    /escapes the API base/,
+  );
+  t.equal(
+    buildBlnkRequestUrl(`http://mock-api.com/`, `//evil.example/x`, `inst`),
+    `http://mock-api.com/proxy/evil.example/x?instance_id=inst`,
+    `protocol-relative path stays under /proxy/`,
+  );
   t.end();
 });

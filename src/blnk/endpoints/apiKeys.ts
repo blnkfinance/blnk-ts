@@ -7,6 +7,7 @@ import {
 } from "../../types/apiKeys";
 import {BlnkRequest, FormatResponseType} from "../../types/general";
 import {HandleError} from "../utils/logger";
+import {endpointPath} from "../utils/pathSegment";
 import {
   ValidateCreateApiKeyData,
   ValidateDeleteApiKeyOptions,
@@ -110,7 +111,7 @@ export class ApiKeys {
         return this.formatResponse(400, validatorResponse, null);
       }
 
-      let endpoint = `api-keys/${encodeURIComponent(id)}`;
+      let endpoint = endpointPath`api-keys/${id}`;
       if (options?.owner !== undefined) {
         endpoint += `?owner=${encodeURIComponent(options.owner)}`;
       }

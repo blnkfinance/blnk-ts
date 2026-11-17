@@ -255,18 +255,35 @@ tap.test(`Issue #38 — ApiKeys.delete`, async t => {
     const capturedRequest = tt.captureFn(thirdPartyRequest);
     const apiKeys = new ApiKeys(capturedRequest, mockLogger, FormatResponse);
 
-    const response = await apiKeys.delete(`api/key?id=1`, {
+    const response = await apiKeys.delete(`api key+1`, {
       owner: `merchant a&role=admin`,
     });
 
     tt.match(capturedRequest.args(), [
       [
-        `api-keys/${encodeURIComponent(`api/key?id=1`)}?owner=${encodeURIComponent(`merchant a&role=admin`)}`,
+        `api-keys/api%20key%2B1?owner=${encodeURIComponent(`merchant a&role=admin`)}`,
         undefined,
         `DELETE`,
       ],
     ]);
     tt.equal(response.status, 204);
+    tt.end();
+  });
+
+  t.test(`delete rejects an id that would change the path`, async tt => {
+    const mockLogger = createMockLogger();
+    const thirdPartyRequest = async <R>() => ({
+      status: 204,
+      message: `Success`,
+      data: null as R | null,
+    });
+    const capturedRequest = tt.captureFn(thirdPartyRequest);
+    const apiKeys = new ApiKeys(capturedRequest, mockLogger, FormatResponse);
+
+    const response = await apiKeys.delete(`api/key?id=1`);
+
+    tt.equal(capturedRequest.calls.length, 0);
+    tt.equal(response.status, 400);
     tt.end();
   });
 
