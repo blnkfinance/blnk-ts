@@ -52,15 +52,11 @@ tap.test(`Issue #120 — BalanceMonitor.delete`, async t => {
       FormatResponse,
     );
 
-    await balanceMonitor.delete(`mon_test special`);
+    await balanceMonitor.delete(`mon_test/special`);
 
     tt.match(capturedRequest.args(), [
-      [`balance-monitors/mon_test%20special`, undefined, `DELETE`],
+      [`balance-monitors/mon_test%2Fspecial`, undefined, `DELETE`],
     ]);
-
-    const rejected = await balanceMonitor.delete(`mon_test/special`);
-    tt.equal(rejected.status, 400);
-    tt.equal(capturedRequest.calls.length, 1);
     tt.end();
   });
 

@@ -14,10 +14,9 @@ export class InvalidPathSegmentError extends Error {
   }
 }
 
-// `/ \ ? # %` change how the path is parsed or decoded; control characters
-// (including CR and LF) have no place in a resource ID.
+// Control characters (including CR and LF) have no place in a resource ID.
 // eslint-disable-next-line no-control-regex
-const FORBIDDEN_SEGMENT_CHARS = /[/\\?#%\u0000-\u001f\u007f]/;
+const CONTROL_CHARS = /[\u0000-\u001f\u007f]/;
 
 function describe(name: string | undefined): string {
   return name ?? `path segment`;
@@ -37,44 +36,72 @@ function isDotSegment(segment: string): boolean {
   return segment === `.` || segment === `..`;
 }
 
-/**
- * Validates and escapes one path segment.
- *
- * Throws {@link InvalidPathSegmentError} when the value is empty, `.` or
- * `..`, or contains `/ \ ? # %` or a control character. Everything else is
- * passed through `encodeURIComponent`.
- */
-export function pathSegment(value: unknown, name?: string): string {
-  const segment = assertString(value, name);
-  if (isDotSegment(segment)) {
-    throw new InvalidPathSegmentError(
-      `${describe(name)} cannot be "." or ".."`,
-    );
-  }
-  if (FORBIDDEN_SEGMENT_CHARS.test(segment)) {
-    throw new InvalidPathSegmentError(
-      `${describe(name)} contains a character that is not allowed in a URL path (/ \\ ? # % or a control character)`,
-    );
-  }
-  return encodeURIComponent(segment);
-}
+const MAX_DECODE_ROUNDS = 5;
+const ASCII_ESCAPE = /%([0-7][0-9a-fA-F])/g;
 
 /**
- * Escapes a free-form value, such as a transaction reference, as one path
- * segment.
- *
- * `/` and `%` are escaped rather than rejected because references may contain
- * them. Empty values, and values with a `.` or `..` part, are rejected,
- * because escaping leaves dots unchanged.
+ * Decodes ASCII percent-escapes until the value stops changing, so `%2e`,
+ * `%2E` and `%252e` are all seen as `.` and `%2F` as `/`. Anything else,
+ * including a literal `%` as in `100%`, is left as it is, so a malformed
+ * escape elsewhere in the value cannot stop the check early.
  */
-export function pathReference(value: unknown, name?: string): string {
-  const reference = assertString(value, name);
-  if (reference.split(/[/\\]/).some(isDotSegment)) {
+function decodeRepeatedly(value: string): string {
+  let decoded = value;
+  for (let i = 0; i < MAX_DECODE_ROUNDS; i++) {
+    const next = decoded.replace(ASCII_ESCAPE, (_, hex: string) =>
+      String.fromCharCode(parseInt(hex, 16)),
+    );
+    if (next === decoded) {
+      return decoded;
+    }
+    decoded = next;
+  }
+  return decoded;
+}
+
+/** True when the value, once decoded, has a `.` or `..` part. */
+function hasDotSegment(value: string): boolean {
+  return decodeRepeatedly(value).split(/[/\\]/).some(isDotSegment);
+}
+
+function escapeSegment(value: string, name: string | undefined): string {
+  if (hasDotSegment(value)) {
     throw new InvalidPathSegmentError(
       `${describe(name)} cannot contain "." or ".." path segments`,
     );
   }
-  return encodeURIComponent(reference);
+  return encodeURIComponent(value);
+}
+
+/**
+ * Validates and escapes one path segment, such as a resource ID, balance
+ * indicator, currency or field name.
+ *
+ * Reserved characters (`/ ? # % \` and so on) are percent-encoded, so
+ * `@user/name` is sent as `%40user%2Fname` and stays one segment.
+ *
+ * Throws {@link InvalidPathSegmentError} when the value is empty, contains a
+ * control character, or has a `.` or `..` part once percent-decoded (`..`,
+ * `../backup`, `%2e%2e`, `a/../b`). Escaping cannot neutralise those, because
+ * `encodeURIComponent` leaves dots unchanged and servers decode `%2F`.
+ */
+export function pathSegment(value: unknown, name?: string): string {
+  const segment = assertString(value, name);
+  if (CONTROL_CHARS.test(segment)) {
+    throw new InvalidPathSegmentError(
+      `${describe(name)} cannot contain control characters`,
+    );
+  }
+  return escapeSegment(segment, name);
+}
+
+/**
+ * Escapes a free-form value, such as a transaction reference, as one path
+ * segment. Same as {@link pathSegment}, except control characters are
+ * escaped rather than rejected, as they were before.
+ */
+export function pathReference(value: unknown, name?: string): string {
+  return escapeSegment(assertString(value, name), name);
 }
 
 /**
@@ -95,27 +122,6 @@ export function endpointPath(
   return path;
 }
 
-const MAX_DECODE_ROUNDS = 5;
-
-function decodePath(path: string): string {
-  let decoded = path;
-  for (let i = 0; i < MAX_DECODE_ROUNDS; i++) {
-    let next: string;
-    try {
-      next = decodeURIComponent(decoded);
-    } catch {
-      throw new InvalidPathSegmentError(
-        `request path contains malformed percent-encoding`,
-      );
-    }
-    if (next === decoded) {
-      return decoded;
-    }
-    decoded = next;
-  }
-  return decoded;
-}
-
 /**
  * Rejects an endpoint whose path, once percent-decoded, contains a `.` or
  * `..` segment. This catches `%2e%2e` and `..%2F`, which a decoding proxy or
@@ -123,7 +129,7 @@ function decodePath(path: string): string {
  */
 export function assertNoDotSegments(endpoint: string): void {
   const path = endpoint.split(/[?#]/, 1)[0];
-  if (decodePath(path).split(/[/\\]/).some(isDotSegment)) {
+  if (hasDotSegment(path)) {
     throw new InvalidPathSegmentError(
       `request path escapes the API base: dot segments are not allowed`,
     );

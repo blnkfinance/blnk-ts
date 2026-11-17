@@ -278,15 +278,30 @@ const HOSTILE_IDS = [
   `%2E%2E`,
   `..%2Fbackup`,
   `ldg_1/../../backup`,
+  `ldg_1/./x`,
+  `%252e%252e/backup`,
+  `%2e%2e/%ZZ`,
+  `..%5Cbackup`,
   `.`,
   `..`,
-  `?`,
-  `ldg_1?x=1`,
-  `#`,
-  `\\`,
   `..\\backup`,
   `ldg_1\r\nX-Injected: 1`,
   ``,
+];
+
+/**
+ * User-controlled values with reserved characters that are not traversal.
+ * They must still reach Core, percent-encoded as one segment.
+ */
+const ENCODED_IDS: [string, string][] = [
+  [`@user/name`, `%40user%2Fname`],
+  [`USD/EUR`, `USD%2FEUR`],
+  [`a?b=c`, `a%3Fb%3Dc`],
+  [`a#b`, `a%23b`],
+  [`100%`, `100%25`],
+  [`a\\b`, `a%5Cb`],
+  [`ref.v1..2`, `ref.v1..2`],
+  [`a b+c&d`, `a%20b%2Bc%26d`],
 ];
 
 interface Target {
@@ -338,7 +353,7 @@ tap.test(`hostile IDs are rejected and nothing is sent`, async t => {
   }
 });
 
-tap.test(`scanner proof-of-concept calls send nothing`, async t => {
+tap.test(`proof-of-concept calls send nothing`, async t => {
   const rec = await startRecorder();
   t.teardown(() => rec.server.close());
   const core = client(rec.origin, TARGETS[0]);
@@ -412,6 +427,29 @@ tap.test(`valid IDs are unchanged on the wire`, async t => {
   );
 });
 
+tap.test(`reserved characters are encoded, not rejected`, async t => {
+  const rec = await startRecorder();
+  t.teardown(() => rec.server.close());
+
+  for (const target of TARGETS) {
+    const blnk = client(rec.origin, target);
+    for (const method of METHODS) {
+      for (const [value, encoded] of ENCODED_IDS) {
+        rec.requests.length = 0;
+        const res = await method.call(blnk, value);
+        const label = `${target.name} ${method.name}(${JSON.stringify(value)})`;
+        t.equal(res.status, 200, `${label} succeeds`);
+        t.same(
+          // A literal `?` only appears where the SDK adds a query string.
+          rec.requests.map(r => r.url.split(`?`)[0]),
+          [`${target.prefix}${method.validPath.replace(`ldg_123`, encoded)}`],
+          `${label} is sent as one encoded segment`,
+        );
+      }
+    }
+  }
+});
+
 tap.test(
   `Transactions.getByReference escapes free-form references`,
   async t => {
@@ -455,27 +493,29 @@ tap.test(`pathSegment`, t => {
   t.equal(pathSegment(`ldg_123`), `ldg_123`);
   t.equal(pathSegment(`@World`), `%40World`);
   t.equal(pathSegment(`a b`), `a%20b`);
+  for (const [value, encoded] of ENCODED_IDS) {
+    t.equal(pathSegment(value), encoded, JSON.stringify(value));
+  }
   t.throws(() => pathSegment(``, `ledger id`), /ledger id is required/);
   t.throws(() => pathSegment(undefined), /path segment must be a string/);
   t.throws(() => pathSegment(1), InvalidPathSegmentError);
-  for (const bad of [`.`, `..`]) {
-    t.throws(() => pathSegment(bad), /cannot be "\." or "\.\."/);
-  }
   for (const bad of [
-    `a/b`,
-    `a\\b`,
-    `a?b`,
-    `a#b`,
-    `a%2e`,
-    `a\nb`,
-    `a\u0000b`,
-    `a\u007fb`,
+    `.`,
+    `..`,
+    `../x`,
+    `x/./y`,
+    `x\\..`,
+    `%2e%2e`,
+    `%2E%2E/x`,
+    `%252e%252e`,
+    `..%2Fx`,
+    `..%5Cx`,
+    `%2e%2e/%ZZ`,
   ]) {
-    t.throws(
-      () => pathSegment(bad),
-      /not allowed in a URL path/,
-      JSON.stringify(bad),
-    );
+    t.throws(() => pathSegment(bad), /cannot contain "\." or "\.\."/, bad);
+  }
+  for (const bad of [`a\nb`, `a\r\nb`, `a\u0000b`, `a\u007fb`]) {
+    t.throws(() => pathSegment(bad), /control characters/, JSON.stringify(bad));
   }
   t.end();
 });
@@ -483,8 +523,9 @@ tap.test(`pathSegment`, t => {
 tap.test(`pathReference`, t => {
   t.equal(pathReference(`order/2025/%41`), `order%2F2025%2F%2541`);
   t.equal(pathReference(`ref.v1..2`), `ref.v1..2`);
+  t.equal(pathReference(`a\nb`), `a%0Ab`);
   t.throws(() => pathReference(``), /is required/);
-  for (const bad of [`.`, `..`, `../x`, `x/./y`, `x\\..`]) {
+  for (const bad of [`.`, `..`, `../x`, `x/./y`, `x\\..`, `%2e%2e`]) {
     t.throws(() => pathReference(bad), /cannot contain/, bad);
   }
   t.end();
@@ -514,7 +555,9 @@ tap.test(`assertNoDotSegments`, t => {
   ]) {
     t.throws(() => assertNoDotSegments(bad), /dot segments/, bad);
   }
-  t.throws(() => assertNoDotSegments(`ledgers/%E0%A4%A`), /malformed/);
+  t.doesNotThrow(() => assertNoDotSegments(`ledgers/100%25`));
+  t.doesNotThrow(() => assertNoDotSegments(`ledgers/%E0%A4%A`));
+  t.throws(() => assertNoDotSegments(`ledgers/%2e%2e/%ZZ`), /dot segments/);
   // Decoding stops after a fixed number of rounds.
   t.doesNotThrow(() => assertNoDotSegments(`ledgers/%2525252525252e`));
   t.end();

@@ -330,21 +330,17 @@ tap.test(`Ledger Balance Tests`, t => {
         mockLogger,
         FormatResponse,
       );
-      const indicator = `@user name`;
-      const currency = `USD+EUR`;
+      const indicator = `@user/name`;
+      const currency = `USD/EUR`;
       await ledgerBalance.getByIndicator(indicator, currency);
 
       tt.match(capturedRequest.args(), [
         [
-          `balances/indicator/%40user%20name/currency/USD%2BEUR`,
+          `balances/indicator/${encodeURIComponent(indicator)}/currency/${encodeURIComponent(currency)}`,
           undefined,
           `GET`,
         ],
       ]);
-
-      const rejected = await ledgerBalance.getByIndicator(`@user/name`, `USD`);
-      tt.equal(rejected.status, 400);
-      tt.equal(capturedRequest.calls.length, 1);
       tt.end();
     },
   );
