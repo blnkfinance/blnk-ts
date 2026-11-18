@@ -28,6 +28,13 @@ See the [Core changelog](https://docs.blnkfinance.com/changelog/blnk-core).
   `Search.filter` with `limit` and `offset`.
 - Resource IDs in request paths are validated and escaped before sending.
 
+## v1.6.0
+
+v1.6.0 adds Cloud Proxy support. Set `instanceId` on `BlnkClientOptions` to route
+Core requests through Blnk Cloud; each request includes `instance_id`. Use the
+Cloud API origin as `baseUrl` and a Cloud API key or OAuth token. Leave
+`instanceId` unset for direct Core clients.
+
 ## v1.5.0
 
 v1.5.0 targets **Blnk Core 0.15.4**. v1.4.0 shipped Core 0.15.3 parity; this release adds the full Core error catalogue, `Search.multiSearch`, and list methods for ledgers, balances, transactions, and monitors by balance id.
