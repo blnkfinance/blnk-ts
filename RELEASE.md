@@ -1,5 +1,40 @@
 # Release Notes
 
+## v1.7.0
+
+v1.7.0 targets **Blnk Core 0.15.9** and closes the remaining SDK gaps against
+that release. It adds monitor trigger and partial-update support, idempotency
+references for inflight decisions, overdraft limits, and expanded balance
+responses.
+
+See the [Core changelog](https://docs.blnkfinance.com/changelog/blnk-core).
+
+### Balance monitors
+
+- **`trigger`** — Set `edge` to notify when a condition becomes true, or `level`
+  to notify on every matching transaction. Core defaults to `edge`.
+- **`updatePartial`** — Update only the monitor fields provided. This requires
+  Core 0.15.9 or later; use the full update method against older Core.
+- Monitor responses include `condition_state` and the precise threshold value.
+
+### Transactions, balances, and identities
+
+- Pass a `reference` when committing or voiding an inflight transaction to make
+  repeated decisions idempotent. Blank or padded references are rejected.
+- Set a finite, non-negative `overdraft_limit` when creating a transaction.
+- Request embedded identity and ledger data with `LedgerBalances.get`'s
+  `include` option.
+- `Identity.list()` returns all identities. To page them, use
+  `Search.filter` with `limit` and `offset`.
+- Resource IDs in request paths are validated and escaped before sending.
+
+## v1.6.0
+
+v1.6.0 adds Cloud Proxy support. Set `instanceId` on `BlnkClientOptions` to route
+Core requests through Blnk Cloud; each request includes `instance_id`. Use the
+Cloud API origin as `baseUrl` and a Cloud API key or OAuth token. Leave
+`instanceId` unset for direct Core clients.
+
 ## v1.5.0
 
 v1.5.0 targets **Blnk Core 0.15.4**. v1.4.0 shipped Core 0.15.3 parity; this release adds the full Core error catalogue, `Search.multiSearch`, and list methods for ledgers, balances, transactions, and monitors by balance id.
