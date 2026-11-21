@@ -233,6 +233,27 @@ tap.test(`Blnk SDK tests`, t => {
     },
   );
 
+  t.test(`request sends precise_amount as a JSON number`, async tt => {
+    const capturedFetch = tt.captureFn(fetchMock.fetch);
+    const wireBlnk = new Blnk(
+      apiKey,
+      options,
+      mockServices,
+      FormatResponse,
+      capturedFetch,
+    );
+
+    await wireBlnk[`request`](
+      `transactions`,
+      {precise_amount: `1000000000000000001`, precision: 1},
+      `POST`,
+    );
+
+    const init = capturedFetch.calls[0]?.args[1] as RequestInit;
+    tt.equal(init.body, `{"precise_amount":1000000000000000001,"precision":1}`);
+    tt.end();
+  });
+
   t.test(
     `Issue #110 — returns success for 204 No Content without parsing JSON`,
     async tt => {

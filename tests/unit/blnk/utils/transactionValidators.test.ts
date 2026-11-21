@@ -315,6 +315,21 @@ tap.test(`Issue #42 — split-transaction validator`, t => {
     tt.end();
   });
 
+  t.test(`rejects a number precise_amount above MAX_SAFE_INTEGER`, tt => {
+    const data: CreateTransactions<Record<string, never>> = {
+      ...baseFields,
+      precise_amount: Number(`1000000000000000001`),
+      source: `bln_a`,
+      destination: `bln_b`,
+    };
+
+    tt.equal(
+      ValidateCreateTransactions(data),
+      `precise_amount must be a non-negative integer string or number.`,
+    );
+    tt.end();
+  });
+
   t.test(`rejects invalid precise_amount string values`, tt => {
     const data: CreateTransactions<Record<string, never>> = {
       ...baseFields,
@@ -917,6 +932,19 @@ tap.test(`Issue #45 — updateStatus precise_amount on partial commit`, t => {
     };
 
     tt.equal(ValidateUpdateTransactions(data), null);
+    tt.end();
+  });
+
+  t.test(`rejects a number precise_amount above MAX_SAFE_INTEGER`, tt => {
+    const data: UpdateTransactionStatus<Record<string, never>> = {
+      status: `commit`,
+      precise_amount: Number(`1000000000000000001`),
+    };
+
+    tt.equal(
+      ValidateUpdateTransactions(data),
+      `precise_amount must be a non-negative integer string or number.`,
+    );
     tt.end();
   });
 
