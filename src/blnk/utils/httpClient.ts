@@ -38,6 +38,34 @@ export function FormatResponse<T>(
   return {status, message, data};
 }
 
+const JSON_TOKEN = /"(?:[^"\\]|\\.)*"|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/g;
+const INTEGER = /^-?\d+$/;
+
+/**
+ * Parses JSON, keeping integers outside the safe range as `bigint`. Core
+ * serializes Go `*big.Int` fields as bare JSON numbers, which `JSON.parse`
+ * rounds. Out-of-range integers are quoted behind a per-call marker, so a
+ * string in the payload cannot be mistaken for one.
+ */
+export function parseJsonWithBigInt(text: string): unknown {
+  const id = Math.random().toString(36).slice(2);
+  const marker = `\0${id}`;
+
+  const marked = text.replace(JSON_TOKEN, token =>
+    token.startsWith(`"`) ||
+    !INTEGER.test(token) ||
+    Number.isSafeInteger(Number(token))
+      ? token
+      : `"\\u0000${id}${token}"`,
+  );
+
+  return JSON.parse(marked, (_key, value) =>
+    typeof value === `string` && value.startsWith(marker)
+      ? BigInt(value.slice(marker.length))
+      : value,
+  );
+}
+
 /** Reads a fetch response body as JSON, returning null for empty bodies. */
 export async function readResponseJsonBody(
   response: Response,
@@ -48,7 +76,7 @@ export async function readResponseJsonBody(
       return null;
     }
 
-    return JSON.parse(text);
+    return parseJsonWithBigInt(text);
   }
 
   if (typeof response.json === `function`) {
