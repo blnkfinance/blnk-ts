@@ -25,10 +25,10 @@ git clone https://github.com/blnkfinance/blnk && cd blnk
 Install the Blnk TypeScript SDK in your project:
 
 ```bash
-npm install @blnkfinance/blnk-typescript@1.7.0 --save
+npm install @blnkfinance/blnk-typescript@1.7.1 --save
 ```
 
-`v1.7.0` targets **Blnk Core 0.15.9**. Cloud proxy `instanceId` remains available. See [RELEASE.md](RELEASE.md) for monitor updates, inflight idempotency, overdraft limits, expanded balances, and Core compatibility details.
+`v1.7.1` targets **Blnk Core 0.15.9** and is licensed under Apache 2.0. Cloud proxy `instanceId` remains available. See [RELEASE.md](RELEASE.md) for monitor updates, inflight idempotency, overdraft limits, expanded balances, and Core compatibility details.
 
 ### Step 3: Setting Up Configuration
 
