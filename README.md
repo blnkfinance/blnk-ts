@@ -1340,3 +1340,7 @@ For more examples and advanced use cases, please refer to the [Examples Code](ht
 
 ### Issue Reporting
 If you encounter any issues, please [report them on GitHub](https://github.com/blnkfinance/blnk/issues).
+
+## License
+
+Apache 2.0. See [LICENSE](LICENSE).
