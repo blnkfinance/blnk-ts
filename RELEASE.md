@@ -1,5 +1,12 @@
 # Release Notes
 
+## v1.7.1
+
+v1.7.1 adds the Apache 2.0 license. The SDK code is unchanged from v1.7.0, and it still targets **Blnk Core 0.15.9**.
+
+- Ship the Apache 2.0 `LICENSE` file, added on main in #154. Earlier releases shipped without one.
+- Package metadata now declares `Apache-2.0`: `package.json` changed in #154, and `package-lock.json` in this release. Both said `MIT` before, but no license file backed that.
+
 ## v1.7.0
 
 v1.7.0 targets **Blnk Core 0.15.9** and closes the remaining SDK gaps against
